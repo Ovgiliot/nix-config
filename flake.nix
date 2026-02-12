@@ -3,12 +3,12 @@
 
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
-    
+
     home-manager = {
       url = "github:nix-community/home-manager";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    
+
     niri.url = "github:sodiboo/niri-flake";
 
     emacs-overlay.url = "github:nix-community/emacs-overlay";
@@ -17,14 +17,14 @@
       url = "github:noctalia-dev/noctalia-shell";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-  zen-browser = {
-    url = "github:0xc000022070/zen-browser-flake";
-    inputs = {
-      # IMPORTANT: To ensure compatibility with the latest Firefox version, use nixpkgs-unstable.
-      nixpkgs.follows = "nixpkgs";
-      home-manager.follows = "home-manager";
+
+    zen-browser = {
+      url = "github:0xc000022070/zen-browser-flake";
+      inputs = {
+        nixpkgs.follows = "nixpkgs";
+        home-manager.follows = "home-manager";
+      };
     };
-  };
   };
 
   outputs = { self, nixpkgs, home-manager, niri, zen-browser, emacs-overlay, ... }@inputs: {
@@ -35,8 +35,8 @@
         modules = [
           # Hardware configuration
           ./hosts/nixos/hardware-configuration.nix
-          
-          # Niri overlay for stable version
+
+          # Overlays and global config
           {
             nixpkgs.overlays = [
               niri.overlays.niri
@@ -45,15 +45,13 @@
 
             nixpkgs.config = {
               allowUnfree = true;
-              chromium = {
-                enableWideVine = true;
-              };
+              chromium.enableWideVine = true;
             };
           }
-          
-          # Niri window manager
+
+          # Window manager and services
           niri.nixosModules.niri
-          
+
           # System modules
           ./modules/system/boot.nix
           ./modules/system/networking.nix
@@ -61,8 +59,10 @@
           ./modules/system/desktop.nix
           ./modules/system/audio.nix
           ./modules/system/services.nix
-          
-          # Home manager
+          ./modules/system/input.nix
+          ./modules/system/nix.nix
+
+          # Home manager configuration
           home-manager.nixosModules.home-manager
           {
             home-manager.useGlobalPkgs = true;
@@ -71,7 +71,7 @@
             home-manager.extraSpecialArgs = { inherit inputs; };
             home-manager.backupFileExtension = "bak";
           }
-          
+
           # Host specific configuration
           ./hosts/nixos/configuration.nix
         ];

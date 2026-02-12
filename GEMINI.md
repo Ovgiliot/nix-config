@@ -9,11 +9,10 @@ This directory contains a NixOS configuration that leverages flakes and home-man
 
 **Architecture:**
 The configuration is structured modularly:
-- `configuration.nix`: Main system configuration (kept for compatibility with older NixOS setups).
 - `flake.nix`: The main entry point for the Nix flake, defining inputs and outputs (NixOS configurations, Home Manager configurations).
 - `hosts/`: Contains host-specific NixOS configurations (e.g., `nixos/configuration.nix` for a machine named 'nixos').
 - `modules/system/`: Contains reusable NixOS modules for various system aspects like boot, networking, desktop environment, audio, and services.
-- `home/`: Contains user-specific Home Manager configurations (e.g., `home/ovg/default.nix`, which often imports other user-specific config files like `vscode-admin.nix` or `web-apps.nix` for user 'ovg').
+- `home/`: Contains user-specific Home Manager configurations (e.g., `home/ovg/default.nix`, which often imports other user-specific config files like `web-apps.nix` for user 'ovg').
 
 ## Features
 
@@ -23,7 +22,6 @@ The configuration is structured modularly:
 - **KDE Plasma 6**: Full-featured desktop environment
 - **Niri**: Wayland compositor as alternative session (from nixpkgs)
 - **PipeWire**: Modern audio with ALSA, PulseAudio, and JACK support
-- **VS Code**: With optional admin/root launcher
 
 ## Building and Running
 

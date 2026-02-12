@@ -1,7 +1,7 @@
 { config, pkgs, inputs, lib, ... }:
 
 {
-  # X11 windowing system
+  # X11 windowing system (Keep for compatibility/drivers)
   services.xserver.enable = true;
 
   # Display Manager (Greetd with Autologin)
@@ -25,17 +25,19 @@
     package = pkgs.niri-unstable;
   };
 
-  # Neovim (system-wide) with lazy.nvim
-  programs.neovim = {
+  # XDG desktop portal for Wayland file pickers
+  xdg.portal = {
     enable = true;
-    defaultEditor = true;
-    viAlias = true;
-    vimAlias = true;
+    extraPortals = with pkgs; [ xdg-desktop-portal-gtk xdg-desktop-portal-wlr ];
+    config = {
+      common = {
+        default = [ "gtk" "wlr" ];
+      };
+    };
   };
 
   environment.systemPackages = with pkgs; [
-    btop # i need to nonitor the system
-    git
+    btop # system monitor
     gh
     ranger
     nodejs
@@ -46,25 +48,14 @@
     pkgs.nerd-fonts."symbols-only"
   ];
   
-  # Keyboard layout
-  services.xserver.xkb = {
-    layout = "us,ru";
-    variant = "";
-    options = "grp:alt_shift_toggle,caps:escape";
-  };
-
   # Chromium (needed for Widevine DRM for Apple Music web)
   programs.chromium.enable = true;
-
-  # System-wide Neovim config (XDG)
-  environment.etc."xdg/nvim/init.lua".source = ./nvim/init.lua;
 
   # Ensure /etc/xdg is part of config search path
   environment.sessionVariables.XDG_CONFIG_DIRS = lib.mkDefault "/etc/xdg";
 
   # Printing support
   services.printing.enable = true;
-
 
   # Security and polkit
   security.rtkit.enable = true;
