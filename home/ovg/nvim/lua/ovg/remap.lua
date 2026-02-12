@@ -64,13 +64,13 @@ vim.keymap.set("n", "<leader>gd", "<cmd>DiffviewOpen<cr>", { desc = "Diffview op
 vim.keymap.set("n", "<leader>gh", "<cmd>DiffviewFileHistory %<cr>", { desc = "File history" })
 
 -- Obsidian
-vim.keymap.set("n", "<leader>oo", "<cmd>ObsidianQuickSwitch<cr>", { desc = "Quick Switch" })
-vim.keymap.set("n", "<leader>on", "<cmd>ObsidianNew<cr>", { desc = "New Note" })
-vim.keymap.set("n", "<leader>os", "<cmd>ObsidianSearch<cr>", { desc = "Search Vault" })
-vim.keymap.set("n", "<leader>ot", "<cmd>ObsidianToday<cr>", { desc = "Today's Note" })
-vim.keymap.set("n", "<leader>oy", "<cmd>ObsidianYesterday<cr>", { desc = "Yesterday's Note" })
-vim.keymap.set("n", "<leader>om", "<cmd>ObsidianTomorrow<cr>", { desc = "Tomorrow's Note" })
-vim.keymap.set("n", "<leader>of", "<cmd>ObsidianFollowLink<cr>", { desc = "Follow Link" })
-vim.keymap.set("n", "<leader>ob", "<cmd>ObsidianBacklinks<cr>", { desc = "Backlinks" })
-vim.keymap.set("n", "<leader>oi", "<cmd>ObsidianTemplate<cr>", { desc = "Insert Template" })
+vim.keymap.set("n", "<leader>oo", "<cmd>Obsidian quick_switch<cr>", { desc = "Quick Switch" })
+vim.keymap.set("n", "<leader>on", "<cmd>Obsidian new<cr>", { desc = "New Note" })
+vim.keymap.set("n", "<leader>os", "<cmd>Obsidian search<cr>", { desc = "Search Vault" })
+vim.keymap.set("n", "<leader>ot", "<cmd>Obsidian today<cr>", { desc = "Today's Note" })
+vim.keymap.set("n", "<leader>oy", "<cmd>Obsidian yesterday<cr>", { desc = "Yesterday's Note" })
+vim.keymap.set("n", "<leader>om", "<cmd>Obsidian tomorrow<cr>", { desc = "Tomorrow's Note" })
+vim.keymap.set("n", "<leader>of", "<cmd>Obsidian follow<cr>", { desc = "Follow Link" })
+vim.keymap.set("n", "<leader>ob", "<cmd>Obsidian backlinks<cr>", { desc = "Backlinks" })
+vim.keymap.set("n", "<leader>oi", "<cmd>Obsidian template<cr>", { desc = "Insert Template" })
 

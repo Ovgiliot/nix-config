@@ -74,14 +74,14 @@ require("lazy").setup({
 				ui = {
 					enable = false,
 				},
+				legacy_commands = false,
 			})
 		end,
 	},
 	{
 		"github/copilot.vim",
-		event = "InsertEnter",
-	},
-	{
+	}
+	
 		"MeanderingProgrammer/render-markdown.nvim",
 		dependencies = { "nvim-treesitter/nvim-treesitter", "nvim-tree/nvim-web-devicons" },
 		opts = {},
