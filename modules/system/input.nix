@@ -18,6 +18,7 @@
     keyboards = {
       default = {
         configFile = ../../home/ovg/kanata.kbd;
+        devices = [ "/dev/input/by-path/platform-i8042-serio-0-event-kbd" ];
       };
     };
   };

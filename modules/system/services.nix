@@ -5,6 +5,9 @@
   services.power-profiles-daemon.enable = true;
   services.upower.enable = true;
 
+  # Improve boot time entropy generation
+  services.haveged.enable = true;
+
   # Essential system packages
   environment.systemPackages = with pkgs; [
     git
