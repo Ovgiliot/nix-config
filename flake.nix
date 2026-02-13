@@ -61,6 +61,7 @@
           ./modules/system/services.nix
           ./modules/system/power.nix
           ./modules/system/input.nix
+          ./modules/system/gaming.nix
           ./modules/system/nix.nix
 
           # Home manager configuration

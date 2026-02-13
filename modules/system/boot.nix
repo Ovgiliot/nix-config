@@ -5,8 +5,8 @@
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
 
-  # Use latest kernel
-  boot.kernelPackages = pkgs.linuxPackages_latest;
+  # Use Zen kernel for better responsiveness and gaming
+  boot.kernelPackages = pkgs.linuxPackages_zen;
 
   # LUKS encryption setup
   boot.initrd.luks.devices."luks-9de9918d-99aa-4f0d-8a35-22af09cf8049".device = 

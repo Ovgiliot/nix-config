@@ -60,4 +60,10 @@
   # Security and polkit
   security.rtkit.enable = true;
   security.polkit.enable = true;
+
+  # Hardware Graphics (OpenGL/Vulkan)
+  hardware.graphics = {
+    enable = true;
+    enable32Bit = true;
+  };
 }

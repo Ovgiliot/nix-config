@@ -22,6 +22,7 @@
     xwayland-satellite # For X11 app support in niri
     inputs.noctalia.packages.${pkgs.stdenv.hostPlatform.system}.default
     inputs.zen-browser.packages.${pkgs.stdenv.hostPlatform.system}.default
+    waybar
     wofi
     mako
     wl-clipboard
@@ -40,6 +41,8 @@
     obsidian
     thunar
     ghostty
+    linux-wallpaperengine
+    protontricks
   ];
 
   # Git configuration
@@ -80,10 +83,17 @@
     };
   };
 
+  programs.mangohud = {
+    enable = true;
+    enableSessionWide = false;
+  };
+
   # XDG Config Sources
   xdg.configFile."niri".source = ./niri;
   xdg.configFile."nvim".source = ./nvim;
   xdg.configFile."kanata/kanata.kbd".source = ./kanata.kbd;
   xdg.configFile."ghostty/config".source = ./ghostty/config;
   xdg.configFile."ghostty/shaders".source = ./ghostty/shaders;
+  xdg.configFile."waybar/config".source = ./waybar/config.jsonc;
+  xdg.configFile."waybar/style.css".source = ./waybar/style.css;
 }
