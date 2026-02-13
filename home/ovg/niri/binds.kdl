@@ -24,7 +24,7 @@ binds {
     Mod+B hotkey-overlay-title="Zen Browser" { spawn "zen"; }
 
     // NixOS maintenance (run in ghostty and keep output visible)
-    Mod+Shift+R hotkey-overlay-title="NixOS Rebuild" { spawn "ghostty" "--class=nixos-rebuild" "-e" "sh" "-c" "sudo nixos-rebuild switch --flake /home/ovg/dotfiles/nix#nixos; echo; read -n 1 -s -r -p 'Press any key to close'"; }
+    Mod+Shift+R hotkey-overlay-title="NixOS Rebuild" { spawn "ghostty" "--class=nixos-rebuild" "-e" "bash" "-c" "cd /home/ovg/dotfiles/nix && read -p 'Commit message: ' msg && if [ -n \"$msg\" ]; then git add . && git commit -m \"$msg\" && git push && sudo nixos-rebuild switch --flake .#nixos; else echo 'Aborting: Commit message required.'; fi; echo; read -n 1 -s -r -p 'Press any key to close'"; }
     Mod+Shift+U hotkey-overlay-title="Update + Rebuild NixOS" { spawn "ghostty" "--class=nixos-rebuild" "-e" "bash" "-c" "cd /home/ovg/dotfiles/nix && echo 'Updating flakes...' && nix flake update && echo 'Building preview...' && nixos-rebuild build --flake .#nixos && nix store diff-closures /run/current-system ./result && echo && read -p 'Apply updates? (y/N) ' -n 1 -r response && echo && if [ \"$response\" = \"y\" ] || [ \"$response\" = \"Y\" ]; then sudo nixos-rebuild switch --flake .#nixos; else echo 'Cancelled.'; git checkout flake.lock; fi; rm -f result; echo; read -n 1 -s -r -p 'Press any key to close'"; }
 
     // Use spawn-sh to run a shell command. Do this if you need pipes, multiple commands, etc.

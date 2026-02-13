@@ -15,6 +15,15 @@
 
   # XDG configuration
   xdg.enable = true;
+  xdg.desktopEntries.steam = {
+    name = "Steam";
+    exec = "steam -cef-disable-gpu -system-composer %U";
+    terminal = false;
+    icon = "steam";
+    type = "Application";
+    categories = [ "Network" "FileTransfer" "Game" ];
+    mimeType = [ "x-scheme-handler/steam" "x-scheme-handler/steamlink" ];
+  };
 
   # User packages - GUI applications and development tools
   home.packages = with pkgs; [

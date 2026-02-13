@@ -16,6 +16,12 @@ include "binds.kdl"
 // Start Waybar.
 spawn-at-startup "waybar"
 
+// Start XWayland satellite
+spawn-at-startup "xwayland-satellite"
+
+// Start Linux Wallpaper Engine
+spawn-at-startup "linux-wallpaperengine" "--silent" "--screen-root" "eDP-1" "2994243715"
+
 // Start Noctalia shell.
 // spawn-at-startup "noctalia-shell"
 
