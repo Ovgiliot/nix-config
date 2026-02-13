@@ -54,6 +54,14 @@ binds {
     XF86MonBrightnessUp allow-when-locked=true { spawn "brightnessctl" "--class=backlight" "set" "+10%"; }
     XF86MonBrightnessDown allow-when-locked=true { spawn "brightnessctl" "--class=backlight" "set" "10%-"; }
 
+    // ThinkPad specific Fn keys
+    XF86WLAN             { spawn-sh "nmcli radio wifi | grep -q enabled && nmcli radio wifi off || nmcli radio wifi on"; }
+    XF86Bluetooth        { spawn-sh "bluetoothctl show | grep -q 'Powered: yes' && bluetoothctl power off || bluetoothctl power on"; }
+    XF86Display          { spawn "niri" "msg" "action" "focus-monitor-next"; }
+    XF86Keyboard         { spawn "ghostty" "-e" "nvim" "/home/ovg/dotfiles/nix/home/ovg/kanata.kbd"; } // Mapping keyboard icon to config
+    XF86Messenger        { spawn "ghostty"; } // Often the "star" or "flower" key maps to this or Favorite
+    XF86Favorites        { spawn "fuzzel"; }
+
     // Open/close the Overview: a zoomed-out view of workspaces and windows.
     // You can also move the mouse into the top-left hot corner,
     // or do a four-finger swipe up on a touchpad.

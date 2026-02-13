@@ -10,7 +10,7 @@
     isNormalUser = true;
     shell = pkgs.fish;
     description = "ovg";
-    extraGroups = [ "networkmanager" "wheel" "input" "uinput" ];
+    extraGroups = [ "networkmanager" "wheel" "input" "uinput" "video" ];
     packages = with pkgs; [
       kdePackages.kate
     ];

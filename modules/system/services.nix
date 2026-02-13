@@ -1,10 +1,6 @@
 { config, pkgs, ... }:
 
 {
-  # Power management
-  services.power-profiles-daemon.enable = true;
-  services.upower.enable = true;
-
   # Improve boot time entropy generation
   services.haveged.enable = true;
 
@@ -21,4 +17,13 @@
   };
 
   services.blueman.enable = true;
+
+  # Firmware update service
+  services.fwupd.enable = true;
+
+  # SSD maintenance
+  services.fstrim.enable = true;
+
+  # zram for better performance on 8GB RAM
+  zramSwap.enable = true;
 }

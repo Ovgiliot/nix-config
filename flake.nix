@@ -59,6 +59,7 @@
           ./modules/system/desktop.nix
           ./modules/system/audio.nix
           ./modules/system/services.nix
+          ./modules/system/power.nix
           ./modules/system/input.nix
           ./modules/system/nix.nix
 

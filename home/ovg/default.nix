@@ -30,6 +30,9 @@
     gemini-cli
     jq
     kanata # For homerow mods
+    brightnessctl # For screen brightness control
+    swayidle # For idle management (screen dimming, locking)
+    swaylock # Screen locker
 
     # GUI applications
     playerctl # Required for media key bindings in Niri
