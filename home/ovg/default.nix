@@ -59,6 +59,15 @@
   };
 
   # Shell configuration
+  programs.fish = {
+    enable = true;
+    shellAliases = {
+      ll = "ls -la";
+      ".." = "cd ..";
+      clean-nix = "sudo nix-env -p /nix/var/nix/profiles/system --delete-generations +10 && sudo nix-collect-garbage -d";
+    };
+  };
+
   programs.bash = {
     enable = true;
     shellAliases = {

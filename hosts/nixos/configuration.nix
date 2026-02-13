@@ -3,9 +3,12 @@
 {
   imports = [ ];
 
+  programs.fish.enable = true;
+
   # User accounts
   users.users.ovg = {
     isNormalUser = true;
+    shell = pkgs.fish;
     description = "ovg";
     extraGroups = [ "networkmanager" "wheel" "input" "uinput" ];
     packages = with pkgs; [
