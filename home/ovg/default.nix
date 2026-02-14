@@ -53,87 +53,8 @@
     linux-wallpaperengine
     protontricks
 
-    (pkgs.writeShellScriptBin "wifi-menu" ''
-      wifi_list=$(nmcli -t -f "SSID,SECURITY,BARS,ACTIVE" device wifi list | sed 's/\\:/--/g')
-      formatted_list=$(echo "$wifi_list" | awk -F: '{
-          ssid=$1; security=$2; bars=$3; active=$4;
-          gsub(/--/, ":", ssid);
-          if (ssid == "") next;
-          if (active == "yes") printf "CONNECTED: %s (%s) %s\n", ssid, security, bars
-          else printf "%s (%s) %s\n", ssid, security, bars
-      }' | sort -u)
-      chosen=$(echo "$formatted_list" | wofi -dmenu -p "Wi-Fi Networks" -i)
-      if [ -n "$chosen" ]; then
-          if [[ "$chosen" == CONNECTED:* ]]; then
-              ssid=$(echo "$chosen" | sed 's/CONNECTED: //; s/ (.*//')
-              nmcli connection down id "$ssid"
-          else
-              ssid=$(echo "$chosen" | sed 's/ (.*//')
-              if nmcli connection show id "$ssid" >/dev/null 2>&1; then
-                  nmcli connection up id "$ssid"
-              else
-                  security=$(echo "$chosen" | sed 's/.*(\(.*\)).*/\1/')
-                  if [[ "$security" == "--" || "$security" == "" ]]; then
-                      nmcli device wifi connect "$ssid"
-                  else
-                      password=$(wofi -dmenu -p "Password for $ssid" -P)
-                      if [ -n "$password" ]; then
-                          nmcli device wifi connect "$ssid" password "$password"
-                      fi
-                  fi
-              fi
-          fi
-      fi
-    '')
-
-    (pkgs.writeShellScriptBin "bluetooth-menu" ''
-      power_on=$(bluetoothctl show | grep "Powered: yes" | wc -l)
-      if [ "$power_on" -eq 0 ]; then
-        action=$(echo -e "Power On\nExit" | wofi -dmenu -p "Bluetooth is Power Off" -i)
-        if [ "$action" == "Power On" ]; then
-          bluetoothctl power on
-        else
-          exit
-        fi
-      fi
-
-      devices=$(bluetoothctl devices | cut -d ' ' -f 2-)
-      device_list=""
-      while read -r line; do
-        mac=$(echo "$line" | cut -d ' ' -f 1)
-        name=$(echo "$line" | cut -d ' ' -f 2-)
-        info=$(bluetoothctl info "$mac")
-        connected=$(echo "$info" | grep "Connected: yes" | wc -l)
-        if [ "$connected" -eq 1 ]; then
-          device_list+="CONNECTED: $name ($mac)\n"
-        else
-          device_list+="$name ($mac)\n"
-        fi
-      done <<< "$devices"
-
-      device_list+="Scan for devices\nPower Off"
-
-      chosen=$(echo -e "$device_list" | wofi -dmenu -p "Bluetooth Devices" -i)
-
-      if [ -n "$chosen" ]; then
-        if [ "$chosen" == "Scan for devices" ]; then
-          notify-send "Bluetooth" "Scanning for 15 seconds..."
-          bluetoothctl scan on &
-          sleep 15
-          bluetoothctl scan off
-          bluetooth-menu
-        elif [ "$chosen" == "Power Off" ]; then
-          bluetoothctl power off
-        else
-          mac=$(echo "$chosen" | sed 's/.*(\(.*\))/\1/')
-          if [[ "$chosen" == CONNECTED:* ]]; then
-            bluetoothctl disconnect "$mac"
-          else
-            bluetoothctl connect "$mac" || (bluetoothctl pair "$mac" && bluetoothctl connect "$mac")
-          fi
-        fi
-      fi
-    '')
+    (pkgs.writeShellScriptBin "wifi-menu" (builtins.readFile ./wofi/scripts/wifi-menu.sh))
+    (pkgs.writeShellScriptBin "bluetooth-menu" (builtins.readFile ./wofi/scripts/bluetooth-menu.sh))
   ];
 
   # Git configuration
@@ -187,6 +108,8 @@
   xdg.configFile."ghostty/shaders".source = ./ghostty/shaders;
   xdg.configFile."waybar/config".source = ./waybar/config.jsonc;
   xdg.configFile."waybar/style.css".source = ./waybar/style.css;
+  xdg.configFile."wofi/config".source = ./wofi/config;
+  xdg.configFile."wofi/style.css".source = ./wofi/style.css;
 
   services.network-manager-applet.enable = true;
 }
