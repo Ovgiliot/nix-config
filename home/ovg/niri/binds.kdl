@@ -21,6 +21,7 @@ binds {
     Mod+D hotkey-overlay-title="Run an Application: fuzzel" { spawn "fuzzel"; }
     Super+Alt+L hotkey-overlay-title="Lock the Screen: swaylock" { spawn "swaylock"; }
     Mod+Space hotkey-overlay-title="Open Launcher" { spawn "wofi" "--show" "drun"; }
+    Mod+N hotkey-overlay-title="Wi-Fi Menu" { spawn "wifi-menu"; }
     Mod+B hotkey-overlay-title="Zen Browser" { spawn "zen"; }
 
     // NixOS maintenance (run in ghostty and keep output visible)

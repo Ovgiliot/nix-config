@@ -4,7 +4,7 @@
     "height": 30,
     "modules-left": [ "cpu", "memory", "niri/workspaces", "niri/window" ],
     "modules-center": [ "clock" ],
-    "modules-right": [ "tray", "niri/language", "battery" ],
+    "modules-right": [ "tray", "niri/language", "network", "battery" ],
 
     "niri/workspaces": {
         "format": "{name}"
@@ -14,6 +14,18 @@
         "format": "{}",
         "max-length": 50,
         "separate-outputs": true
+    },
+
+    "network": {
+        "format-wifi": " {essid} ({signalStrength}%)",
+        "format-ethernet": "󰈀 {ifname}",
+        "format-disconnected": "󰖪 Disconnected",
+        "tooltip-format": "{ifname} via {gwaddr} 󰊗",
+        "tooltip-format-wifi": " {essid} ({signalStrength}%)",
+        "tooltip-format-ethernet": "󰈀 {ifname} ",
+        "tooltip-format-disconnected": "Disconnected",
+        "on-click": "wifi-menu",
+        "max-length": 50
     },
 
     "clock": {
