@@ -39,6 +39,7 @@
   environment.systemPackages = with pkgs; [
     btop # system monitor
     gh
+    lazygit
     ranger
     nodejs
     gcc
