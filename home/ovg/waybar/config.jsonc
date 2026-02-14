@@ -4,7 +4,7 @@
     "height": 30,
     "modules-left": [ "cpu", "memory", "niri/workspaces", "niri/window" ],
     "modules-center": [ "clock" ],
-    "modules-right": [ "tray", "niri/language", "network", "battery" ],
+    "modules-right": [ "tray", "niri/language", "network", "bluetooth", "battery" ],
 
     "niri/workspaces": {
         "format": "{name}"
@@ -26,6 +26,16 @@
         "tooltip-format-disconnected": "Disconnected",
         "on-click": "wifi-menu",
         "max-length": 50
+    },
+
+    "bluetooth": {
+        "format": " {status}",
+        "format-disabled": "󰂲 {status}", // an empty format will hide the module
+        "format-connected": " {num_connections} connected",
+        "tooltip-format": "{controller_alias}\t{controller_address}",
+        "tooltip-format-connected": "{controller_alias}\t{controller_address}\n\n{device_enumerate}",
+        "tooltip-format-enumerate-connected": "{device_alias}\t{device_address}",
+        "on-click": "bluetooth-menu"
     },
 
     "clock": {
