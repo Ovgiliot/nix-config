@@ -1,8 +1,8 @@
 window {
     margin: 0px;
-    border: 1px solid #313244;
-    background-color: #1e1e2e;
-    font-family: "JetBrainsMono Nerd Font";
+    border: 1px solid #2f363d; /* Slightly lighter dark grey for border */
+    background-color: #24292e; /* Dark grey for primary background */
+    font-family: "Roboto", Helvetica, Arial, sans-serif; /* Consistent font with Waybar */
     font-size: 14px;
 }
 
@@ -15,8 +15,8 @@ window {
 #input {
     margin: 5px;
     border: none;
-    color: #cdd6f4;
-    background-color: #313244;
+    color: #fafafa; /* Off-white for text */
+    background-color: #2f363d; /* Slightly lighter dark grey for background */
 }
 
 #inner-box {
@@ -33,13 +33,13 @@ window {
 #text {
     margin: 5px;
     border: none;
-    color: #cdd6f4;
+    color: #fafafa; /* Off-white for text */
 }
 
 #entry:selected {
-    background-color: #313244;
+    background-color: #2f363d; /* Slightly lighter dark grey for selected entry background */
 }
 
 #text:selected {
-    color: #f5c2e7;
+    color: #0366d6; /* Accent blue for selected text */
 }
