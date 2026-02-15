@@ -17,9 +17,9 @@
     },
 
     "network": {
-        "format-wifi": " {essid} ({signalStrength}%)",
-        "format-ethernet": "󰈀 {ifname}",
-        "format-disconnected": "󰖪 Disconnected",
+        "format-wifi": "",
+        "format-ethernet": "󰈀",
+        "format-disconnected": "󰖪",
         "tooltip-format": "{ifname} via {gwaddr} 󰊗",
         "tooltip-format-wifi": " {essid} ({signalStrength}%)",
         "tooltip-format-ethernet": "󰈀 {ifname} ",
@@ -29,9 +29,9 @@
     },
 
     "bluetooth": {
-        "format": " {status}",
-        "format-disabled": "󰂲 {status}", // an empty format will hide the module
-        "format-connected": " {num_connections} connected",
+        "format": "",
+        "format-disabled": "󰂲", // an empty format will hide the module
+        "format-connected": "",
         "tooltip-format": "{controller_alias}\t{controller_address}",
         "tooltip-format-connected": "{controller_alias}\t{controller_address}\n\n{device_enumerate}",
         "tooltip-format-enumerate-connected": "{device_alias}\t{device_address}",
@@ -66,7 +66,11 @@
     },
 
     "tray": {
-        "spacing": 10
+        "spacing": 10,
+        "ignored-list": [
+            "nm-applet",
+            "blueman-applet"
+        ]
     },
 
     "niri/language": {
