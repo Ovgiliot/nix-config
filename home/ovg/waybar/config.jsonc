@@ -2,7 +2,7 @@
     "layer": "top",
     "position": "top",
     "height": 30,
-    "modules-left": [ "custom/cpu", "custom/memory", "niri/workspaces", "niri/window" ],
+    "modules-left": [ "cpu", "memory", "niri/workspaces", "niri/window" ],
     "modules-center": [ "clock" ],
     "modules-right": [ "tray", "niri/language", "network", "bluetooth", "battery" ],
 
@@ -44,20 +44,13 @@
         "format-alt": "{:%Y-%m-%d}"
     },
 
-    "custom/cpu": {
-        "exec": "$HOME/.config/waybar/scripts/system-stats.py cpu",
-        "return-type": "json",
-        "interval": 1,
-        "format": "{}",
-        "tooltip": true
+    "cpu": {
+        "format": "{usage}% ",
+        "tooltip": false
     },
 
-    "custom/memory": {
-        "exec": "$HOME/.config/waybar/scripts/system-stats.py ram",
-        "return-type": "json",
-        "interval": 1,
-        "format": "{}",
-        "tooltip": true
+    "memory": {
+        "format": "{}% "
     },
 
     "battery": {

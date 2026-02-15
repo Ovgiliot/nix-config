@@ -55,7 +55,6 @@
 
     (pkgs.writeShellScriptBin "wifi-menu" (builtins.readFile ./wofi/scripts/wifi-menu.sh))
     (pkgs.writeShellScriptBin "bluetooth-menu" (builtins.readFile ./wofi/scripts/bluetooth-menu.sh))
-    python3
   ];
 
   # Git configuration
@@ -109,7 +108,6 @@
   xdg.configFile."ghostty/shaders".source = ./ghostty/shaders;
   xdg.configFile."waybar/config".source = ./waybar/config.jsonc;
   xdg.configFile."waybar/style.css".source = ./waybar/style.css;
-  xdg.configFile."waybar/scripts/system-stats.py".source = ./waybar/scripts/system-stats.py;
   xdg.configFile."wofi/config".source = ./wofi/config;
   xdg.configFile."wofi/style.css".source = ./wofi/style.css;
   xdg.configFile."mako/config".source = ./mako/config;
