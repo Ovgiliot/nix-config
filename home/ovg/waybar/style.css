@@ -28,7 +28,10 @@ window#waybar {
 #memory,
 #tray,
 #language,
-#window {
+#window,
+#network,
+#bluetooth,
+#workspaces {
     padding: 0 10px;
     color: #fafafa; /* Off-white for text */
 }
