@@ -110,6 +110,7 @@
   xdg.configFile."waybar/style.css".source = ./waybar/style.css;
   xdg.configFile."wofi/config".source = ./wofi/config;
   xdg.configFile."wofi/style.css".source = ./wofi/style.css;
+  xdg.configFile."mako/config".source = ./mako/config;
 
   services.network-manager-applet.enable = true;
 }
