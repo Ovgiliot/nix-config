@@ -72,7 +72,7 @@ require("lazy").setup({
 					},
 				},
 				ui = {
-					enable = false,
+					enable = true,
 				},
 				legacy_commands = false,
 			})
@@ -81,11 +81,7 @@ require("lazy").setup({
 	{
 		"github/copilot.vim",
 	},
-	{
-		"MeanderingProgrammer/render-markdown.nvim",
-		dependencies = { "nvim-treesitter/nvim-treesitter", "nvim-tree/nvim-web-devicons" },
-		opts = {},
-	},
+
 	{
 		"NeogitOrg/neogit",
 		dependencies = {
