@@ -1,81 +1,77 @@
 # Project Overview
 
-This directory contains a NixOS configuration that leverages flakes and home-manager for a modular, reproducible system setup. It's designed to manage both system-wide configurations (NixOS) and user-specific configurations (Home Manager) in a consistent and declarative manner.
+This directory contains a NixOS configuration that leverages **Flakes** and **Home Manager** for a modular, reproducible system setup. It is tailored for a high-performance, modern Linux desktop experience, featuring **Niri** (scrollable-tiling Wayland compositor) and **KDE Plasma 6**.
 
-**Main Technologies:**
-- **NixOS**: A Linux distribution built on the Nix package manager, emphasizing declarative system configuration and atomic upgrades.
-- **Nix Flakes**: A new feature in Nix that provides a more reproducible and hermetic way to manage dependencies and define system configurations.
-- **Home Manager**: A Nix-based tool for managing user-specific configurations and packages, ensuring dotfiles and user environments are reproducible.
+**Core Technologies:**
+- **NixOS**: Declarative system configuration.
+- **Nix Flakes**: Reproducible dependency management (`flake.nix`).
+- **Home Manager**: User-specific configuration management.
 
 **Architecture:**
-The configuration is structured modularly:
-- `flake.nix`: The main entry point for the Nix flake, defining inputs and outputs (NixOS configurations, Home Manager configurations).
-- `hosts/`: Contains host-specific NixOS configurations (e.g., `nixos/configuration.nix` for a machine named 'nixos').
-- `modules/system/`: Contains reusable NixOS modules for various system aspects like boot, networking, desktop environment, audio, and services.
-- `home/`: Contains user-specific Home Manager configurations (e.g., `home/ovg/default.nix`, which often imports other user-specific config files like `web-apps.nix` for user 'ovg').
+- `flake.nix`: Entry point defining inputs (nixpkgs) and outputs.
+- `hosts/`: Machine-specific configurations (e.g., `hosts/nixos/`).
+- `modules/system/`: Reusable system modules:
+    - `boot.nix`: Kernel (Zen), Bootloader (systemd-boot), Encryption (LUKS).
+    - `gaming.nix`: Steam, Gamemode, Kernel tweaks.
+    - `input.nix`: Kanata service, uinput rules.
+    - `desktop.nix`: Niri, Greetd, Fonts.
+    - `audio.nix`: PipeWire.
+- `home/`: User-specific Home Manager configurations:
+    - `home/ovg/default.nix`: Main user config.
+    - `home/ovg/niri/`: Niri window manager config (`config.kdl`, `binds.kdl`).
+    - `home/ovg/kanata.kbd`: Keyboard remapping configuration.
+    - `home/ovg/web-apps.nix`: Declarative web apps (Chromium app mode).
+    - `home/ovg/scripts/`: Custom maintenance scripts.
 
-## Features
+## Key Features & Subsystems
 
-- **Flakes**: Reproducible builds with pinned dependencies
-- **Home Manager**: User-level package and configuration management
-- **Modular Structure**: Clean separation of concerns
-- **KDE Plasma 6**: Full-featured desktop environment
-- **Niri**: Wayland compositor as alternative session (from nixpkgs)
-- **PipeWire**: Modern audio with ALSA, PulseAudio, and JACK support
+### ⌨️ Input & Accessibility
+- **Kanata**: Advanced keyboard remapping implementing "Home Row Mods" (A/S/D/F as modifiers).
+    - *Config:* `home/ovg/kanata.kbd`
+    - *System Service:* `modules/system/input.nix`
 
-## Building and Running
+### 🪟 Window Management
+- **Niri**: Scrollable-tiling Wayland compositor.
+    - *Config:* `home/ovg/niri/`
+    - *Status Bar:* Waybar (`home/ovg/waybar/`)
+    - *Launcher:* Wofi (`home/ovg/wofi/`)
+    - *Notifications:* Mako (`home/ovg/mako/`)
 
-The project uses `nixos-rebuild` with flake syntax for managing the system configuration.
+### 🎮 Gaming & Performance
+- **Optimizations**:
+    - **Kernel**: Linux Zen Kernel (`modules/system/boot.nix`).
+    - **Gamemode**: Automatic performance tweaks.
+    - **Kernel Parameters**: `split_lock_detect=off`, `preempt=full`, `vm.max_map_count` increased.
+- **Tools**: Steam (with gamescope), Lutris, ProtonTricks.
 
-### Initial Setup
+### 🌐 Web & Networking
+- **Browsers**: Zen Browser, Chromium.
+- **Web Apps**: Declaratively defined in `home/ovg/web-apps.nix` (YouTube, Apple Music, etc.).
 
+### 📝 Development Environment
+- **Editor**: Neovim (`home/ovg/nvim/`) - Lua config.
+- **Terminal**: Ghostty (`home/ovg/ghostty/`) - GPU-accelerated with custom shaders.
+- **Shell**: Fish and Bash with aliases.
+
+## Workflows
+
+### Rebuilding the System (Preferred Method)
+A custom script handles git staging, committing, pushing, and rebuilding in one go.
 ```bash
-cd /home/ovg/dotfiles/nix # Assuming this is the current directory
-sudo nix flake update
+./home/ovg/scripts/nixos-rebuild-with-git.sh
 ```
 
-### Rebuilding the System
+### Rebuilding (Standard Method)
+- **Switch:** `sudo nixos-rebuild switch --flake .#nixos`
+- **Test:** `sudo nixos-rebuild test --flake .#nixos`
 
-- **Switch to new configuration:** Applies and activates the new configuration.
-    ```bash
-    sudo nixos-rebuild switch --flake .#nixos
-    ```
-- **Test configuration without switching:** Builds the configuration but doesn't activate it, useful for checking for build errors.
-    ```bash
-    sudo nixos-rebuild test --flake .#nixos
-    ```
-- **Build but don't activate:** Builds the configuration without applying it.
-    ```bash
-    sudo nixos-rebuild build --flake .#nixos
-    ```
+### Maintenance
+- **Update Flake Inputs:** `sudo nix flake update`
+- **Clean Garbage:** Run the `clean-nix` alias (defined in `home/ovg/default.nix`).
 
-### Updating Dependencies
+## Customization Guide
 
-- **Update all flake inputs:**
-    ```bash
-    sudo nix flake update
-    ```
-- **Update specific input (e.g., nixpkgs):**
-    ```bash
-    sudo nix flake lock --update-input nixpkgs
-    ```
-
-## Development Conventions
-
-- **Declarative Configuration**: All system and user configurations are defined declaratively using Nix expressions.
-- **Modular Design**: Configurations are broken down into small, reusable modules to enhance readability and maintainability.
-- **Flake-based**: Relies on Nix Flakes for reproducible dependency management.
-- **Home Manager Integration**: User-level configurations are managed via Home Manager, ensuring consistency across user environments.
-
-### Customization
-
-- **Adding System Packages**: Modify `hosts/nixos/configuration.nix` or the relevant module under `modules/system/`.
-- **Adding User Packages**: Modify `home/ovg/default.nix` to include user-specific packages and configurations.
-- **Adding New Hosts**:
-    1. Create a new directory under `hosts/<hostname>/`.
-    2. Add `configuration.nix` and `hardware-configuration.nix` within the new host directory.
-    3. Add an entry for the new host in `flake.nix` under `nixosConfigurations`.
-- **Adding New Users**:
-    1. Create a new directory under `home/<username>/`.
-    2. Add `default.nix` with Home Manager configuration for the new user.
-    3. Add the user in the host configuration and integrate the Home Manager module in `flake.nix`.
+- **Adding System Packages**: Edit `modules/system/desktop.nix` (or relevant module).
+- **Adding User Packages**: Edit `home.packages` in `home/ovg/default.nix`.
+- **Adding Web Apps**: Add entries to `webApps` list in `home/ovg/web-apps.nix`.
+- **Modifying Keybinds**: Edit `home/ovg/kanata.kbd` (remapping) or `home/ovg/niri/binds.kdl` (WM).
