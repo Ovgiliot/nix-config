@@ -58,6 +58,7 @@ in
     bitwarden-desktop
     obsidian
     thunar
+    ranger
     ghostty
     linux-wallpaperengine
     protontricks

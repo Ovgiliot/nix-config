@@ -22,7 +22,7 @@ binds {
     // Super+Alt+L hotkey-overlay-title="Lock the Screen: swaylock" { spawn "swaylock"; }
     Mod+Space hotkey-overlay-title="Open Launcher" { spawn "wofi" "--show" "drun"; }
     Mod+N hotkey-overlay-title="Create Note" { spawn "ghostty" "-e" "/home/ovg/dotfiles/nix/home/ovg/scripts/create-note.sh"; }
-    Mod+O hotkey-overlay-title="Open Notes" { spawn "sh" "-c" "mkdir -p ~/Documents/home && ghostty -e nvim ~/Documents/home"; }
+    Mod+O hotkey-overlay-title="Open Notes" { spawn "sh" "-c" "mkdir -p ~/Documents/home && ghostty -e ranger ~/Documents/home"; }
     Mod+Ctrl+N hotkey-overlay-title="Wi-Fi Menu" { spawn "wifi-menu"; }
     Mod+Ctrl+B hotkey-overlay-title="Bluetooth Menu" { spawn "bluetooth-menu"; }
     Mod+B hotkey-overlay-title="Zen Browser" { spawn "zen"; }

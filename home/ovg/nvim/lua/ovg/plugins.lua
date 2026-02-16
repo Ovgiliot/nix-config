@@ -58,8 +58,7 @@ require("lazy").setup({
 	{
 		"obsidian-nvim/obsidian.nvim",
 		version = "*",
-		lazy = true,
-		ft = "markdown",
+		event = { "BufReadPre", "BufNewFile" },
 		dependencies = {
 			"nvim-lua/plenary.nvim",
 		},
