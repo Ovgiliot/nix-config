@@ -57,8 +57,12 @@ require("lazy").setup({
 	},
 	{
 		"obsidian-nvim/obsidian.nvim",
-		event = "BufReadPost *.md",
-		dependencies = { "nvim-treesitter/nvim-treesitter" }, -- Assuming Treesitter is needed for parsing
+		version = "*",
+		lazy = true,
+		ft = "markdown",
+		dependencies = {
+			"nvim-lua/plenary.nvim",
+		},
 		config = function()
 			require("obsidian").setup({
 				workspaces = {
@@ -71,10 +75,15 @@ require("lazy").setup({
 						path = "/home/ovg/Documents/mil/",
 					},
 				},
+				templates = {
+					subdir = "templates",
+					date_format = "%Y-%m-%d",
+					time_format = "%H:%M",
+					tags = "",
+				},
 				ui = {
 					enable = true,
 				},
-				legacy_commands = false,
 			})
 		end,
 	},
