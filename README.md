@@ -1,81 +1,118 @@
-# Project Overview
+# NixOS Configuration
 
-This directory contains a NixOS configuration that leverages flakes and home-manager for a modular, reproducible system setup. It's designed to manage both system-wide configurations (NixOS) and user-specific configurations (Home Manager) in a consistent and declarative manner.
+This repository contains a modular and reproducible **NixOS** configuration, managed with **Nix Flakes** and **Home Manager**. It provides a comprehensive setup for a modern Linux desktop environment, tailored for performance, gaming, and productivity, featuring **Niri** (a scrollable-tiling Wayland compositor) and **KDE Plasma 6**.
 
-**Main Technologies:**
-- **NixOS**: A Linux distribution built on the Nix package manager, emphasizing declarative system configuration and atomic upgrades.
-- **Nix Flakes**: A new feature in Nix that provides a more reproducible and hermetic way to manage dependencies and define system configurations.
-- **Home Manager**: A Nix-based tool for managing user-specific configurations and packages, ensuring dotfiles and user environments are reproducible.
+## 📂 Project Structure
 
-**Architecture:**
-The configuration is structured modularly:
-- `flake.nix`: The main entry point for the Nix flake, defining inputs and outputs (NixOS configurations, Home Manager configurations).
-- `hosts/`: Contains host-specific NixOS configurations (e.g., `nixos/configuration.nix` for a machine named 'nixos').
-- `modules/system/`: Contains reusable NixOS modules for various system aspects like boot, networking, desktop environment, audio, and services.
-- `home/`: Contains user-specific Home Manager configurations (e.g., `home/ovg/default.nix`, which often imports other user-specific config files like `web-apps.nix` for user 'ovg').
+The configuration is organized to separate system-level settings from user-specific dotfiles.
 
-## Features
+```
+.
+├── flake.nix             # Entry point: Defines inputs (nixpkgs) and outputs (system configs).
+├── hosts/                # Machine-specific configurations.
+│   └── nixos/            # Main host 'nixos'.
+│       ├── configuration.nix      # Imports system modules.
+│       └── hardware-configuration.nix # Hardware scan (do not edit manually).
+├── modules/              # Reusable NixOS modules.
+│   └── system/           # System-wide settings.
+│       ├── boot.nix      # Bootloader & Kernel (Zen).
+│       ├── gaming.nix    # Steam, Gamemode, Kernel tweaks.
+│       ├── desktop.nix   # Niri, Greetd, Fonts.
+│       ├── audio.nix     # PipeWire.
+│       └── ...           # Networking, Locale, etc.
+└── home/                 # User-specific configurations (Home Manager).
+    └── ovg/              # User 'ovg'.
+        ├── default.nix   # Main user config entry point.
+        ├── kanata.kbd    # Keyboard remapping config.
+        ├── web-apps.nix  # Declarative web applications.
+        ├── niri/         # Window manager config.
+        ├── scripts/      # Custom maintenance scripts.
+        ├── ...           # Other dotfiles (nvim, ghostty, waybar, etc.).
+```
 
-- **Flakes**: Reproducible builds with pinned dependencies
-- **Home Manager**: User-level package and configuration management
-- **Modular Structure**: Clean separation of concerns
-- **KDE Plasma 6**: Full-featured desktop environment
-- **Niri**: Wayland compositor as alternative session (from nixpkgs)
-- **PipeWire**: Modern audio with ALSA, PulseAudio, and JACK support
+## ⚡ Quick Start
 
-## Building and Running
-
-The project uses `nixos-rebuild` with flake syntax for managing the system configuration.
-
-### Initial Setup
-
+### 1. Initial Setup
 ```bash
-cd /home/ovg/dotfiles/nix # Assuming this is the current directory
+# Clone the repository
+git clone <repo-url> ~/dotfiles/nix
+cd ~/dotfiles/nix
+
+# Update flake inputs (optional)
 sudo nix flake update
 ```
 
-### Rebuilding the System
+### 2. Rebuilding the System
+You can use standard NixOS commands, but a helper script is included to manage git state and rebuilds simultaneously.
 
-- **Switch to new configuration:** Applies and activates the new configuration.
-    ```bash
-    sudo nixos-rebuild switch --flake .#nixos
-    ```
-- **Test configuration without switching:** Builds the configuration but doesn't activate it, useful for checking for build errors.
-    ```bash
-    sudo nixos-rebuild test --flake .#nixos
-    ```
-- **Build but don't activate:** Builds the configuration without applying it.
-    ```bash
-    sudo nixos-rebuild build --flake .#nixos
-    ```
+**Standard Method:**
+```bash
+sudo nixos-rebuild switch --flake .#nixos
+```
 
-### Updating Dependencies
+**Custom Script (Recommended):**
+Location: `home/ovg/scripts/nixos-rebuild-with-git.sh`
+Usage:
+```bash
+./home/ovg/scripts/nixos-rebuild-with-git.sh
+```
+*   Automatically stages and commits changes.
+*   Pushes to remote (handling upstream branches).
+*   Rebuilds the system only if the git operations succeed.
 
-- **Update all flake inputs:**
-    ```bash
-    sudo nix flake update
-    ```
-- **Update specific input (e.g., nixpkgs):**
-    ```bash
-    sudo nix flake lock --update-input nixpkgs
-    ```
+### 3. Maintenance
+*   **Clean Garbage:** `clean-nix` (Shell alias defined in `home/ovg/default.nix`) - Deletes old generations and optimizes the store.
 
-## Development Conventions
+---
 
-- **Declarative Configuration**: All system and user configurations are defined declaratively using Nix expressions.
-- **Modular Design**: Configurations are broken down into small, reusable modules to enhance readability and maintainability.
-- **Flake-based**: Relies on Nix Flakes for reproducible dependency management.
-- **Home Manager Integration**: User-level configurations are managed via Home Manager, ensuring consistency across user environments.
+## 🛠️ System Configuration
 
-### Customization
+### 🖥️ Desktop & Window Management
+*   **Compositor:** **Niri** (Scrollable Tiling Wayland)
+    *   *Config:* `home/ovg/niri/`
+    *   *Features:* Infinite scrolling layout, custom binds, window rules.
+*   **Display Manager:** `tuigreet` (Text-based, minimalist) -> launches `niri-session`.
+*   **Status Bar:** **Waybar** (`home/ovg/waybar/`) - styled with CSS.
+*   **Launcher:** **Wofi** (`home/ovg/wofi/`) - includes custom scripts for WiFi and Bluetooth.
+*   **Notifications:** **Mako** (`home/ovg/mako/`).
+*   **Theming:** GTK (`adw-gtk3-dark`) and QT (`adwaita-dark`) are unified for a consistent dark mode experience (`home/ovg/default.nix`).
 
-- **Adding System Packages**: Modify `hosts/nixos/configuration.nix` or the relevant module under `modules/system/`.
-- **Adding User Packages**: Modify `home/ovg/default.nix` to include user-specific packages and configurations.
-- **Adding New Hosts**:
-    1. Create a new directory under `hosts/<hostname>/`.
-    2. Add `configuration.nix` and `hardware-configuration.nix` within the new host directory.
-    3. Add an entry for the new host in `flake.nix` under `nixosConfigurations`.
-- **Adding New Users**:
-    1. Create a new directory under `home/<username>/`.
-    2. Add `default.nix` with Home Manager configuration for the new user.
-    3. Add the user in the host configuration and integrate the Home Manager module in `flake.nix`.
+### ⌨️ Input & Accessibility
+*   **Keyboard Remapping:** **Kanata**
+    *   *Config:* `home/ovg/kanata.kbd`
+    *   *Function:* Implements "Home Row Mods" (A/S/D/F act as Super/Ctrl/Shift/Alt when held).
+    *   *Service:* `modules/system/input.nix` handles the `uinput` permissions and service.
+*   **Layouts:** configured for US and RU, switching with `Ctrl+Space`.
+
+### 🎮 Gaming & Performance
+*   *Config:* `modules/system/gaming.nix`
+*   **Kernel:** **Linux Zen** (`modules/system/boot.nix`) for improved desktop responsiveness.
+*   **Optimizations:**
+    *   **GameMode:** Automatically applies performance tweaks when games run.
+    *   **Kernel Parameters:** `split_lock_detect=off`, `preempt=full`, `vm.max_map_count` increased (essential for Steam/Proton).
+*   **Software:** Steam (with gamescope), Lutris, ProtonTricks.
+
+### 🌐 Networking & Web
+*   **Network:** NetworkManager enabled (`modules/system/networking.nix`).
+*   **Browsers:** Zen Browser, Chromium (for web apps).
+*   **Web Apps:** `home/ovg/web-apps.nix`
+    *   Declaratively creates desktop entries for sites like YouTube, Apple Music, and Nix Search using Chromium's app mode.
+
+### 🛠️ Core System
+*   **Boot:** systemd-boot with EFI support.
+*   **Encryption:** LUKS configuration for secure storage (`modules/system/boot.nix`).
+*   **Locale:** Kyiv time zone, English (US) system language with Ukrainian locale formats (`modules/system/locale.nix`).
+*   **Nix Settings:** Flakes enabled, automatic weekly garbage collection (`modules/system/nix.nix`).
+
+### 📝 Development
+*   **Editor:** **Neovim** (`home/ovg/nvim/`) - Full Lua configuration.
+*   **Terminal:** **Ghostty** (`home/ovg/ghostty/`) - GPU-accelerated, custom shaders (`cursor_warp.glsl`).
+*   **Shell:** Fish and Bash configured with aliases.
+
+---
+
+## 🏗️ Adding New Features
+
+*   **New System Package:** Edit `modules/system/desktop.nix` (or relevant module) and rebuild.
+*   **New User App:** Add to `home.packages` in `home/ovg/default.nix`.
+*   **New Web App:** Add an entry to the `webApps` list in `home/ovg/web-apps.nix`.
