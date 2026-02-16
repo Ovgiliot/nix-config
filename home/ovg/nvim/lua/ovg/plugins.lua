@@ -70,6 +70,10 @@ require("lazy").setup({
 						name = "mil",
 						path = "/home/ovg/Documents/mil/",
 					},
+					{
+						name = "notes",
+						path = "/home/ovg/Documents/notes/",
+					},
 				},
 				ui = {
 					enable = true,

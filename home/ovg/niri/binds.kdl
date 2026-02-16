@@ -21,6 +21,8 @@ binds {
     Mod+D hotkey-overlay-title="Run an Application: fuzzel" { spawn "fuzzel"; }
     // Super+Alt+L hotkey-overlay-title="Lock the Screen: swaylock" { spawn "swaylock"; }
     Mod+Space hotkey-overlay-title="Open Launcher" { spawn "wofi" "--show" "drun"; }
+    Mod+N hotkey-overlay-title="Create Note" { spawn "ghostty" "-e" "/home/ovg/dotfiles/nix/home/ovg/scripts/create-note.sh"; }
+    Mod+O hotkey-overlay-title="Open Notes" { spawn "sh" "-c" "mkdir -p ~/Documents/notes && ghostty -e nvim ~/Documents/notes"; }
     Mod+Ctrl+N hotkey-overlay-title="Wi-Fi Menu" { spawn "wifi-menu"; }
     Mod+Ctrl+B hotkey-overlay-title="Bluetooth Menu" { spawn "bluetooth-menu"; }
     Mod+B hotkey-overlay-title="Zen Browser" { spawn "zen"; }
@@ -64,10 +66,8 @@ binds {
     XF86Messenger        { spawn "ghostty"; } // Often the "star" or "flower" key maps to this or Favorite
     XF86Favorites        { spawn "fuzzel"; }
 
-    // Open/close the Overview: a zoomed-out view of workspaces and windows.
-    // You can also move the mouse into the top-left hot corner,
-    // or do a four-finger swipe up on a touchpad.
-    Mod+O repeat=false { toggle-overview; }
+    // Mod+O repeat=false { toggle-overview; }
+    Mod+Shift+O repeat=false { toggle-overview; }
 
     Mod+Q repeat=false { close-window; }
 
