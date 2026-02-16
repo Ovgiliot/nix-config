@@ -1,5 +1,14 @@
 { config, pkgs, inputs, ... }:
 
+let
+  # Ghostty colors
+  bg = "#131314";
+  fg = "#e6edf3";
+  accent = "#2f81f7";
+  accent_fg = "#ffffff";
+  header_bg = "#1a1a1b";
+  card_bg = "#1d1d1e";
+in
 {
   imports = [
     ./web-apps.nix
@@ -68,6 +77,24 @@
       name = "Adwaita";
       package = pkgs.adwaita-icon-theme;
     };
+    gtk3.extraCss = ''
+      @define-color window_bg_color ${bg};
+      @define-color window_fg_color ${fg};
+      @define-color headerbar_bg_color ${header_bg};
+      @define-color headerbar_fg_color ${fg};
+      @define-color card_bg_color ${card_bg};
+      @define-color accent_bg_color ${accent};
+      @define-color accent_fg_color ${accent_fg};
+    '';
+    gtk4.extraCss = ''
+      @define-color window_bg_color ${bg};
+      @define-color window_fg_color ${fg};
+      @define-color headerbar_bg_color ${header_bg};
+      @define-color headerbar_fg_color ${fg};
+      @define-color card_bg_color ${card_bg};
+      @define-color accent_bg_color ${accent};
+      @define-color accent_fg_color ${accent_fg};
+    '';
   };
 
   qt = {
