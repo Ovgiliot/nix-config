@@ -65,6 +65,24 @@ in
     linux-wallpaperengine
     protontricks
 
+    # Ranger previewers
+    ffmpeg
+    ffmpegthumbnailer
+    poppler_utils
+    atool
+    p7zip
+    unzip
+    odt2txt
+    ghostscript
+    imagemagick
+    python3Packages.pygments
+    bat
+    highlight
+    exiftool
+    librsvg
+    catdoc
+    xlsx2csv
+
     (pkgs.writeShellScriptBin "wifi-menu" (builtins.readFile ./wofi/scripts/wifi-menu.sh))
     (pkgs.writeShellScriptBin "bluetooth-menu" (builtins.readFile ./wofi/scripts/bluetooth-menu.sh))
 
@@ -185,6 +203,7 @@ in
   xdg.configFile."kanata/kanata.kbd".source = ./kanata.kbd;
   xdg.configFile."ghostty/config".source = ./ghostty/config;
   xdg.configFile."ghostty/shaders".source = ./ghostty/shaders;
+  xdg.configFile."ranger".source = ./ranger;
   xdg.configFile."waybar/config".source = ./waybar/config.jsonc;
   xdg.configFile."waybar/style.css".source = ./waybar/style.css;
   xdg.configFile."wofi/config".source = ./wofi/config;
