@@ -39,7 +39,7 @@ require("lazy").setup({
 				ensure_installed = { "markdown", "markdown_inline", "lua", "vim", "vimdoc", "query", "c", "cpp", "nix", "glsl", "hlsl", "bash", "fish", "c_sharp" },
 				highlight = { enable = true },
 				indent = { enable = true },
-			end)
+			})
 		end,
 	},
 
