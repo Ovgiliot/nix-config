@@ -82,6 +82,8 @@ in
     librsvg
     catdoc
     xlsx2csv
+    ueberzugpp
+    w3m
 
     (pkgs.writeShellScriptBin "wifi-menu" (builtins.readFile ./wofi/scripts/wifi-menu.sh))
     (pkgs.writeShellScriptBin "bluetooth-menu" (builtins.readFile ./wofi/scripts/bluetooth-menu.sh))
