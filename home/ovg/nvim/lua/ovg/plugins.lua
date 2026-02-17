@@ -29,12 +29,22 @@ require("lazy").setup({
 	{
 		"nvim-treesitter/nvim-treesitter",
 		build = ":TSUpdate",
-		main = "nvim-treesitter.configs",
-		opts = {
-			ensure_installed = { "markdown", "markdown_inline", "lua", "vim", "vimdoc", "query", "c", "cpp", "nix", "glsl", "hlsl", "bash", "fish", "c_sharp" },
-			highlight = { enable = true },
-			indent = { enable = true },
-		},
+		config = function()
+			local ok, configs = pcall(require, "nvim-treesitter.configs")
+			if ok then
+				configs.setup({
+					ensure_installed = { "markdown", "markdown_inline", "lua", "vim", "vimdoc", "query", "c", "cpp", "nix", "glsl", "hlsl", "bash", "fish", "c_sharp" },
+					highlight = { enable = true },
+					indent = { enable = true },
+				})
+			else
+				local ts = require("nvim-treesitter")
+				ts.setup({
+					auto_install = true,
+					highlight = { enable = true },
+				})
+			end
+		end,
 	},
 
 	-- Telescope
