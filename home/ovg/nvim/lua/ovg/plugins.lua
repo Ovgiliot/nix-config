@@ -120,7 +120,7 @@ require("lazy").setup({
 		end,
 		config = function()
 			-- Accept suggestion with Ctrl+l
-			vim.keymap.set('i', '<C-l>', 'copilot#Accept([[\<CR>]])', {
+			vim.keymap.set('i', '<C-l>', 'copilot#Accept("\\<CR>")', {
 				expr = true,
 				replace_keycodes = false
 			})
