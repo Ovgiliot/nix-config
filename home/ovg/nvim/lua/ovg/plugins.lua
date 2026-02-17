@@ -381,4 +381,6 @@ require("lazy").setup({
 			vim.keymap.set("n", "<leader>cu", dapui.toggle, { desc = "Debug: Toggle UI" })
 		end,
 	},
+}, {
+	lockfile = vim.fn.stdpath("state") .. "/lazy-lock.json",
 })
