@@ -29,18 +29,12 @@ require("lazy").setup({
 	{
 		"nvim-treesitter/nvim-treesitter",
 		build = ":TSUpdate",
-		config = function()
-			local ok, configs = pcall(require, "nvim-treesitter.configs")
-			if not ok then
-				vim.notify("nvim-treesitter not available", vim.log.levels.WARN)
-				return
-			end
-			configs.setup({
-				ensure_installed = { "markdown", "markdown_inline", "lua", "vim", "vimdoc", "query", "c", "cpp", "nix", "glsl", "hlsl", "bash", "fish", "c_sharp" },
-				highlight = { enable = true },
-				indent = { enable = true },
-			})
-		end,
+		main = "nvim-treesitter.configs",
+		opts = {
+			ensure_installed = { "markdown", "markdown_inline", "lua", "vim", "vimdoc", "query", "c", "cpp", "nix", "glsl", "hlsl", "bash", "fish", "c_sharp" },
+			highlight = { enable = true },
+			indent = { enable = true },
+		},
 	},
 
 	-- Telescope
@@ -139,76 +133,88 @@ require("lazy").setup({
 			"L3MON4D3/LuaSnip",
 		},
 		config = function()
-			local lspconfig = require("lspconfig")
-			local capabilities = require('cmp_nvim_lsp').default_capabilities()
+			local capabilities = require("cmp_nvim_lsp").default_capabilities()
+			local servers = { "lua_ls", "nixd", "clangd", "pyright", "ts_ls", "rust_analyzer", "bashls", "omnisharp", "glslls" }
 
-						-- Setup servers (assuming installed via Nix)
-						local servers = { "lua_ls", "nixd", "clangd", "pyright", "ts_ls", "rust_analyzer", "bashls", "omnisharp", "glslls" }
-						
-						for _, lsp in ipairs(servers) do
-							if vim.fn.executable(lsp) == 1 then
-								lspconfig[lsp].setup({
-									capabilities = capabilities,
-								})
-							-- Special handling for binary names if they differ
-							elseif lsp == "lua_ls" and vim.fn.executable("lua-language-server") == 1 then
-								lspconfig.lua_ls.setup({
-									capabilities = capabilities,
-			                        settings = {
-			                            Lua = {
-			                                diagnostics = { globals = { "vim" } }
-			                            }
-			                        }
-								})
-			                elseif lsp == "omnisharp" and (vim.fn.executable("OmniSharp") == 1 or vim.fn.executable("omnisharp") == 1) then
-			                    local cmd = vim.fn.executable("OmniSharp") == 1 and { "OmniSharp" } or { "omnisharp" }
-			                    lspconfig.omnisharp.setup({
-			                        capabilities = capabilities,
-			                        cmd = cmd,
-			                        enable_roslyn_analyzers = true,
-			                        analyze_open_documents_only = true,
-			                        enable_import_completion = true,
-			                    })
-							end
-						end            
-            -- Explicit Lua setup just in case
-            if vim.fn.executable("lua-language-server") == 1 then
-                lspconfig.lua_ls.setup({
-                    capabilities = capabilities,
-                    settings = {
-                        Lua = {
-                            diagnostics = { globals = { "vim" } }
-                        }
-                    }
-                })
-            end
+			-- Support for Neovim 0.11+ using the new LSP configuration API
+			if vim.lsp.config and vim.lsp.enable then
+				vim.lsp.config("*", { capabilities = capabilities })
 
-            -- Nixd setup
-            if vim.fn.executable("nixd") == 1 then
-                lspconfig.nixd.setup({
-                    capabilities = capabilities,
-                })
-            end
-			
+				for _, lsp in ipairs(servers) do
+					local config = {}
+					local executable = lsp
+
+					if lsp == "lua_ls" then
+						if vim.fn.executable("lua-language-server") == 1 then
+							executable = "lua-language-server"
+						end
+						config.settings = { Lua = { diagnostics = { globals = { "vim" } } } }
+					elseif lsp == "omnisharp" then
+						if vim.fn.executable("OmniSharp") == 1 then
+							config.cmd = { "OmniSharp" }
+						elseif vim.fn.executable("omnisharp") == 1 then
+							config.cmd = { "omnisharp" }
+						end
+						config.enable_roslyn_analyzers = true
+						config.analyze_open_documents_only = true
+						config.enable_import_completion = true
+					end
+
+					if vim.fn.executable(executable) == 1 then
+						if next(config) ~= nil then
+							vim.lsp.config(lsp, config)
+						end
+						vim.lsp.enable(lsp)
+					end
+				end
+			else
+				-- Fallback for older Neovim versions
+				local lspconfig = require("lspconfig")
+				for _, lsp in ipairs(servers) do
+					local config = { capabilities = capabilities }
+					local executable = lsp
+
+					if lsp == "lua_ls" then
+						if vim.fn.executable("lua-language-server") == 1 then
+							executable = "lua-language-server"
+						end
+						config.settings = { Lua = { diagnostics = { globals = { "vim" } } } }
+					elseif lsp == "omnisharp" then
+						if vim.fn.executable("OmniSharp") == 1 then
+							config.cmd = { "OmniSharp" }
+						elseif vim.fn.executable("omnisharp") == 1 then
+							config.cmd = { "omnisharp" }
+						end
+						config.enable_roslyn_analyzers = true
+						config.analyze_open_documents_only = true
+						config.enable_import_completion = true
+					end
+
+					if vim.fn.executable(executable) == 1 then
+						lspconfig[lsp].setup(config)
+					end
+				end
+			end
+
 			-- Keymaps on attach
-			vim.api.nvim_create_autocmd('LspAttach', {
-				group = vim.api.nvim_create_augroup('UserLspConfig', {}),
-				callback = function(ev) --[[@as ev.buf]]
+			vim.api.nvim_create_autocmd("LspAttach", {
+				group = vim.api.nvim_create_augroup("UserLspConfig", {}),
+				callback = function(ev)
 					-- Buffer local mappings
 					local opts = { buffer = ev.buf }
-					
+
 					-- Standard LSP mappings
-					vim.keymap.set('n', 'gd', vim.lsp.buf.definition, { desc = "Go to definition", buffer = ev.buf })
-					vim.keymap.set('n', 'K', vim.lsp.buf.hover, { desc = "Hover", buffer = ev.buf })
-					vim.keymap.set('n', 'gi', vim.lsp.buf.implementation, { desc = "Go to implementation", buffer = ev.buf })
-					
+					vim.keymap.set("n", "gd", vim.lsp.buf.definition, { desc = "Go to definition", buffer = ev.buf })
+					vim.keymap.set("n", "K", vim.lsp.buf.hover, { desc = "Hover", buffer = ev.buf })
+					vim.keymap.set("n", "gi", vim.lsp.buf.implementation, { desc = "Go to implementation", buffer = ev.buf })
+
 					-- Requested <leader>c mappings
-					vim.keymap.set('n', '<leader>cl', vim.lsp.buf.definition, { desc = "LSP: Go to Definition", buffer = ev.buf })
-					vim.keymap.set('n', '<leader>cr', vim.lsp.buf.references, { desc = "LSP: References", buffer = ev.buf })
-					vim.keymap.set('n', '<leader>cn', vim.lsp.buf.rename, { desc = "LSP: Rename", buffer = ev.buf })
-					vim.keymap.set({ 'n', 'v' }, '<leader>ca', vim.lsp.buf.code_action, { desc = "LSP: Code Action", buffer = ev.buf })
-				vim.keymap.set('n', '<leader>ch', vim.lsp.buf.hover, { desc = "LSP: Hover", buffer = ev.buf })
-				vim.keymap.set('n', '<leader>cD', vim.lsp.buf.declaration, { desc = "LSP: Go to Declaration", buffer = ev.buf })
+					vim.keymap.set("n", "<leader>cl", vim.lsp.buf.definition, { desc = "LSP: Go to Definition", buffer = ev.buf })
+					vim.keymap.set("n", "<leader>cr", vim.lsp.buf.references, { desc = "LSP: References", buffer = ev.buf })
+					vim.keymap.set("n", "<leader>cn", vim.lsp.buf.rename, { desc = "LSP: Rename", buffer = ev.buf })
+					vim.keymap.set({ "n", "v" }, "<leader>ca", vim.lsp.buf.code_action, { desc = "LSP: Code Action", buffer = ev.buf })
+					vim.keymap.set("n", "<leader>ch", vim.lsp.buf.hover, { desc = "LSP: Hover", buffer = ev.buf })
+					vim.keymap.set("n", "<leader>cD", vim.lsp.buf.declaration, { desc = "LSP: Go to Declaration", buffer = ev.buf })
 				end,
 			})
 		end,
