@@ -52,6 +52,8 @@ in
     brightnessctl # For screen brightness control
     swayidle # For idle management (screen dimming, locking)
     swaylock # Screen locker
+    ripgrep # grep utility for telescope
+    fd # find utility for telescope
 
     # GUI applications
     playerctl # Required for media key bindings in Niri
@@ -65,6 +67,26 @@ in
 
     (pkgs.writeShellScriptBin "wifi-menu" (builtins.readFile ./wofi/scripts/wifi-menu.sh))
     (pkgs.writeShellScriptBin "bluetooth-menu" (builtins.readFile ./wofi/scripts/bluetooth-menu.sh))
+
+    # Development Tools
+    lua-language-server
+    stylua
+    nixd
+    alejandra
+    clang-tools
+    gdb
+    
+    # Shell / Scripting
+    bash-language-server
+    shfmt
+    shellcheck
+
+    # Graphics
+    glslang # For GLSL validation
+    
+    # C# / .NET
+    omnisharp-roslyn
+    netcoredbg
   ];
 
   # Theme configuration
