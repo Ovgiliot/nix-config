@@ -40,7 +40,6 @@
     btop # system monitor
     gh
     lazygit
-    ranger
     nodejs
     gcc
   ];
