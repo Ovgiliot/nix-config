@@ -40,6 +40,9 @@
     btop # system monitor
     gh
     lazygit
+    ranger
+    ueberzugpp
+    w3m
     nodejs
     gcc
   ];

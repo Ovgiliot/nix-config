@@ -60,7 +60,6 @@ in
     bitwarden-desktop
     obsidian
     thunar
-    ranger
     ghostty
     linux-wallpaperengine
     protontricks
@@ -82,8 +81,6 @@ in
     librsvg
     catdoc
     xlsx2csv
-    ueberzugpp
-    w3m
 
     (pkgs.writeShellScriptBin "wifi-menu" (builtins.readFile ./wofi/scripts/wifi-menu.sh))
     (pkgs.writeShellScriptBin "bluetooth-menu" (builtins.readFile ./wofi/scripts/bluetooth-menu.sh))
@@ -205,7 +202,8 @@ in
   xdg.configFile."kanata/kanata.kbd".source = ./kanata.kbd;
   xdg.configFile."ghostty/config".source = ./ghostty/config;
   xdg.configFile."ghostty/shaders".source = ./ghostty/shaders;
-  xdg.configFile."ranger".source = ./ranger;
+  xdg.configFile."ranger/rc.conf".source = ./ranger/rc.conf;
+  xdg.configFile."ranger/scope.sh".source = ./ranger/scope.sh;
   xdg.configFile."waybar/config".source = ./waybar/config.jsonc;
   xdg.configFile."waybar/style.css".source = ./waybar/style.css;
   xdg.configFile."wofi/config".source = ./wofi/config;
