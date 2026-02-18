@@ -21,7 +21,7 @@ binds {
     Mod+D hotkey-overlay-title="Run an Application: fuzzel" { spawn "fuzzel"; }
     // Super+Alt+L hotkey-overlay-title="Lock the Screen: swaylock" { spawn "swaylock"; }
     Mod+Space hotkey-overlay-title="Open Launcher" { spawn "wofi" "--show" "drun"; }
-    Mod+N hotkey-overlay-title="Create Roam Node" { spawn "ghostty" "-e" "nvim" "-c" "lua require('org-roam').api.nodes.find()"; }
+    Mod+N hotkey-overlay-title="Create Roam Node" { spawn "ghostty" "-e" "nvim" "-c" "lua require('org-roam').api.find_node()"; }
     Mod+O hotkey-overlay-title="Open Notes" { spawn "sh" "-c" "mkdir -p ~/Documents/org && ghostty -e ranger ~/Documents/org"; }
     Mod+Ctrl+N hotkey-overlay-title="Wi-Fi Menu" { spawn "wifi-menu"; }
     Mod+Ctrl+B hotkey-overlay-title="Bluetooth Menu" { spawn "bluetooth-menu"; }

@@ -92,12 +92,12 @@ require("lazy").setup({
 			"kkharji/sqlite.lua",
 		},
 		keys = {
-			{ "<leader>rf", function() require("org-roam").api.nodes.find() end, desc = "OrgRoam: Find Node" },
-			{ "<leader>ri", function() require("org-roam").api.nodes.insert() end, desc = "OrgRoam: Insert Node" },
+			{ "<leader>rf", function() require("org-roam").api.find_node() end, desc = "OrgRoam: Find Node" },
+			{ "<leader>ri", function() require("org-roam").api.insert_node() end, desc = "OrgRoam: Insert Node" },
 			{ "<leader>rl", function() require("org-roam").ui.node_buffer.toggle() end, desc = "OrgRoam: Toggle Buffer" },
-			{ "<leader>rt", function() require("org-roam").api.dailies.capture_today() end, desc = "OrgRoam: Today" },
-			{ "<leader>ry", function() require("org-roam").api.dailies.capture_yesterday() end, desc = "OrgRoam: Yesterday" },
-			{ "<leader>rm", function() require("org-roam").api.dailies.capture_tomorrow() end, desc = "OrgRoam: Tomorrow" },
+			{ "<leader>rt", function() require("org-roam").extensions.dailies.capture_today() end, desc = "OrgRoam: Today" },
+			{ "<leader>ry", function() require("org-roam").extensions.dailies.capture_yesterday() end, desc = "OrgRoam: Yesterday" },
+			{ "<leader>rm", function() require("org-roam").extensions.dailies.capture_tomorrow() end, desc = "OrgRoam: Tomorrow" },
 		},
 		config = function()
 			require("org-roam").setup({
