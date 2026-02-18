@@ -85,26 +85,19 @@ require("lazy").setup({
 	},
 	{
 		"chipsenkbeil/org-roam.nvim",
+		ft = { "org" },
 		dependencies = {
 			"nvim-orgmode/orgmode",
 			"nvim-telescope/telescope.nvim",
 			"kkharji/sqlite.lua",
 		},
-		cmd = {
-			"OrgRoamNodeFind",
-			"OrgRoamNodeInsert",
-			"OrgRoamBufferToggle",
-			"OrgRoamDailiesCaptureToday",
-			"OrgRoamDailiesCaptureYesterday",
-			"OrgRoamDailiesCaptureTomorrow",
-		},
 		keys = {
-			{ "<leader>rf", "<cmd>OrgRoamNodeFind<cr>", desc = "OrgRoam: Find Node" },
-			{ "<leader>ri", "<cmd>OrgRoamNodeInsert<cr>", desc = "OrgRoam: Insert Node" },
-			{ "<leader>rl", "<cmd>OrgRoamBufferToggle<cr>", desc = "OrgRoam: Toggle Buffer" },
-			{ "<leader>rt", "<cmd>OrgRoamDailiesCaptureToday<cr>", desc = "OrgRoam: Today" },
-			{ "<leader>ry", "<cmd>OrgRoamDailiesCaptureYesterday<cr>", desc = "OrgRoam: Yesterday" },
-			{ "<leader>rm", "<cmd>OrgRoamDailiesCaptureTomorrow<cr>", desc = "OrgRoam: Tomorrow" },
+			{ "<leader>rf", function() require("org-roam").api.nodes.find() end, desc = "OrgRoam: Find Node" },
+			{ "<leader>ri", function() require("org-roam").api.nodes.insert() end, desc = "OrgRoam: Insert Node" },
+			{ "<leader>rl", function() require("org-roam").ui.node_buffer.toggle() end, desc = "OrgRoam: Toggle Buffer" },
+			{ "<leader>rt", function() require("org-roam").api.dailies.capture_today() end, desc = "OrgRoam: Today" },
+			{ "<leader>ry", function() require("org-roam").api.dailies.capture_yesterday() end, desc = "OrgRoam: Yesterday" },
+			{ "<leader>rm", function() require("org-roam").api.dailies.capture_tomorrow() end, desc = "OrgRoam: Tomorrow" },
 		},
 		config = function()
 			require("org-roam").setup({
@@ -112,6 +105,11 @@ require("lazy").setup({
 				ui = {
 					picker = {
 						name = "telescope",
+					},
+				},
+				extensions = {
+					dailies = {
+						directory = "dailies",
 					},
 				},
 				templates = {
