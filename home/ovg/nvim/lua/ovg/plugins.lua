@@ -116,8 +116,8 @@ require("lazy").setup({
 				templates = {
 					d = {
 						description = "default",
-						template = "#+title: ${title}\n\n${cursor}",
-						target = "%<%Y%m%d%H%M%S>-${slug}.org",
+						template = "%?",
+						target = "%<%Y%m%d%H%M%S>-%[slug].org",
 					},
 				},
 			})
