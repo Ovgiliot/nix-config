@@ -204,6 +204,7 @@ in
   xdg.configFile."ghostty/config".source = ./ghostty/config;
   xdg.configFile."ghostty/shaders".source = ./ghostty/shaders;
   xdg.configFile."ranger/rc.conf".source = ./ranger/rc.conf;
+  xdg.configFile."ranger/rifle.conf".source = ./ranger/rifle.conf;
   xdg.configFile."ranger/scope.sh".source = ./ranger/scope.sh;
   xdg.configFile."waybar/config".source = ./waybar/config.jsonc;
   xdg.configFile."waybar/style.css".source = ./waybar/style.css;
