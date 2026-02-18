@@ -1,37 +1,38 @@
 {
   description = "NixOS configuration with flakes and home-manager";
 
-  inputs = {
-    nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
-
-    home-manager = {
-      url = "github:nix-community/home-manager";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
-
-    niri.url = "github:sodiboo/niri-flake";
-
-    emacs-overlay.url = "github:nix-community/emacs-overlay";
-
-    noctalia = {
-      url = "github:noctalia-dev/noctalia-shell";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
-
-    zen-browser = {
-      url = "github:0xc000022070/zen-browser-flake";
-      inputs = {
-        nixpkgs.follows = "nixpkgs";
-        home-manager.follows = "home-manager";
-      };
+  inputs.nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
+  inputs.home-manager = {
+    url = "github:nix-community/home-manager";
+    inputs.nixpkgs.follows = "nixpkgs";
+  };
+  inputs.niri.url = "github:sodiboo/niri-flake";
+  inputs.emacs-overlay.url = "github:nix-community/emacs-overlay";
+  inputs.noctalia = {
+    url = "github:noctalia-dev/noctalia-shell";
+    inputs.nixpkgs.follows = "nixpkgs";
+  };
+  inputs.zen-browser = {
+    url = "github:0xc000022070/zen-browser-flake";
+    inputs = {
+      nixpkgs.follows = "nixpkgs";
+      home-manager.follows = "home-manager";
     };
   };
 
-  outputs = { self, nixpkgs, home-manager, niri, zen-browser, emacs-overlay, ... }@inputs: {
+  outputs = {
+    self,
+    nixpkgs,
+    home-manager,
+    niri,
+    zen-browser,
+    emacs-overlay,
+    ...
+  } @ inputs: {
     nixosConfigurations = {
       nixos = nixpkgs.lib.nixosSystem {
         system = "x86_64-linux";
-        specialArgs = { inherit inputs; };
+        specialArgs = {inherit inputs;};
         modules = [
           # Hardware configuration
           ./hosts/nixos/hardware-configuration.nix
@@ -70,7 +71,7 @@
             home-manager.useGlobalPkgs = true;
             home-manager.useUserPackages = true;
             home-manager.users.ovg = import ./home/ovg;
-            home-manager.extraSpecialArgs = { inherit inputs; };
+            home-manager.extraSpecialArgs = {inherit inputs;};
             home-manager.backupFileExtension = "bak";
           }
 
@@ -81,3 +82,4 @@
     };
   };
 }
+

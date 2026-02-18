@@ -78,8 +78,8 @@ require("lazy").setup({
 		config = function()
 			-- Setup orgmode
 			require("orgmode").setup({
-				org_agenda_files = "~/Documents/org/**/*",
-				org_default_notes_file = "~/Documents/org/refile.org",
+				org_agenda_files = vim.fn.expand("~/Documents/org/**/*"),
+				org_default_notes_file = vim.fn.expand("~/Documents/org/refile.org"),
 			})
 		end,
 	},
@@ -87,11 +87,42 @@ require("lazy").setup({
 		"chipsenkbeil/org-roam.nvim",
 		dependencies = {
 			"nvim-orgmode/orgmode",
+			"nvim-telescope/telescope.nvim",
+			"kkharji/sqlite.lua",
+		},
+		cmd = {
+			"OrgRoamNodeFind",
+			"OrgRoamNodeInsert",
+			"OrgRoamBufferToggle",
+			"OrgRoamDailiesCaptureToday",
+			"OrgRoamDailiesCaptureYesterday",
+			"OrgRoamDailiesCaptureTomorrow",
+		},
+		keys = {
+			{ "<leader>rf", "<cmd>OrgRoamNodeFind<cr>", desc = "OrgRoam: Find Node" },
+			{ "<leader>ri", "<cmd>OrgRoamNodeInsert<cr>", desc = "OrgRoam: Insert Node" },
+			{ "<leader>rl", "<cmd>OrgRoamBufferToggle<cr>", desc = "OrgRoam: Toggle Buffer" },
+			{ "<leader>rt", "<cmd>OrgRoamDailiesCaptureToday<cr>", desc = "OrgRoam: Today" },
+			{ "<leader>ry", "<cmd>OrgRoamDailiesCaptureYesterday<cr>", desc = "OrgRoam: Yesterday" },
+			{ "<leader>rm", "<cmd>OrgRoamDailiesCaptureTomorrow<cr>", desc = "OrgRoam: Tomorrow" },
 		},
 		config = function()
 			require("org-roam").setup({
-				directory = "~/Documents/org/roam",
+				directory = vim.fn.expand("~/Documents/org/roam"),
+				ui = {
+					picker = {
+						name = "telescope",
+					},
+				},
+				templates = {
+					d = {
+						description = "default",
+						template = "#+title: ${title}\n\n${cursor}",
+						target = "${slug}.org",
+					},
+				},
 			})
+			pcall(require("telescope").load_extension, "org_roam")
 		end,
 	},
 

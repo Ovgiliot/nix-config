@@ -92,6 +92,7 @@ in
     alejandra
     clang-tools
     gdb
+    sqlite
     
     # Shell / Scripting
     bash-language-server

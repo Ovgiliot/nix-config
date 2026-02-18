@@ -67,11 +67,3 @@ vim.keymap.set("n", "<leader>gh", "<cmd>DiffviewFileHistory %<cr>", { desc = "Fi
 vim.keymap.set("n", "<leader>oa", "<cmd>Org agenda<cr>", { desc = "Org: Agenda" })
 vim.keymap.set("n", "<leader>oc", "<cmd>Org capture<cr>", { desc = "Org: Capture" })
 
--- Org Roam
-vim.keymap.set("n", "<leader>rf", "<cmd>OrgRoamNodeFind<cr>", { desc = "OrgRoam: Find Node" })
-vim.keymap.set("n", "<leader>ri", "<cmd>OrgRoamNodeInsert<cr>", { desc = "OrgRoam: Insert Node" })
-vim.keymap.set("n", "<leader>rl", "<cmd>OrgRoamBufferToggle<cr>", { desc = "OrgRoam: Toggle Buffer" })
-vim.keymap.set("n", "<leader>rt", "<cmd>OrgRoamDailiesCaptureToday<cr>", { desc = "OrgRoam: Today" })
-vim.keymap.set("n", "<leader>ry", "<cmd>OrgRoamDailiesCaptureYesterday<cr>", { desc = "OrgRoam: Yesterday" })
-vim.keymap.set("n", "<leader>rm", "<cmd>OrgRoamDailiesCaptureTomorrow<cr>", { desc = "OrgRoam: Tomorrow" })
-
