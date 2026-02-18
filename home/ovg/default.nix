@@ -67,7 +67,7 @@ in
     # Ranger previewers
     ffmpeg
     ffmpegthumbnailer
-    poppler_utils
+    poppler-utils
     atool
     p7zip
     unzip
