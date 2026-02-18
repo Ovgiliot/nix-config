@@ -81,6 +81,17 @@ require("lazy").setup({
 				org_agenda_files = "~/Documents/org/**/*",
 				org_default_notes_file = "~/Documents/org/refile.org",
 			})
+
+			-- Custom mappings for org files
+			vim.api.nvim_create_autocmd("FileType", {
+				pattern = "org",
+				callback = function()
+					-- Map gd to follow link in normal mode
+					vim.keymap.set("n", "gd", function()
+						require("orgmode").action("org_mappings.open_at_point")
+					end, { buffer = true, desc = "Org: Follow Link" })
+				end,
+			})
 		end,
 	},
 	{
