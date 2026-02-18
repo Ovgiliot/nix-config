@@ -78,8 +78,8 @@ require("lazy").setup({
 		config = function()
 			-- Setup orgmode
 			require("orgmode").setup({
-				org_agenda_files = vim.fn.expand("~/Documents/org/**/*"),
-				org_default_notes_file = vim.fn.expand("~/Documents/org/refile.org"),
+				org_agenda_files = "~/Documents/org/**/*",
+				org_default_notes_file = "~/Documents/org/refile.org",
 			})
 		end,
 	},
@@ -102,7 +102,7 @@ require("lazy").setup({
 		config = function()
 			local roam = require("org-roam")
 			roam.setup({
-				directory = vim.fn.expand("~/Documents/org/roam"),
+				directory = "~/Documents/org/roam",
 				ui = {
 					picker = {
 						name = "telescope",
@@ -117,7 +117,7 @@ require("lazy").setup({
 					d = {
 						description = "default",
 						template = "#+title: ${title}\n\n${cursor}",
-						target = "${slug}.org",
+						target = "%<%Y%m%d%H%M%S>-${slug}.org",
 					},
 				},
 			})
