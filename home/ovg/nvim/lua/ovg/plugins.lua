@@ -100,7 +100,8 @@ require("lazy").setup({
 			{ "<leader>rm", function() require("org-roam").extensions.dailies.capture_tomorrow() end, desc = "OrgRoam: Tomorrow" },
 		},
 		config = function()
-			require("org-roam").setup({
+			local roam = require("org-roam")
+			roam.setup({
 				directory = vim.fn.expand("~/Documents/org/roam"),
 				ui = {
 					picker = {
@@ -120,6 +121,8 @@ require("lazy").setup({
 					},
 				},
 			})
+			-- Load the database to initialize it
+			roam.database:load()
 			pcall(require("telescope").load_extension, "org_roam")
 		end,
 	},
