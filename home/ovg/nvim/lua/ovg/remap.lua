@@ -63,14 +63,15 @@ vim.keymap.set("n", "<leader>gl", "<cmd>Neogit pull<cr>", { desc = "Neogit pull"
 vim.keymap.set("n", "<leader>gd", "<cmd>DiffviewOpen<cr>", { desc = "Diffview open" })
 vim.keymap.set("n", "<leader>gh", "<cmd>DiffviewFileHistory %<cr>", { desc = "File history" })
 
--- Obsidian
-vim.keymap.set("n", "<leader>oo", "<cmd>Obsidian quick_switch<cr>", { desc = "Quick Switch" })
-vim.keymap.set("n", "<leader>on", "<cmd>Obsidian new<cr>", { desc = "New Note" })
-vim.keymap.set("n", "<leader>os", "<cmd>Obsidian search<cr>", { desc = "Search Vault" })
-vim.keymap.set("n", "<leader>ot", "<cmd>Obsidian today<cr>", { desc = "Today's Note" })
-vim.keymap.set("n", "<leader>oy", "<cmd>Obsidian yesterday<cr>", { desc = "Yesterday's Note" })
-vim.keymap.set("n", "<leader>om", "<cmd>Obsidian tomorrow<cr>", { desc = "Tomorrow's Note" })
-vim.keymap.set("n", "<leader>of", "<cmd>Obsidian follow<cr>", { desc = "Follow Link" })
-vim.keymap.set("n", "<leader>ob", "<cmd>Obsidian backlinks<cr>", { desc = "Backlinks" })
-vim.keymap.set("n", "<leader>oi", "<cmd>Obsidian template<cr>", { desc = "Insert Template" })
+-- Org Mode
+vim.keymap.set("n", "<leader>oa", "<cmd>Org agenda<cr>", { desc = "Org: Agenda" })
+vim.keymap.set("n", "<leader>oc", "<cmd>Org capture<cr>", { desc = "Org: Capture" })
+
+-- Org Roam
+vim.keymap.set("n", "<leader>rf", "<cmd>OrgRoamNodeFind<cr>", { desc = "OrgRoam: Find Node" })
+vim.keymap.set("n", "<leader>ri", "<cmd>OrgRoamNodeInsert<cr>", { desc = "OrgRoam: Insert Node" })
+vim.keymap.set("n", "<leader>rl", "<cmd>OrgRoamBufferToggle<cr>", { desc = "OrgRoam: Toggle Buffer" })
+vim.keymap.set("n", "<leader>rt", "<cmd>OrgRoamDailiesCaptureToday<cr>", { desc = "OrgRoam: Today" })
+vim.keymap.set("n", "<leader>ry", "<cmd>OrgRoamDailiesCaptureYesterday<cr>", { desc = "OrgRoam: Yesterday" })
+vim.keymap.set("n", "<leader>rm", "<cmd>OrgRoamDailiesCaptureTomorrow<cr>", { desc = "OrgRoam: Tomorrow" })
 

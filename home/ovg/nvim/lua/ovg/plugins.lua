@@ -33,7 +33,7 @@ require("lazy").setup({
 			local ok, configs = pcall(require, "nvim-treesitter.configs")
 			if ok then
 				configs.setup({
-					ensure_installed = { "markdown", "markdown_inline", "lua", "vim", "vimdoc", "query", "c", "cpp", "nix", "glsl", "hlsl", "bash", "fish", "c_sharp" },
+					ensure_installed = { "markdown", "markdown_inline", "lua", "vim", "vimdoc", "query", "c", "cpp", "nix", "glsl", "hlsl", "bash", "fish", "c_sharp", "org" },
 					highlight = { enable = true },
 					indent = { enable = true },
 				})
@@ -70,36 +70,27 @@ require("lazy").setup({
 		end,
 	},
 
-	-- Obsidian
+	-- Org Mode & Org Roam
 	{
-		"obsidian-nvim/obsidian.nvim",
-		version = "*",
-		event = { "BufReadPre", "BufNewFile" },
+		"nvim-orgmode/orgmode",
+		event = "VeryLazy",
+		ft = { "org" },
+		config = function()
+			-- Setup orgmode
+			require("orgmode").setup({
+				org_agenda_files = "~/Documents/org/**/*",
+				org_default_notes_file = "~/Documents/org/refile.org",
+			})
+		end,
+	},
+	{
+		"chipsenkbeil/org-roam.nvim",
 		dependencies = {
-			"nvim-lua/plenary.nvim",
+			"nvim-orgmode/orgmode",
 		},
 		config = function()
-			require("obsidian").setup({
-				workspaces = {
-					{
-						name = "home",
-						path = "/home/ovg/Documents/home/",
-					},
-					{
-						name = "mil",
-						path = "/home/ovg/Documents/mil/",
-					},
-				},
-			templates = {
-				subdir = "templates",
-					date_format = "%Y-%m-%d",
-					time_format = "%H:%M",
-				tags = "",
-			},
-			ui = {
-				enable = true,
-			},
-			legacy_commands = false,
+			require("org-roam").setup({
+				directory = "~/Documents/org/roam",
 			})
 		end,
 	},

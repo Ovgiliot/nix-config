@@ -1,4 +1,4 @@
 #!/bin/sh
-mkdir -p ~/Documents/home/inbox
-cd ~/Documents/home
-exec nvim inbox/$(date +"%Y-%m-%d_%H-%M-%S.md")
+mkdir -p ~/Documents/org/inbox
+cd ~/Documents/org
+exec nvim inbox/$(date +"%Y-%m-%d_%H-%M-%S.org")

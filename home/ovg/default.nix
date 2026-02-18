@@ -58,7 +58,7 @@ in
     # GUI applications
     playerctl # Required for media key bindings in Niri
     bitwarden-desktop
-    obsidian
+    pandoc
     thunar
     ghostty
     linux-wallpaperengine

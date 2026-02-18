@@ -63,5 +63,5 @@ input {
 }
 
 cursor {
-    hide-after-inactive-ms 100
+    hide-after-inactive-ms 3000
 }
