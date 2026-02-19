@@ -50,15 +50,33 @@ require("lazy").setup({
 	-- Telescope
 	{
 		"nvim-telescope/telescope.nvim",
-		dependencies = { "nvim-lua/plenary.nvim" },
+		dependencies = {
+			"nvim-lua/plenary.nvim",
+			{
+				"nvim-telescope/telescope-fzf-native.nvim",
+				build = "make", -- Requires make and gcc/clang
+			},
+		},
 		config = function()
-			require("telescope").setup({
+			local telescope = require("telescope")
+			telescope.setup({
 				defaults = {
 					prompt_prefix = "   ",
 					sorting_strategy = "ascending",
 					layout_config = { prompt_position = "top" },
+					file_ignore_patterns = { ".git/", "node_modules/" }, -- Ignore common junk
+				},
+				extensions = {
+					fzf = {
+						fuzzy = true, -- false will only do exact matching
+						override_generic_sorter = true, -- override the generic sorter
+						override_file_sorter = true, -- override the file sorter
+						case_mode = "smart_case", -- or "ignore_case" or "respect_case"
+					},
 				},
 			})
+			-- Load fzf extension
+			telescope.load_extension("fzf")
 		end,
 	},
 
@@ -80,6 +98,13 @@ require("lazy").setup({
 			require("orgmode").setup({
 				org_agenda_files = "~/Documents/org/**/*",
 				org_default_notes_file = "~/Documents/org/refile.org",
+				mappings = {
+					capture = {
+						org_capture_finalize = "<C-c><C-c>",
+						org_capture_refile = "<C-c><C-w>",
+						org_capture_kill = "<C-c><C-k>",
+					},
+				},
 			})
 
 			-- Custom mappings for org files
@@ -273,31 +298,35 @@ require("lazy").setup({
 			"hrsh7th/cmp-cmdline",
 			"saadparwaiz1/cmp_luasnip",
 			"hrsh7th/cmp-nvim-lsp",
-            "L3MON4D3/LuaSnip",
+			"L3MON4D3/LuaSnip",
+			"rafamadriz/friendly-snippets", -- Add useful snippets
 		},
 		config = function()
 			local cmp = require("cmp")
 			local luasnip = require("luasnip")
 
+			-- Load friendly-snippets
+			require("luasnip.loaders.from_vscode").lazy_load()
+
 			cmp.setup({
 				snippet = {
-					expand = function(args) -- For `luasnip` users.
+					expand = function(args)
 						luasnip.lsp_expand(args.body)
 					end,
 				},
 				mapping = cmp.mapping.preset.insert({
-					['<C-b>'] = cmp.mapping.scroll_docs(-4),
-					['<C-f>'] = cmp.mapping.scroll_docs(4),
-					['<C-Space>'] = cmp.mapping.complete(),
-					['<C-e>'] = cmp.mapping.abort(),
-					['<Tab>'] = cmp.mapping.confirm({ select = true }), -- Accept currently selected item. Set `select` to `false` to only confirm.
+					["<C-b>"] = cmp.mapping.scroll_docs(-4),
+					["<C-f>"] = cmp.mapping.scroll_docs(4),
+					["<C-Space>"] = cmp.mapping.complete(),
+					["<C-e>"] = cmp.mapping.abort(),
+					["<Tab>"] = cmp.mapping.confirm({ select = true }), -- Accept currently selected item.
 				}),
 				sources = cmp.config.sources({
-					{ name = 'nvim_lsp' },
-					{ name = 'luasnip' },
+					{ name = "nvim_lsp" },
+					{ name = "luasnip" },
 				}, {
-					{ name = 'buffer' },
-				})
+					{ name = "buffer" },
+				}),
 			})
 		end,
 	},
@@ -313,26 +342,27 @@ require("lazy").setup({
 				function()
 					require("conform").format({ async = true, lsp_fallback = true })
 				end,
-			mode = "",
-			desc = "Format buffer",
+				mode = "",
+				desc = "Format buffer",
+			},
 		},
-	},
-	config = function()
-		require("conform").setup({
-			formatters_by_ft = {
-									lua = { "stylua" },
-									python = { "isort", "black" },
-									javascript = { "prettierd", "prettier" },
-				                    nix = { "alejandra" },
-				                    bash = { "shfmt" },
-				                    sh = { "shfmt" },
-				                    fish = { "fish_indent" },
-								},
-				                format_on_save = {                timeout_ms = 500,
-                lsp_fallback = true,
-            },
-		})
-	end,
+		config = function()
+			require("conform").setup({
+				formatters_by_ft = {
+					lua = { "stylua" },
+					python = { "isort", "black" },
+					javascript = { "prettierd", "prettier" },
+					nix = { "alejandra" }, -- Nix formatter
+					bash = { "shfmt" },
+					sh = { "shfmt" },
+					fish = { "fish_indent" },
+				},
+				format_on_save = {
+					timeout_ms = 500,
+					lsp_fallback = true,
+				},
+			})
+		end,
 	},
 
 	-- Linting

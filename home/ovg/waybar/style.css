@@ -4,8 +4,8 @@
 }
 
 window#waybar {
-    background-color: #24292e; /* Dark grey for primary background */
-    border-bottom: 3px solid #2f363d; /* Slightly lighter dark grey for border */
+    background-color: rgba(36, 41, 46, 0.7); /* Transparent dark grey like a terminal */
+    border-bottom: 3px solid rgba(47, 54, 61, 0.7); /* Transparent border */
     color: #fafafa; /* Off-white for text */
     transition-property: background-color;
     transition-duration: .5s;
