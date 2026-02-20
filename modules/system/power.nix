@@ -65,6 +65,18 @@
 
         # Main loop
         while true; do
+          # Check for manual override
+          if [ -f /tmp/power_profile_override ]; then
+            OVERRIDE=$(cat /tmp/power_profile_override)
+            if [ "$OVERRIDE" = "auto" ]; then
+              rm /tmp/power_profile_override
+            elif [ -n "$OVERRIDE" ]; then
+               set_profile "$OVERRIDE"
+               sleep 60
+               continue
+            fi
+          fi
+
           AC_STATUS=$(is_on_ac)
           BAT_PERCENT=$(get_battery_percent)
 

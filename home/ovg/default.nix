@@ -84,6 +84,7 @@ in
 
     (pkgs.writeShellScriptBin "wifi-menu" (builtins.readFile ./wofi/scripts/wifi-menu.sh))
     (pkgs.writeShellScriptBin "bluetooth-menu" (builtins.readFile ./wofi/scripts/bluetooth-menu.sh))
+    (pkgs.writeShellScriptBin "power-menu" (builtins.readFile ./wofi/scripts/power-menu.sh))
 
     # Development Tools
     gnumake
