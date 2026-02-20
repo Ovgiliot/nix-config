@@ -45,9 +45,21 @@
 
         # Function to set power profile
         set_profile() {
+          new_profile="$1"
           current=$(${pkgs.power-profiles-daemon}/bin/powerprofilesctl get)
-          if [ "$current" != "$1" ]; then
-            ${pkgs.power-profiles-daemon}/bin/powerprofilesctl set "$1"
+          if [ "$current" != "$new_profile" ]; then
+            if ${pkgs.power-profiles-daemon}/bin/powerprofilesctl set "$new_profile"; then
+              # Send notification to user ovg
+              USER_ID=$(id -u ovg 2>/dev/null)
+              if [ -n "$USER_ID" ]; then
+                 export DBUS_SESSION_BUS_ADDRESS="unix:path=/run/user/$USER_ID/bus"
+                 ${pkgs.sudo}/bin/sudo -u ovg DBUS_SESSION_BUS_ADDRESS="$DBUS_SESSION_BUS_ADDRESS" \
+                   ${pkgs.libnotify}/bin/notify-send \
+                   -u normal \
+                   "Power Profile" \
+                   "Switched to $new_profile"
+              fi
+            fi
           fi
         }
 
