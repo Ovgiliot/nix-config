@@ -22,6 +22,11 @@
     serviceConfig = {
       Type = "simple";
       ExecStart = pkgs.writeShellScript "power-profile-switcher" ''
+        # Trigger mechanism for immediate updates
+        TRIGGER_FILE="/tmp/power_profile_trigger"
+        touch "$TRIGGER_FILE"
+        chmod 666 "$TRIGGER_FILE"
+
         # Find battery and AC devices
         BAT=$( ${pkgs.upower}/bin/upower -e | ${pkgs.gnugrep}/bin/grep -E 'battery_BAT[0-9]' | ${pkgs.coreutils}/bin/head -n 1 )
         AC=$( ${pkgs.upower}/bin/upower -e | ${pkgs.gnugrep}/bin/grep -E 'line_power|AC|ADP' | ${pkgs.coreutils}/bin/head -n 1 )
@@ -72,7 +77,8 @@
               rm /tmp/power_profile_override
             elif [ -n "$OVERRIDE" ]; then
                set_profile "$OVERRIDE"
-               sleep 60
+               # Wait for trigger or timeout
+               ${pkgs.inotify-tools}/bin/inotifywait -t 60 -e modify "$TRIGGER_FILE" >/dev/null 2>&1
                continue
             fi
           fi
@@ -93,7 +99,8 @@
              set_profile "balanced"
           fi
           
-          sleep 60
+          # Wait for trigger or timeout
+          ${pkgs.inotify-tools}/bin/inotifywait -t 60 -e modify "$TRIGGER_FILE" >/dev/null 2>&1
         done
       '';
       Restart = "always";
