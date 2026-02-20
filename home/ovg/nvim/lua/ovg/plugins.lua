@@ -56,6 +56,7 @@ require("lazy").setup({
 				"nvim-telescope/telescope-fzf-native.nvim",
 				build = "make", -- Requires make and gcc/clang
 			},
+            "nvim-telescope/telescope-ui-select.nvim",
 		},
 		config = function()
 			local telescope = require("telescope")
@@ -73,10 +74,16 @@ require("lazy").setup({
 						override_file_sorter = true, -- override the file sorter
 						case_mode = "smart_case", -- or "ignore_case" or "respect_case"
 					},
+                    ["ui-select"] = {
+                        require("telescope.themes").get_dropdown {
+                            -- even more opts
+                        }
+                    }
 				},
 			})
-			-- Load fzf extension
+			-- Load extensions
 			telescope.load_extension("fzf")
+            telescope.load_extension("ui-select")
 		end,
 	},
 
@@ -271,23 +278,28 @@ require("lazy").setup({
 				callback = function(ev)
 					-- Buffer local mappings
 					local opts = { buffer = ev.buf }
+                    local builtin = require("telescope.builtin")
 
-					-- Standard LSP mappings
-					vim.keymap.set("n", "gd", vim.lsp.buf.definition, { desc = "Go to definition", buffer = ev.buf })
+					-- Standard LSP mappings (Telescope versions)
+					vim.keymap.set("n", "gd", builtin.lsp_definitions, { desc = "LSP: Go to Definition", buffer = ev.buf })
+					vim.keymap.set("n", "gr", builtin.lsp_references, { desc = "LSP: References", buffer = ev.buf })
+					vim.keymap.set("n", "gi", builtin.lsp_implementations, { desc = "LSP: Go to Implementation", buffer = ev.buf })
 					vim.keymap.set("n", "K", vim.lsp.buf.hover, { desc = "Hover", buffer = ev.buf })
-					vim.keymap.set("n", "gi", vim.lsp.buf.implementation, { desc = "Go to implementation", buffer = ev.buf })
 
 					-- Requested <leader>c mappings
-					vim.keymap.set("n", "<leader>cl", vim.lsp.buf.definition, { desc = "LSP: Go to Definition", buffer = ev.buf })
-					vim.keymap.set("n", "<leader>cr", vim.lsp.buf.references, { desc = "LSP: References", buffer = ev.buf })
+					vim.keymap.set("n", "<leader>cl", builtin.lsp_definitions, { desc = "LSP: Go to Definition", buffer = ev.buf })
+					vim.keymap.set("n", "<leader>cr", builtin.lsp_references, { desc = "LSP: References", buffer = ev.buf })
 					vim.keymap.set("n", "<leader>cn", vim.lsp.buf.rename, { desc = "LSP: Rename", buffer = ev.buf })
 					vim.keymap.set({ "n", "v" }, "<leader>ca", vim.lsp.buf.code_action, { desc = "LSP: Code Action", buffer = ev.buf })
 					vim.keymap.set("n", "<leader>ch", vim.lsp.buf.hover, { desc = "LSP: Hover", buffer = ev.buf })
 					vim.keymap.set("n", "<leader>cD", vim.lsp.buf.declaration, { desc = "LSP: Go to Declaration", buffer = ev.buf })
+                    vim.keymap.set("n", "<leader>cs", builtin.lsp_document_symbols, { desc = "LSP: Document Symbols", buffer = ev.buf })
+                    vim.keymap.set("n", "<leader>cw", builtin.lsp_workspace_symbols, { desc = "LSP: Workspace Symbols", buffer = ev.buf })
 				end,
 			})
 		end,
 	},
+
 
 	-- Completion
 	{
