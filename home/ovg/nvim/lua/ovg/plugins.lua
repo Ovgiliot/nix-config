@@ -105,7 +105,14 @@ require("lazy").setup({
 			require("orgmode").setup({
 				org_agenda_files = "~/Documents/org/**/*",
 				org_default_notes_file = "~/Documents/org/refile.org",
+				org_todo_keywords = { "TODO(t)", "NEXT(n)", "STRT(s)", "WAIT(w)", "|", "DONE(d)", "KILL(k)" },
+				org_indent_mode = "indent",
+				org_hide_emphasis_markers = true,
+				org_startup_folded = "inherit",
 				mappings = {
+					org = {
+						org_open_at_point = "<CR>",
+					},
 					capture = {
 						org_capture_finalize = "<C-c><C-c>",
 						org_capture_refile = "<C-c><C-w>",
@@ -122,6 +129,22 @@ require("lazy").setup({
 					vim.keymap.set("n", "gd", function()
 						require("orgmode").action("org_mappings.open_at_point")
 					end, { buffer = true, desc = "Org: Follow Link" })
+
+					-- Map <CR> to follow link in normal mode (like Doom Emacs)
+					vim.keymap.set("n", "<CR>", function()
+						require("orgmode").action("org_mappings.open_at_point")
+					end, { buffer = true, desc = "Org: Follow Link" })
+
+					-- Mimic Doom Emacs SPC m mappings for Org files
+					vim.keymap.set("n", "<leader>mt", "<cmd>Org todo<cr>", { buffer = true, desc = "Org: Todo" })
+					vim.keymap.set("n", "<leader>ms", "<cmd>Org schedule<cr>", { buffer = true, desc = "Org: Schedule" })
+					vim.keymap.set("n", "<leader>md", "<cmd>Org deadline<cr>", { buffer = true, desc = "Org: Deadline" })
+					vim.keymap.set("n", "<leader>mi", "<cmd>Org toggle-checkbox<cr>", { buffer = true, desc = "Org: Toggle Checkbox" })
+					vim.keymap.set("n", "<leader>ml", "<cmd>Org insert-link<cr>", { buffer = true, desc = "Org: Insert Link" })
+					vim.keymap.set("n", "<leader>ma", "<cmd>Org agenda<cr>", { buffer = true, desc = "Org: Agenda" })
+					vim.keymap.set("n", "<leader>mc", "<cmd>Org capture<cr>", { buffer = true, desc = "Org: Capture" })
+					vim.keymap.set("n", "<leader>me", "<cmd>Org export-dispatch<cr>", { buffer = true, desc = "Org: Export" })
+					vim.keymap.set("n", "<leader>mp", "<cmd>Org set-tags-command<cr>", { buffer = true, desc = "Org: Set Tags" })
 				end,
 			})
 		end,
@@ -137,6 +160,8 @@ require("lazy").setup({
 		keys = {
 			{ "<leader>rf", function() require("org-roam").api.find_node() end, desc = "OrgRoam: Find Node" },
 			{ "<leader>ri", function() require("org-roam").api.insert_node() end, desc = "OrgRoam: Insert Node" },
+			{ "<leader>rc", function() require("org-roam").api.capture_node() end, desc = "OrgRoam: Capture Node" },
+			{ "<leader>rs", function() require("org-roam").api.sync() end, desc = "OrgRoam: Sync Database" },
 			{ "<leader>rl", function() require("org-roam").ui.node_buffer.toggle() end, desc = "OrgRoam: Toggle Buffer" },
 			{ "<leader>rt", function() require("org-roam").extensions.dailies.capture_today() end, desc = "OrgRoam: Today" },
 			{ "<leader>ry", function() require("org-roam").extensions.dailies.capture_yesterday() end, desc = "OrgRoam: Yesterday" },
@@ -167,6 +192,14 @@ require("lazy").setup({
 			-- Load the database to initialize it
 			roam.database:load()
 			pcall(require("telescope").load_extension, "org_roam")
+
+			-- Sync roam database on save of any org file in roam directory
+			vim.api.nvim_create_autocmd("BufWritePost", {
+				pattern = "*/Documents/org/roam/**/*.org",
+				callback = function()
+					require("org-roam").database:sync()
+				end,
+			})
 		end,
 	},
 
