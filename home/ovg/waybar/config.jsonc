@@ -4,10 +4,22 @@
     "height": 30,
     "modules-left": [ "cpu", "memory", "niri/workspaces", "niri/window" ],
     "modules-center": [ "clock" ],
-    "modules-right": [ "tray", "niri/language", "network", "bluetooth", "battery" ],
+    "modules-right": [ "tray", "niri/language", "network", "bluetooth", "power-profiles-daemon", "battery" ],
 
     "niri/workspaces": {
         "format": "{name}"
+    },
+
+    "power-profiles-daemon": {
+      "format": "{icon}",
+      "tooltip-format": "Power profile: {profile}\nDriver: {driver}",
+      "tooltip": true,
+      "format-icons": {
+        "default": "",
+        "performance": "",
+        "balanced": "",
+        "power-saver": ""
+      }
     },
 
     "niri/window": {

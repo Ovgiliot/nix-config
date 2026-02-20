@@ -39,3 +39,21 @@ window#waybar {
 #window {
     font-weight: bold;
 }
+
+#power-profiles-daemon {
+    padding: 0 10px;
+    background-color: transparent;
+    color: #e6edf3;
+}
+
+#power-profiles-daemon.performance {
+    color: #ff7b72;
+}
+
+#power-profiles-daemon.balanced {
+    color: #bc8cff;
+}
+
+#power-profiles-daemon.power-saver {
+    color: #3fb950;
+}
