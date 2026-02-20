@@ -220,4 +220,82 @@ in
   xdg.configFile."mako/config".source = ./mako/config;
 
   services.network-manager-applet.enable = true;
+
+  # Power Monitor Service (User level)
+  systemd.user.services.power-monitor = {
+    Unit = {
+      Description = "Power Monitor Service";
+      After = [ "graphical-session.target" ];
+    };
+    Install = {
+      WantedBy = [ "graphical-session.target" ];
+    };
+    Service = {
+      ExecStart = pkgs.writeShellScript "power-monitor" ''
+        # Find battery and AC devices
+        BAT=$( ${pkgs.upower}/bin/upower -e | ${pkgs.gnugrep}/bin/grep -E 'battery_BAT[0-9]' | ${pkgs.coreutils}/bin/head -n 1 )
+        AC=$( ${pkgs.upower}/bin/upower -e | ${pkgs.gnugrep}/bin/grep -E 'line_power|AC|ADP' | ${pkgs.coreutils}/bin/head -n 1 )
+
+        # Function to get battery percentage
+        get_battery_percent() {
+          if [ -n "$BAT" ]; then
+            ${pkgs.upower}/bin/upower -i "$BAT" | ${pkgs.gnugrep}/bin/grep 'percentage' | ${pkgs.gawk}/bin/awk '{print $2}' | ${pkgs.coreutils}/bin/tr -d '%'
+          fi
+        }
+
+        # Function to get AC status
+        is_on_ac() {
+          if [ -n "$AC" ]; then
+            ${pkgs.upower}/bin/upower -i "$AC" | ${pkgs.gnugrep}/bin/grep 'online' | ${pkgs.gawk}/bin/awk '{print $2}'
+          else
+            echo "no"
+          fi
+        }
+
+        # Function to set power profile
+        set_profile() {
+          new_profile="$1"
+          current=$(${pkgs.power-profiles-daemon}/bin/powerprofilesctl get)
+          if [ "$current" != "$new_profile" ]; then
+            if ${pkgs.power-profiles-daemon}/bin/powerprofilesctl set "$new_profile"; then
+               ${pkgs.libnotify}/bin/notify-send -u normal "Power Profile" "Switched to $new_profile"
+            fi
+          fi
+        }
+
+        while true; do
+          # Check override
+          if [ -f /tmp/power_profile_override ]; then
+            OVERRIDE=$(cat /tmp/power_profile_override)
+            if [ "$OVERRIDE" = "auto" ]; then
+              rm /tmp/power_profile_override
+            elif [ -n "$OVERRIDE" ]; then
+               set_profile "$OVERRIDE"
+               sleep 60
+               continue
+            fi
+          fi
+
+          AC_STATUS=$(is_on_ac)
+          BAT_PERCENT=$(get_battery_percent)
+
+          if [ "$AC_STATUS" = "yes" ]; then
+            set_profile "performance"
+          elif [ -n "$BAT_PERCENT" ]; then
+            if [ "$BAT_PERCENT" -gt 40 ]; then
+              set_profile "balanced"
+            else
+              set_profile "power-saver"
+            fi
+          else
+             set_profile "balanced"
+          fi
+          
+          sleep 60
+        done
+      '';
+      Restart = "always";
+      RestartSec = 5;
+    };
+  };
 }

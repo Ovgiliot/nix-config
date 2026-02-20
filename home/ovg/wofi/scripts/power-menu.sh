@@ -9,32 +9,22 @@ Power Saver"
 # Show menu
 SELECTED=$(echo -e "$OPTIONS" | wofi --dmenu --prompt "Power Profile")
 
-TRIGGER_FILE="/tmp/power_profile_trigger"
-
 # Handle selection
 case "$SELECTED" in
     "Auto")
         echo "auto" > /tmp/power_profile_override
-        # Trigger service
-        if [ -f "$TRIGGER_FILE" ]; then touch "$TRIGGER_FILE"; fi
-        notify-send "Power Profile" "Switched to Automatic Mode"
+        systemctl --user restart power-monitor
         ;;
     "Performance")
         echo "performance" > /tmp/power_profile_override
-        # Trigger service
-        if [ -f "$TRIGGER_FILE" ]; then touch "$TRIGGER_FILE"; fi
-        notify-send "Power Profile" "Manual Override: Performance"
+        systemctl --user restart power-monitor
         ;;
     "Balanced")
         echo "balanced" > /tmp/power_profile_override
-        # Trigger service
-        if [ -f "$TRIGGER_FILE" ]; then touch "$TRIGGER_FILE"; fi
-        notify-send "Power Profile" "Manual Override: Balanced"
+        systemctl --user restart power-monitor
         ;;
     "Power Saver")
         echo "power-saver" > /tmp/power_profile_override
-        # Trigger service
-        if [ -f "$TRIGGER_FILE" ]; then touch "$TRIGGER_FILE"; fi
-        notify-send "Power Profile" "Manual Override: Power Saver"
+        systemctl --user restart power-monitor
         ;;
 esac
