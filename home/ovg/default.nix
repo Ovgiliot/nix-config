@@ -86,6 +86,12 @@ in
     (pkgs.writeShellScriptBin "bluetooth-menu" (builtins.readFile ./wofi/scripts/bluetooth-menu.sh))
 
     # Development Tools
+    gnumake
+    gcc
+    cmake
+    automake
+    autoconf
+    libtool
     lua-language-server
     stylua
     nixd
