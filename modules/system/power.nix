@@ -23,20 +23,20 @@
       Type = "simple";
       ExecStart = pkgs.writeShellScript "power-profile-switcher" ''
         # Find battery and AC devices
-        BAT=$( ${pkgs.upower}/bin/upower -e | grep -E 'battery_BAT[0-9]' | head -n 1 )
-        AC=$( ${pkgs.upower}/bin/upower -e | grep -E 'line_power|AC|ADP' | head -n 1 )
+        BAT=$( ${pkgs.upower}/bin/upower -e | ${pkgs.gnugrep}/bin/grep -E 'battery_BAT[0-9]' | ${pkgs.coreutils}/bin/head -n 1 )
+        AC=$( ${pkgs.upower}/bin/upower -e | ${pkgs.gnugrep}/bin/grep -E 'line_power|AC|ADP' | ${pkgs.coreutils}/bin/head -n 1 )
 
         # Function to get battery percentage
         get_battery_percent() {
           if [ -n "$BAT" ]; then
-            ${pkgs.upower}/bin/upower -i "$BAT" | grep 'percentage' | awk '{print $2}' | tr -d '%'
+            ${pkgs.upower}/bin/upower -i "$BAT" | ${pkgs.gnugrep}/bin/grep 'percentage' | ${pkgs.gawk}/bin/awk '{print $2}' | ${pkgs.coreutils}/bin/tr -d '%'
           fi
         }
 
         # Function to get AC status
         is_on_ac() {
           if [ -n "$AC" ]; then
-            ${pkgs.upower}/bin/upower -i "$AC" | grep 'online' | awk '{print $2}'
+            ${pkgs.upower}/bin/upower -i "$AC" | ${pkgs.gnugrep}/bin/grep 'online' | ${pkgs.gawk}/bin/awk '{print $2}'
           else
             # Fallback if AC device not found
             echo "no"
