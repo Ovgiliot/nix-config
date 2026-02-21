@@ -4,7 +4,16 @@
     "height": 30,
     "modules-left": [ "cpu", "memory", "niri/workspaces", "niri/window" ],
     "modules-center": [ "clock" ],
-    "modules-right": [ "tray", "niri/language", "network", "bluetooth", "power-profiles-daemon", "battery" ],
+    "modules-right": [ "custom/info-box", "tray", "niri/language", "network", "bluetooth", "power-profiles-daemon", "battery" ],
+
+    "custom/info-box": {
+        "format": "{}",
+        "return-type": "json",
+        "exec": "/home/ovg/.config/waybar/scripts/info-box.sh",
+        "interval": 2,
+        "on-click": "playerctl play-pause",
+        "tooltip": false
+    },
 
     "niri/workspaces": {
         "format": "{name}"

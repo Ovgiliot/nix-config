@@ -31,9 +31,27 @@ window#waybar {
 #window,
 #network,
 #bluetooth,
+#custom-info-box,
 #workspaces {
     padding: 0 10px;
     color: #fafafa; /* Off-white for text */
+}
+
+#custom-info-box {
+    background-color: #1a1a1b; /* Opaque background */
+    border-radius: 8px;
+    margin: 4px 5px;
+    padding: 0 15px;
+    /* Attempting to fill available space - if Waybar's internal box layout allows */
+    transition: all 0.3s ease;
+}
+
+#custom-info-box.Playing {
+    border-bottom: 2px solid #2f81f7; /* Accent for playing state */
+}
+
+#custom-info-box.none {
+    background-color: transparent;
 }
 
 #window {

@@ -215,6 +215,7 @@ in
   xdg.configFile."ranger/scope.sh".source = ./ranger/scope.sh;
   xdg.configFile."waybar/config".source = ./waybar/config.jsonc;
   xdg.configFile."waybar/style.css".source = ./waybar/style.css;
+  xdg.configFile."waybar/scripts".source = ./waybar/scripts;
   xdg.configFile."wofi/config".source = ./wofi/config;
   xdg.configFile."wofi/style.css".source = ./wofi/style.css;
   xdg.configFile."mako/config".source = ./mako/config;
