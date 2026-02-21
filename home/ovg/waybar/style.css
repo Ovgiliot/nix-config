@@ -37,27 +37,26 @@ window#waybar {
     color: #fafafa; /* Off-white for text */
 }
 
-/* Master layout */
 #custom-info-box {
     background-color: #1a1a1b; /* Opaque background */
     border-radius: 8px;
     margin: 4px 5px;
     padding: 0 15px;
-    /* Centering and filling */
-    text-align: center;
-    min-width: 200px; /* Base width, will grow if text is long */
+    /* Expanding the box: min-width helps it occupy space */
+    min-width: 300px; 
     transition: all 0.3s ease;
 }
 
-/* Center text inside the info box label */
+/* Centering text inside the label */
 #custom-info-box label {
     font-weight: bold;
     color: #e6edf3;
-    padding: 0 10px;
+    margin: 0 auto;
 }
 
 #custom-info-box.none {
     background-color: transparent;
+    min-width: 0;
 }
 
 #window {
