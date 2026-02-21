@@ -47,6 +47,15 @@ window#waybar {
     transition: all 0.3s ease;
 }
 
+#custom-info-box.warning {
+    background-color: #ff3333; /* Bright red */
+    color: #ffffff; /* White text for contrast */
+}
+
+#custom-info-box.warning label {
+    color: #ffffff;
+}
+
 #custom-info-box label {
     font-weight: bold;
     color: #e6edf3;
