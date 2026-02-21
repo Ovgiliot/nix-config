@@ -41,17 +41,15 @@ window#waybar {
     background-color: #1a1a1b; /* Opaque background */
     border-radius: 8px;
     margin: 4px 5px;
-    padding: 0 15px;
-    /* Expanding the box: min-width helps it occupy space */
-    min-width: 300px; 
+    padding: 0 20px;
+    /* Using a large min-width to help it fill the space in the right group */
+    min-width: 400px; 
     transition: all 0.3s ease;
 }
 
-/* Centering text inside the label */
 #custom-info-box label {
     font-weight: bold;
     color: #e6edf3;
-    margin: 0 auto;
 }
 
 #custom-info-box.none {
