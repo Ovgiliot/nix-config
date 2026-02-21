@@ -42,12 +42,18 @@ window#waybar {
     border-radius: 8px;
     margin: 4px 5px;
     padding: 0 15px;
-    /* Attempting to fill available space - if Waybar's internal box layout allows */
+    min-width: 100px;
     transition: all 0.3s ease;
 }
 
-#custom-info-box.Playing {
-    border-bottom: 2px solid #2f81f7; /* Accent for playing state */
+/* This is the key to filling space in Waybar if the container allows */
+.modules-right > widget > #custom-info-box {
+    margin-right: 10px;
+}
+
+/* Center text inside the module */
+#custom-info-box label {
+    padding: 0 20px;
 }
 
 #custom-info-box.none {

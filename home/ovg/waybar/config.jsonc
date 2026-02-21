@@ -12,7 +12,8 @@
         "exec": "/home/ovg/.config/waybar/scripts/info-box.sh",
         "interval": 2,
         "on-click": "playerctl play-pause",
-        "tooltip": false
+        "tooltip": false,
+        "max-length": 100
     },
 
     "niri/workspaces": {

@@ -9,11 +9,7 @@ get_media_info() {
         icon="󰎈"
         [ "$player_status" = "Paused" ] && icon="󰏤"
         
-        # Truncate if too long
         text="$icon $artist - $title"
-        if [ ${#text} -gt 60 ]; then
-            text="${text:0:57}..."
-        fi
         
         echo "{\"text\": \"$text\", \"class\": \"$player_status\", \"alt\": \"$player_status\"}"
     else
