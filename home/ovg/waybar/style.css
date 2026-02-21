@@ -37,33 +37,23 @@ window#waybar {
     color: #fafafa; /* Off-white for text */
 }
 
-/* Master layout to allow expansion */
-.modules-left, .modules-right {
-    flex: 1;
-}
-
-.modules-left {
-    justify-content: flex-start;
-}
-
-.modules-right {
-    justify-content: flex-end;
-}
-
+/* Master layout */
 #custom-info-box {
     background-color: #1a1a1b; /* Opaque background */
     border-radius: 8px;
     margin: 4px 5px;
     padding: 0 15px;
-    /* Make the info box itself grow to fill the space in modules-right */
-    flex: 1;
+    /* Centering and filling */
+    text-align: center;
+    min-width: 200px; /* Base width, will grow if text is long */
     transition: all 0.3s ease;
 }
 
-/* Center text inside the info box */
+/* Center text inside the info box label */
 #custom-info-box label {
     font-weight: bold;
     color: #e6edf3;
+    padding: 0 10px;
 }
 
 #custom-info-box.none {
