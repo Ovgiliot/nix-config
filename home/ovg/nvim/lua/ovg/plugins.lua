@@ -506,6 +506,17 @@ require("lazy").setup({
 			vim.keymap.set("n", "<leader>cu", dapui.toggle, { desc = "Debug: Toggle UI" })
 		end,
 	},
+
+    -- Autosave
+    {
+        "okuuva/auto-save.nvim",
+        cmd = "ASToggle",
+        event = { "InsertLeave", "TextChanged" },
+        opts = {
+            trigger_events = { "InsertLeave", "TextChanged" },
+            debounce_delay = 1000, -- Delay in ms before saving
+        },
+    },
 }, {
 	lockfile = vim.fn.stdpath("state") .. "/lazy-lock.json",
 })

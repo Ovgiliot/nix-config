@@ -44,6 +44,7 @@ vim.opt.splitbelow = true       -- Force all horizontal splits to go below curre
 
 -- Undo
 vim.opt.undofile = true         -- Save undo history to a file
+vim.opt.swapfile = false        -- Disable swap files (prevents "ATTENTION" errors on improper exit)
 
 -- UX/UI
 vim.opt.scrolloff = 8           -- Minimal number of screen lines to keep above and below the cursor

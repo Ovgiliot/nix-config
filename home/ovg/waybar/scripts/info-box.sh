@@ -43,19 +43,22 @@ get_warning() {
     fi
 
     # 5. CPU Usage: Above 90%
-    # Accurate CPU usage calculation by sampling /proc/stat
-    read -r cpu a b c d e f g h i < /proc/stat
-    prev_total=$((a+b+c+d+e+f+g+h+i))
-    prev_idle=$d
+    # Using awk to sum /proc/stat fields accurately
+    cpu_data=$(grep '^cpu ' /proc/stat)
+    prev_total=$(echo "$cpu_data" | awk '{print $2+$3+$4+$5+$6+$7+$8+$9+$10+$11}')
+    prev_idle=$(echo "$cpu_data" | awk '{print $5+$6}') # idle + iowait
+    
     sleep 0.2
-    read -r cpu a b c d e f g h i < /proc/stat
-    total=$((a+b+c+d+e+f+g+h+i))
-    idle=$d
-    total_diff=$((total-prev_total))
-    idle_diff=$((idle-prev_idle))
+    
+    cpu_data=$(grep '^cpu ' /proc/stat)
+    total=$(echo "$cpu_data" | awk '{print $2+$3+$4+$5+$6+$7+$8+$9+$10+$11}')
+    idle=$(echo "$cpu_data" | awk '{print $5+$6}')
+    
+    total_diff=$((total - prev_total))
+    idle_diff=$((idle - prev_idle))
     
     if [ "$total_diff" -gt 0 ]; then
-        cpu_usage=$((100*(total_diff-idle_diff)/total_diff))
+        cpu_usage=$((100 * (total_diff - idle_diff) / total_diff))
         if [ "$cpu_usage" -gt 90 ]; then
             echo "󰻠 High CPU: $cpu_usage%"
             return 0
