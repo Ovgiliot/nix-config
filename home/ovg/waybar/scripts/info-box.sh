@@ -14,8 +14,7 @@ get_warning() {
         fi
     fi
 
-    # 2. CPU Temperature: Above 80C
-    # Check thermal zones for highest temp
+    # 2. CPU Temperature: Above 95C
     max_temp=0
     for zone in /sys/class/thermal/thermal_zone*/temp; do
         if [ -f "$zone" ]; then
@@ -28,6 +27,7 @@ get_warning() {
         echo " High Temp: ${max_temp}°C"
         return 0
     fi
+
     # 3. Disk Usage: Above 90%
     disk_usage=$(df / | awk 'NR==2 {print $5}' | tr -d '%')
     if [ "$disk_usage" -gt 90 ]; then
@@ -44,9 +44,6 @@ get_warning() {
 
     # 5. CPU Usage: Above 90%
     # Accurate CPU usage calculation by sampling /proc/stat
-    cpu_usage=$(grep 'cpu ' /proc/stat | awk '{usage=($2+$4)*100/($2+$4+$5)} END {print usage}' | cut -d. -f1)
-    # If the above is too "instant", we can use a small sleep, but let's try this first.
-    # Alternatively, a more robust way:
     read -r cpu a b c d e f g h i < /proc/stat
     prev_total=$((a+b+c+d+e+f+g+h+i))
     prev_idle=$d
@@ -56,11 +53,13 @@ get_warning() {
     idle=$d
     total_diff=$((total-prev_total))
     idle_diff=$((idle-prev_idle))
-    cpu_usage=$((100*(total_diff-idle_diff)/total_diff))
-
-    if [ "$cpu_usage" -gt 90 ]; then
-        echo "󰻠 High CPU: $cpu_usage%"
-        return 0
+    
+    if [ "$total_diff" -gt 0 ]; then
+        cpu_usage=$((100*(total_diff-idle_diff)/total_diff))
+        if [ "$cpu_usage" -gt 90 ]; then
+            echo "󰻠 High CPU: $cpu_usage%"
+            return 0
+        fi
     fi
 
     return 1
