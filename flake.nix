@@ -1,6 +1,11 @@
 {
   description = "NixOS configuration with flakes and home-manager";
 
+  nixConfig = {
+    extra-substituters = [ "https://nix-community.cachix.org" ];
+    extra-trusted-public-keys = [ "nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs=" ];
+  };
+
   inputs.nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
   inputs.home-manager = {
     url = "github:nix-community/home-manager";
@@ -20,6 +25,12 @@
     };
   };
 
+  inputs.doom-emacs = {
+    url = "github:nix-community/nix-doom-emacs";
+    inputs.nixpkgs.follows = "nixpkgs";
+    inputs.emacs-overlay.follows = "emacs-overlay";
+  };
+
   outputs = {
     self,
     nixpkgs,
@@ -27,6 +38,7 @@
     niri,
     zen-browser,
     emacs-overlay,
+    doom-emacs,
     ...
   } @ inputs: {
     nixosConfigurations = {

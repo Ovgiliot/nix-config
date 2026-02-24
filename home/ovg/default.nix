@@ -12,6 +12,7 @@ in
 {
   imports = [
     ./web-apps.nix
+    ./doom
   ];
 
   # Home Manager information
