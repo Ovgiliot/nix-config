@@ -30,6 +30,8 @@
 ;; numbers are disabled. For relative line numbers, set this to `relative'.
 (setq display-line-numbers-type t)
 
+(setq org-directory "~/Documents/org/")
+(setq org-roam-directory (file-truename "~/Documents/org/"))
 
 ;; Here are some additional functions/macros that could help you configure Doom:
 ;;

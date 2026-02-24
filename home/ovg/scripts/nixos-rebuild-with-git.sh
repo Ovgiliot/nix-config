@@ -93,5 +93,13 @@ echo "--- Starting NixOS Rebuild ---"
 sudo nixos-rebuild switch --flake .#nixos || { echo "Error: NixOS rebuild failed."; exit 1; }
 echo "NixOS rebuild completed successfully."
 
+echo "--- Syncing Doom Emacs ---"
+if [ -d "$HOME/.config/emacs" ]; then
+    ~/.config/emacs/bin/doom sync || { echo "Error: Doom sync failed."; exit 1; }
+    echo "Doom sync completed successfully."
+else
+    echo "Warning: Doom Emacs directory not found at ~/.config/emacs. Skipping doom sync."
+fi
+
 echo "Press any key to close."
 read -n 1 -s -r -p ""
