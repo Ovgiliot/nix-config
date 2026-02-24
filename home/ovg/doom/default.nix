@@ -7,6 +7,13 @@
     package = pkgs.emacs-pgtk; # Optimal for Wayland/Niri
   };
 
+  services.emacs = {
+    enable = true;
+    package = pkgs.emacs-pgtk;
+    client.enable = true;
+    startWithUserSession = "graphical";
+  };
+
   home.packages = with pkgs; [
     git
     ripgrep
@@ -32,6 +39,7 @@
     EMACSDIR = "${config.home.homeDirectory}/.config/emacs";
     DOOMDIR = "${config.home.homeDirectory}/.config/doom";
     DOOMLOCALDIR = "${config.home.homeDirectory}/.local/share/doom";
+    EMACS_SOCKET_NAME = "/run/user/1000/emacs/server";
   };
 
   # 4. Update alias to ensure variables are always present
