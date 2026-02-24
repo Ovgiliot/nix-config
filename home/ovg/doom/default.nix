@@ -1,4 +1,4 @@
-{ pkgs, lib, inputs, ... }:
+{ config, pkgs, lib, inputs, ... }:
 
 {
   # Install Emacs and essential Doom dependencies
@@ -19,27 +19,28 @@
   ];
 
   # 1. Symlink Doom core from Nix store to ~/.config/emacs
-  # Since the store is read-only, Doom's internal state must go elsewhere.
   xdg.configFile."emacs".source = inputs.doomemacs;
 
   # 2. Symlink User Config to ~/.config/doom
   xdg.configFile."doom".source = ./doom.d;
 
-  # 3. Set environment variables so Doom knows where to work
-  # DOOMDIR: User configuration
-  # DOOMLOCALDIR: Writable directory for packages, bytecode, and cache
+  # 3. Set environment variables to force Doom to use writable paths
+  # EMACSDIR: Must be set to the symlink path, NOT the resolved Nix store path
+  # DOOMDIR: Your configuration
+  # DOOMLOCALDIR: Where packages and cache will live
   home.sessionVariables = {
-    DOOMDIR = "$HOME/.config/doom";
-    DOOMLOCALDIR = "$HOME/.local/share/doom";
+    EMACSDIR = "${config.home.homeDirectory}/.config/emacs";
+    DOOMDIR = "${config.home.homeDirectory}/.config/doom";
+    DOOMLOCALDIR = "${config.home.homeDirectory}/.local/share/doom";
   };
 
-  # 4. Add the 'doom' binary to PATH and add a convenient alias
+  # 4. Update alias to ensure variables are always present
   home.shellAliases = {
-    doom = "~/.config/emacs/bin/doom";
+    doom = "EMACSDIR=${config.home.homeDirectory}/.config/emacs DOOMDIR=${config.home.homeDirectory}/.config/doom DOOMLOCALDIR=${config.home.homeDirectory}/.local/share/doom ${config.home.homeDirectory}/.config/emacs/bin/doom";
   };
 
-  # Activation script to ensure the local directory exists
+  # Ensure the local directory exists before Doom tries to use it
   home.activation.setupDoom = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-    mkdir -p $HOME/.local/share/doom
+    mkdir -p ${config.home.homeDirectory}/.local/share/doom
   '';
 }
