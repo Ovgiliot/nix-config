@@ -25,10 +25,9 @@
     };
   };
 
-  inputs.doom-emacs = {
-    url = "github:nix-community/nix-doom-emacs";
-    inputs.nixpkgs.follows = "nixpkgs";
-    inputs.emacs-overlay.follows = "emacs-overlay";
+  inputs.doomemacs = {
+    url = "github:doomemacs/doomemacs";
+    flake = false;
   };
 
   outputs = {
@@ -38,7 +37,6 @@
     niri,
     zen-browser,
     emacs-overlay,
-    doom-emacs,
     ...
   } @ inputs: {
     nixosConfigurations = {
@@ -94,4 +92,3 @@
     };
   };
 }
-
