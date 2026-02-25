@@ -166,6 +166,9 @@ in
   # Git Identity
   programs.git = {
     enable = true;
+    extraConfig = {
+      credential.helper = "${pkgs.gh}/bin/gh auth git-credential";
+    };
     settings.user = {
       name = "Ovgiliot";
       email = "ovgiliot@gmail.com";
