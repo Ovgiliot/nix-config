@@ -1,7 +1,7 @@
 { config, pkgs, inputs, ... }:
 
 let
-  # Ghostty colors
+  # --- Appearance Colors ---
   bg = "#131314";
   fg = "#e6edf3";
   accent = "#2f81f7";
@@ -10,21 +10,23 @@ let
   card_bg = "#1d1d1e";
 in
 {
+  # Import user-specific modules
   imports = [
     ./web-apps.nix
-    ./doom
   ];
 
-  # Home Manager information
+  # --- User Profile Information ---
   home.username = "ovg";
   home.homeDirectory = "/home/ovg";
   home.stateVersion = "25.11";
 
-  # Let Home Manager install and manage itself
+  # Enable Home Manager to manage itself
   programs.home-manager.enable = true;
 
-  # XDG configuration
+  # --- XDG & Application Management ---
   xdg.enable = true;
+
+  # Custom Desktop Entry for Steam with Optimizations
   xdg.desktopEntries.steam = {
     name = "Steam";
     exec = "steam -cef-disable-gpu -system-composer %U";
@@ -35,89 +37,87 @@ in
     mimeType = [ "x-scheme-handler/steam" "x-scheme-handler/steamlink" ];
   };
 
-  # User packages - GUI applications and development tools
+  # --- User Packages (The Suckless Selection) ---
   home.packages = with pkgs; [
-    # Environment packages
-    xwayland-satellite # For X11 app support in niri
-    inputs.noctalia.packages.${pkgs.stdenv.hostPlatform.system}.default
+    # Desktop Environment & Wayland Utilities
+    xwayland-satellite  # X11 app support in Niri
     inputs.zen-browser.packages.${pkgs.stdenv.hostPlatform.system}.default
-    waybar
-    wofi
-    mako
-    wl-clipboard
-    grim
-    slurp
-    gemini-cli
-    jq
-    kanata # For homerow mods
-    brightnessctl # For screen brightness control
-    swayidle # For idle management (screen dimming, locking)
-    swaylock # Screen locker
-    ripgrep # grep utility for telescope
-    fd # find utility for telescope
+    waybar              # Status bar
+    wofi                # App launcher
+    mako                # Notifications
+    wl-clipboard        # Clipboard utility
+    grim                # Screenshot tool
+    slurp               # Screen area selector
+    kanata              # Keyboard remapping (homerow mods)
+    brightnessctl       # Screen brightness
+    swayidle            # Idle management
+    swaylock            # Screen locker
+    playerctl           # Media control (for waybar/niri)
+    linux-wallpaperengine # Live wallpapers
+    
+    # Fonts
+    nerd-fonts.jetbrains-mono
 
-    # GUI applications
-    playerctl # Required for media key bindings in Niri
-    bitwarden-desktop
-    pandoc
-    thunar
-    ghostty
-    linux-wallpaperengine
-    protontricks
+    # CLI / TUI Essentials (Minimal Power Tools)
+    gemini-cli          # AI Assistant
+    jq                  # JSON processor
+    ripgrep             # Search utility
+    fd                  # Find utility
+    btop                # System monitor
+    gh                  # GitHub CLI
+    lazygit             # Git TUI
+    ranger              # File manager
+    ueberzugpp          # Image previews for ranger
+    w3m                 # Terminal browser
+    bat                 # Better 'cat' with syntax highlighting
+    
+    # GUI Applications (Kept minimal)
+    bitwarden-cli       # Vault management (Suckless CLI version)
+    pandoc              # Document converter
+    ghostty             # Terminal emulator
+    protontricks        # Winetricks for Proton (Gaming)
 
-    # Ranger previewers
+    # Ranger Preview Dependencies
     ffmpeg
     ffmpegthumbnailer
-    poppler-utils
     atool
     p7zip
     unzip
-    odt2txt
-    ghostscript
-    imagemagick
-    python3Packages.pygments
-    bat
     highlight
     exiftool
     librsvg
-    catdoc
-    xlsx2csv
 
+    # Custom Menu Scripts
     (pkgs.writeShellScriptBin "wifi-menu" (builtins.readFile ./wofi/scripts/wifi-menu.sh))
     (pkgs.writeShellScriptBin "bluetooth-menu" (builtins.readFile ./wofi/scripts/bluetooth-menu.sh))
     (pkgs.writeShellScriptBin "power-menu" (builtins.readFile ./wofi/scripts/power-menu.sh))
 
-    # Development Tools
-    gnumake
-    gcc
-    cmake
-    automake
-    autoconf
-    libtool
-    lua-language-server
-    stylua
-    nixd
-    alejandra
+    # --- Development Stack ---
+    # General Tools
+    gnumake gcc cmake automake autoconf libtool
+    gdb sqlite
+    
+    # Language Servers & Formatters
+    lua-language-server stylua
+    nixd alejandra
     clang-tools
-    gdb
-    sqlite
+    bash-language-server shfmt shellcheck
+    nodejs # Required for many LSPs
     
-    # Shell / Scripting
-    bash-language-server
-    shfmt
-    shellcheck
-
-    # Graphics
-    glslang # For GLSL validation
+    # Graphics Development
+    glslang 
     
-    # C# / .NET
-    omnisharp-roslyn
-    netcoredbg
+    # .NET Development
+    omnisharp-roslyn netcoredbg
   ];
 
-  # Theme configuration
+  # --- Appearance & Theme (GTK / QT) ---
   gtk = {
     enable = true;
+    font = {
+      name = "JetBrainsMono Nerd Font";
+      size = 11;
+    };
     theme = {
       name = "adw-gtk3-dark";
       package = pkgs.adw-gtk3;
@@ -155,25 +155,24 @@ in
     };
   };
 
-  # Dark mode preference for GTK4/LibAdwaita
   dconf.settings = {
     "org/gnome/desktop/interface" = {
       color-scheme = "prefer-dark";
     };
   };
 
-  # Git configuration
+  # --- Core Applications Configuration ---
+
+  # Git Identity
   programs.git = {
     enable = true;
-    settings = {
-      user = {
-        name = "Ovgiliot";
-        email = "ovgiliot@gmail.com";
-      };
+    settings.user = {
+      name = "Ovgiliot";
+      email = "ovgiliot@gmail.com";
     };
   };
 
-  # Neovim configuration
+  # Neovim (Primary Editor)
   programs.neovim = {
     enable = true;
     defaultEditor = true;
@@ -181,7 +180,7 @@ in
     vimAlias = true;
   };
 
-  # Shell configuration
+  # Shell Configuration (Aliases for productivity)
   programs.fish = {
     enable = true;
     shellAliases = {
@@ -200,12 +199,14 @@ in
     };
   };
 
+  # Performance HUD for Games
   programs.mangohud = {
     enable = true;
     enableSessionWide = false;
   };
 
-  # XDG Config Sources
+  # --- XDG Config Linkage ---
+  # These point to local directories and files in this repository.
   xdg.configFile."niri".source = ./niri;
   xdg.configFile."nvim".source = ./nvim;
   xdg.configFile."kanata/kanata.kbd".source = ./kanata.kbd;
@@ -221,31 +222,31 @@ in
   xdg.configFile."wofi/style.css".source = ./wofi/style.css;
   xdg.configFile."mako/config".source = ./mako/config;
 
+  # --- Background Services (User Level) ---
   services.network-manager-applet.enable = true;
 
-  # Power Monitor Service (User level)
+  # Power Monitor Service: 
+  # Automatically manages power profiles (performance/balanced/power-saver)
+  # based on AC status and battery percentage.
   systemd.user.services.power-monitor = {
     Unit = {
-      Description = "Power Monitor Service";
+      Description = "Intelligent Power Profile Management";
       After = [ "graphical-session.target" ];
     };
-    Install = {
-      WantedBy = [ "graphical-session.target" ];
-    };
+    Install.WantedBy = [ "graphical-session.target" ];
     Service = {
       ExecStart = pkgs.writeShellScript "power-monitor" ''
         # Find battery and AC devices
         BAT=$( ${pkgs.upower}/bin/upower -e | ${pkgs.gnugrep}/bin/grep -E 'battery_BAT[0-9]' | ${pkgs.coreutils}/bin/head -n 1 )
         AC=$( ${pkgs.upower}/bin/upower -e | ${pkgs.gnugrep}/bin/grep -E 'line_power|AC|ADP' | ${pkgs.coreutils}/bin/head -n 1 )
 
-        # Function to get battery percentage
+        # Helper functions
         get_battery_percent() {
           if [ -n "$BAT" ]; then
             ${pkgs.upower}/bin/upower -i "$BAT" | ${pkgs.gnugrep}/bin/grep 'percentage' | ${pkgs.gawk}/bin/awk '{print $2}' | ${pkgs.coreutils}/bin/tr -d '%'
           fi
         }
 
-        # Function to get AC status
         is_on_ac() {
           if [ -n "$AC" ]; then
             ${pkgs.upower}/bin/upower -i "$AC" | ${pkgs.gnugrep}/bin/grep 'online' | ${pkgs.gawk}/bin/awk '{print $2}'
@@ -254,7 +255,6 @@ in
           fi
         }
 
-        # Function to set power profile
         set_profile() {
           new_profile="$1"
           current=$(${pkgs.power-profiles-daemon}/bin/powerprofilesctl get)
@@ -266,7 +266,7 @@ in
         }
 
         while true; do
-          # Check override
+          # Check for user overrides in /tmp
           if [ -f /tmp/power_profile_override ]; then
             OVERRIDE=$(cat /tmp/power_profile_override)
             if [ "$OVERRIDE" = "auto" ]; then

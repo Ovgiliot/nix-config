@@ -130,12 +130,12 @@ require("lazy").setup({
 						require("orgmode").action("org_mappings.open_at_point")
 					end, { buffer = true, desc = "Org: Follow Link" })
 
-					-- Map <CR> to follow link in normal mode (like Doom Emacs)
+					-- Map <CR> to follow link in normal mode
 					vim.keymap.set("n", "<CR>", function()
 						require("orgmode").action("org_mappings.open_at_point")
 					end, { buffer = true, desc = "Org: Follow Link" })
 
-					-- Mimic Doom Emacs SPC m mappings for Org files
+					-- Org File Mappings
 					vim.keymap.set("n", "<leader>mt", "<cmd>Org todo<cr>", { buffer = true, desc = "Org: Todo" })
 					vim.keymap.set("n", "<leader>ms", "<cmd>Org schedule<cr>", { buffer = true, desc = "Org: Schedule" })
 					vim.keymap.set("n", "<leader>md", "<cmd>Org deadline<cr>", { buffer = true, desc = "Org: Deadline" })

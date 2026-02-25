@@ -1,14 +1,8 @@
 { config, pkgs, ... }:
 
 {
-  # Improve boot time entropy generation
-  services.haveged.enable = true;
-
-  # Essential system packages
-  environment.systemPackages = with pkgs; [
-    git
-    vim
-  ];
+  # Haveged is generally not needed on modern kernels (5.6+)
+  services.haveged.enable = false;
 
   # Bluetooth support
   hardware.bluetooth = {

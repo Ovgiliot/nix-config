@@ -1,10 +1,15 @@
 { config, pkgs, inputs, lib, ... }:
 
 {
-  # X11 windowing system (Keep for compatibility/drivers)
-  services.xserver.enable = true;
+  # --- Display & Window Management ---
 
-  # Display Manager (Greetd with Autologin)
+  # X11 windowing system
+  # Disabled for a minimal, Wayland-native setup. 
+  # XWayland still provides compatibility for legacy apps.
+  services.xserver.enable = false;
+
+  # Display Manager (Greetd)
+  # Uses tuigreet as a lightweight TUI login manager.
   services.greetd = {
     enable = true;
     settings = {
@@ -13,66 +18,63 @@
         user = "ovg";
       };
       default_session = {
-        command = "${pkgs.tuigreet}/bin/tuigreet --greeting 'Welcome to NixOS' --asterisks --remember --remember-user-session --time --cmd niri-session";
+        command = "${pkgs.tuigreet}/bin/tuigreet --greeting 'Suckless NixOS' --asterisks --remember --remember-user-session --time --cmd niri-session";
         user = "greeter";
       };
     };
   };
 
   # Niri Window Manager
+  # A scrollable-tiling Wayland compositor.
   programs.niri = {
     enable = true;
     package = pkgs.niri-unstable;
   };
 
-  # XDG desktop portal for Wayland file pickers
+  # XDG desktop portal
+  # Essential for Wayland features like screen sharing and file pickers.
   xdg.portal = {
     enable = true;
     extraPortals = with pkgs; [ xdg-desktop-portal-gtk xdg-desktop-portal-wlr ];
-    config = {
-      common = {
-        default = [ "gtk" "wlr" ];
-      };
-    };
+    config.common.default = [ "gtk" "wlr" ];
   };
 
+  # --- System Utilities ---
+
   environment.systemPackages = with pkgs; [
-    btop # system monitor
-    gh
-    lazygit
-    ranger
-    ueberzugpp
-    w3m
-    nodejs
-    gcc
+    vim
+    git
+    pciutils
+    usbutils
   ];
 
+  # Font configuration
   fonts.packages = with pkgs; [
     pkgs.nerd-fonts."symbols-only"
   ];
   
-  # Chromium (needed for Widevine DRM for Apple Music web)
+  # Chromium - Kept for specific web-app support and DRM.
   programs.chromium.enable = true;
 
-  # Ensure /etc/xdg is part of config search path
-  environment.sessionVariables.XDG_CONFIG_DIRS = lib.mkDefault "/etc/xdg";
+  # --- Legacy & Hardware Services ---
 
-  # Printing support
-  services.printing.enable = true;
+  # Printing support (CUPS)
+  # Disabled to reduce background services.
+  services.printing.enable = false;
 
-  # Security and polkit
+  # Security and session management
   security.rtkit.enable = true;
   security.polkit.enable = true;
 
-  # Hardware Graphics (OpenGL/Vulkan)
+  # Hardware Acceleration (Intel)
   hardware.graphics = {
     enable = true;
     enable32Bit = true;
     extraPackages = with pkgs; [
-      intel-media-driver # LIBVA_DRIVER_NAME=iHD
-      intel-vaapi-driver # LIBVA_DRIVER_NAME=i965 (older but good fallback)
+      intel-media-driver
+      intel-vaapi-driver
       libvdpau-va-gl
-      vpl-gpu-rt # For newer Intel GPUs (Gen11+) VPL/QSV
+      vpl-gpu-rt
     ];
     extraPackages32 = with pkgs.pkgsi686Linux; [
       intel-media-driver
@@ -83,5 +85,6 @@
 
   environment.sessionVariables = {
     LIBVA_DRIVER_NAME = "iHD";
+    XDG_CONFIG_DIRS = lib.mkDefault "/etc/xdg";
   };
 }
