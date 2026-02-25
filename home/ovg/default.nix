@@ -116,7 +116,7 @@ in
     enable = true;
     font = {
       name = "JetBrainsMono Nerd Font";
-      size = 11;
+      size = 13;
     };
     theme = {
       name = "adw-gtk3-dark";
