@@ -64,7 +64,6 @@ in
     ripgrep             # Search utility
     fd                  # Find utility
     btop                # System monitor
-    gh                  # GitHub CLI
     lazygit             # Git TUI
     ranger              # File manager
     ueberzugpp          # Image previews for ranger
@@ -166,13 +165,16 @@ in
   # Git Identity
   programs.git = {
     enable = true;
-    extraConfig = {
-      credential.helper = "${pkgs.gh}/bin/gh auth git-credential";
-    };
     settings.user = {
       name = "Ovgiliot";
       email = "ovgiliot@gmail.com";
     };
+  };
+
+  # GitHub CLI
+  programs.gh = {
+    enable = true;
+    gitCredentialHelper.enable = true;
   };
 
   # Neovim (Primary Editor)
