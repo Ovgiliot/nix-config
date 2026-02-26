@@ -203,6 +203,23 @@ require("lazy").setup({
 		end,
 	},
 
+    -- Org Mode Styling
+    {
+        "lukas-reineke/headlines.nvim",
+        dependencies = "nvim-treesitter/nvim-treesitter",
+        config = function()
+            require("headlines").setup({
+                org = {
+                    headline_highlights = { "Headline1", "Headline2", "Headline3", "Headline4", "Headline5", "Headline6" },
+                },
+            })
+        end,
+    },
+    {
+        "akinsho/org-bullets.nvim",
+        config = true,
+    },
+
 	-- Git
 	{
 		"NeogitOrg/neogit",
