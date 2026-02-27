@@ -40,9 +40,6 @@ vim.keymap.set("n", "<leader>bn", "<cmd>bnext<cr>", { desc = "Next buffer" })
 vim.keymap.set("n", "<leader>bp", "<cmd>bprevious<cr>", { desc = "Previous buffer" })
 vim.keymap.set("n", "<leader>bk", "<cmd>bdelete<cr>", { desc = "Close buffer" })
 
--- Markdown Preview
-vim.keymap.set("n", "<leader>mt", "<cmd>RenderMarkdown toggle<cr>", { desc = "Toggle Markdown Render" })
-
 -- Copilot Toggle
 vim.keymap.set("n", "<leader>ac", function()
 	if vim.g.copilot_enabled == 1 or vim.g.copilot_enabled == nil then
