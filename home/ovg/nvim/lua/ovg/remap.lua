@@ -42,6 +42,8 @@ vim.keymap.set(
 )
 vim.keymap.set("n", "<leader>f/", telescope_builtin("search_history"), { desc = "Search History" })
 vim.keymap.set("n", "<leader>f:", telescope_builtin("command_history"), { desc = "Command History" })
+vim.keymap.set("n", "<leader>fR", telescope_builtin("resume"), { desc = "Resume last picker" })
+vim.keymap.set("n", '<leader>f"', telescope_builtin("registers"), { desc = "Browse Registers" })
 
 -- Buffer Management
 vim.keymap.set("n", "<leader>bn", "<cmd>bnext<cr>", { desc = "Next buffer" })
@@ -93,6 +95,7 @@ vim.keymap.set("n", "<leader>gp", "<cmd>Neogit push<cr>", { desc = "Neogit push"
 vim.keymap.set("n", "<leader>gl", "<cmd>Neogit pull<cr>", { desc = "Neogit pull" })
 vim.keymap.set("n", "<leader>gd", "<cmd>DiffviewOpen<cr>", { desc = "Open Diffview" })
 vim.keymap.set("n", "<leader>gh", "<cmd>DiffviewFileHistory %<cr>", { desc = "File history" })
+vim.keymap.set("n", "<leader>gS", telescope_builtin("git_stash"), { desc = "Git Stash" })
 
 -- Org Mode
 vim.keymap.set("n", "<leader>oa", "<cmd>Org agenda<cr>", { desc = "Org: Open Agenda" })

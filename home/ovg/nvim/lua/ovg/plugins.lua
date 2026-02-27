@@ -208,20 +208,124 @@ require("lazy").setup({
 			"kkharji/sqlite.lua",
 		},
 		keys = {
-			{
-				"<leader>rf",
-				function()
-					require("org-roam").api.find_node()
-				end,
-				desc = "OrgRoam: Find Node",
-			},
-			{
-				"<leader>ri",
-				function()
-					require("org-roam").api.insert_node()
-				end,
-				desc = "OrgRoam: Insert Node",
-			},
+		{
+			"<leader>rf",
+			function()
+				local roam = require("org-roam")
+				local pickers = require("telescope.pickers")
+				local finders = require("telescope.finders")
+				local conf = require("telescope.config").values
+				local actions = require("telescope.actions")
+				local action_state = require("telescope.actions.state")
+
+				-- Build flat entry list: nodes + their aliases
+				local entries = {}
+				for _, id in ipairs(roam.database:ids()) do
+					local node = roam.database:get_sync(id)
+					if node then
+						table.insert(entries, { id = id, title = node.title, node = node })
+						for _, alias in ipairs(node.aliases or {}) do
+							table.insert(entries, { id = id, title = alias, node = node })
+						end
+					end
+				end
+
+				pickers
+					.new({}, {
+						prompt_title = "OrgRoam: Find Node",
+						finder = finders.new_table({
+							results = entries,
+							entry_maker = function(e)
+								return { value = e, display = e.title, ordinal = e.title }
+							end,
+						}),
+						sorter = conf.generic_sorter({}),
+						attach_mappings = function(prompt_bufnr)
+							actions.select_default:replace(function()
+								local sel = action_state.get_selected_entry()
+								local input = action_state.get_current_line()
+								actions.close(prompt_bufnr)
+								if sel then
+									local node = sel.value.node
+									vim.cmd.edit(node.file)
+									vim.api.nvim_win_set_cursor(
+										0,
+										{ node.range.start.row + 1, node.range.start.column }
+									)
+								elseif input and input ~= "" then
+									roam.api.capture({ title = input })
+								end
+							end)
+							return true
+						end,
+					})
+					:find()
+			end,
+			desc = "OrgRoam: Find Node",
+		},
+		{
+			"<leader>ri",
+			function()
+				local roam = require("org-roam")
+				local pickers = require("telescope.pickers")
+				local finders = require("telescope.finders")
+				local conf = require("telescope.config").values
+				local actions = require("telescope.actions")
+				local action_state = require("telescope.actions.state")
+
+				-- Save context before opening picker so we can insert at correct position
+				local winnr = vim.api.nvim_get_current_win()
+				local bufnr = vim.api.nvim_get_current_buf()
+				local cursor = vim.api.nvim_win_get_cursor(winnr)
+
+				-- Build flat entry list: nodes + their aliases
+				local entries = {}
+				for _, id in ipairs(roam.database:ids()) do
+					local node = roam.database:get_sync(id)
+					if node then
+						table.insert(entries, { id = id, title = node.title, node = node })
+						for _, alias in ipairs(node.aliases or {}) do
+							table.insert(entries, { id = id, title = alias, node = node })
+						end
+					end
+				end
+
+				pickers
+					.new({}, {
+						prompt_title = "OrgRoam: Insert Node",
+						finder = finders.new_table({
+							results = entries,
+							entry_maker = function(e)
+								return { value = e, display = e.title, ordinal = e.title }
+							end,
+						}),
+						sorter = conf.generic_sorter({}),
+						attach_mappings = function(prompt_bufnr)
+							actions.select_default:replace(function()
+								local sel = action_state.get_selected_entry()
+								local input = action_state.get_current_line()
+								actions.close(prompt_bufnr)
+								if sel then
+									-- Insert [[id:ID][title]] link at saved cursor position
+									local link = string.format("[[id:%s][%s]]", sel.value.id, sel.value.title)
+									vim.api.nvim_set_current_win(winnr)
+									local line = vim.api.nvim_buf_get_lines(bufnr, cursor[1] - 1, cursor[1], false)[1]
+										or ""
+									local col = cursor[2]
+									local new_line = line:sub(1, col) .. link .. line:sub(col + 1)
+									vim.api.nvim_buf_set_lines(bufnr, cursor[1] - 1, cursor[1], false, { new_line })
+									vim.api.nvim_win_set_cursor(winnr, { cursor[1], col + #link })
+								elseif input and input ~= "" then
+									roam.api.insert({ title = input })
+								end
+							end)
+							return true
+						end,
+					})
+					:find()
+			end,
+			desc = "OrgRoam: Insert Node",
+		},
 			{
 				"<leader>rc",
 				function()
@@ -269,11 +373,8 @@ require("lazy").setup({
 			local roam = require("org-roam")
 			roam.setup({
 				directory = "~/Documents/org/roam",
-				ui = {
-					picker = {
-						name = "telescope",
-					},
-				},
+				-- Suppress default <leader>nf/<leader>ni bindings; we provide our own via <leader>rf/<leader>ri
+				bindings = { find_node = "", insert_node = "" },
 				extensions = {
 					dailies = {
 						directory = "dailies",
@@ -289,7 +390,6 @@ require("lazy").setup({
 			})
 			-- Load the database to initialize it
 			roam.database:load()
-			pcall(require("telescope").load_extension, "org_roam")
 
 			-- Sync roam database on save of any org file in roam directory
 			vim.api.nvim_create_autocmd("BufWritePost", {
@@ -539,6 +639,12 @@ require("lazy").setup({
 						builtin.lsp_workspace_symbols,
 						{ desc = "LSP: Workspace Symbols", buffer = ev.buf }
 					)
+					vim.keymap.set(
+						"n",
+						"<leader>ct",
+						builtin.lsp_type_definitions,
+						{ desc = "LSP: Type Definition", buffer = ev.buf }
+					)
 				end,
 			})
 		end,
@@ -683,7 +789,15 @@ require("lazy").setup({
 					type = "gdb",
 					request = "launch",
 					program = function()
-						return vim.fn.input("Path to executable: ", vim.fn.getcwd() .. "/", "file")
+						-- vim.ui.input is async; yield from the DAP coroutine until callback fires
+						local co = coroutine.running()
+						vim.ui.input(
+							{ prompt = "Path to executable: ", default = vim.fn.getcwd() .. "/", completion = "file" },
+							function(input)
+								coroutine.resume(co, input or "")
+							end
+						)
+						return coroutine.yield()
 					end,
 					cwd = "${workspaceFolder}",
 					stopAtBeginningOfMainSubprogram = false,
@@ -702,7 +816,19 @@ require("lazy").setup({
 					name = "launch - netcoredbg",
 					request = "launch",
 					program = function()
-						return vim.fn.input("Path to dll: ", vim.fn.getcwd() .. "/bin/Debug/", "file")
+						-- vim.ui.input is async; yield from the DAP coroutine until callback fires
+						local co = coroutine.running()
+						vim.ui.input(
+							{
+								prompt = "Path to dll: ",
+								default = vim.fn.getcwd() .. "/bin/Debug/",
+								completion = "file",
+							},
+							function(input)
+								coroutine.resume(co, input or "")
+							end
+						)
+						return coroutine.yield()
 					end,
 				},
 			}
