@@ -1,6 +1,9 @@
-{ config, pkgs, inputs, ... }:
-
-let
+{
+  config,
+  pkgs,
+  inputs,
+  ...
+}: let
   # --- Appearance Colors ---
   bg = "#131314";
   fg = "#e6edf3";
@@ -8,8 +11,7 @@ let
   accent_fg = "#ffffff";
   header_bg = "#1a1a1b";
   card_bg = "#1d1d1e";
-in
-{
+in {
   # Import user-specific modules
   imports = [
     ./web-apps.nix
@@ -33,49 +35,49 @@ in
     terminal = false;
     icon = "steam";
     type = "Application";
-    categories = [ "Network" "FileTransfer" "Game" ];
-    mimeType = [ "x-scheme-handler/steam" "x-scheme-handler/steamlink" ];
+    categories = ["Network" "FileTransfer" "Game"];
+    mimeType = ["x-scheme-handler/steam" "x-scheme-handler/steamlink"];
   };
 
   # --- User Packages (The Suckless Selection) ---
   home.packages = with pkgs; [
     # Desktop Environment & Wayland Utilities
-    xwayland-satellite  # X11 app support in Niri
+    xwayland-satellite # X11 app support in Niri
     inputs.zen-browser.packages.${pkgs.stdenv.hostPlatform.system}.default
-    waybar              # Status bar
-    wofi                # App launcher
-    mako                # Notifications
-    wl-clipboard        # Clipboard utility
-    grim                # Screenshot tool
-    slurp               # Screen area selector
-    kanata              # Keyboard remapping (homerow mods)
-    brightnessctl       # Screen brightness
-    swayidle            # Idle management
-    swaylock            # Screen locker
-    playerctl           # Media control (for waybar/niri)
+    waybar # Status bar
+    wofi # App launcher
+    mako # Notifications
+    wl-clipboard # Clipboard utility
+    grim # Screenshot tool
+    slurp # Screen area selector
+    kanata # Keyboard remapping (homerow mods)
+    brightnessctl # Screen brightness
+    swayidle # Idle management
+    swaylock # Screen locker
+    playerctl # Media control (for waybar/niri)
     linux-wallpaperengine # Live wallpapers
-    
+
     # Fonts
     nerd-fonts.jetbrains-mono
 
     # CLI / TUI Essentials (Minimal Power Tools)
-    gemini-cli          # AI Assistant
-    opencode            # OpenCode AI Assistant
-    jq                  # JSON processor
-    ripgrep             # Search utility
-    fd                  # Find utility
-    btop                # System monitor
-    lazygit             # Git TUI
-    ranger              # File manager
-    ueberzugpp          # Image previews for ranger
-    w3m                 # Terminal browser
-    bat                 # Better 'cat' with syntax highlighting
-    
+    gemini-cli # AI Assistant
+    opencode # OpenCode AI Assistant
+    jq # JSON processor
+    ripgrep # Search utility
+    fd # Find utility
+    btop # System monitor
+    lazygit # Git TUI
+    ranger # File manager
+    ueberzugpp # Image previews for ranger
+    w3m # Terminal browser
+    bat # Better 'cat' with syntax highlighting
+
     # GUI Applications (Kept minimal)
-    bitwarden-cli       # Vault management (Suckless CLI version)
-    pandoc              # Document converter
-    ghostty             # Terminal emulator
-    protontricks        # Winetricks for Proton (Gaming)
+    bitwarden-cli # Vault management (Suckless CLI version)
+    pandoc # Document converter
+    ghostty # Terminal emulator
+    protontricks # Winetricks for Proton (Gaming)
 
     # Ranger Preview Dependencies
     ffmpeg
@@ -94,21 +96,32 @@ in
 
     # --- Development Stack ---
     # General Tools
-    gnumake gcc cmake automake autoconf libtool
-    gdb sqlite
-    
+    gnumake
+    gcc
+    cmake
+    automake
+    autoconf
+    libtool
+    gdb
+    sqlite
+
     # Language Servers & Formatters
-    lua-language-server stylua
-    nixd alejandra
+    lua-language-server
+    stylua
+    nixd
+    alejandra
     clang-tools
-    bash-language-server shfmt shellcheck
+    bash-language-server
+    shfmt
+    shellcheck
     nodejs # Required for many LSPs
-    
+
     # Graphics Development
-    glslang 
-    
+    glslang
+
     # .NET Development
-    omnisharp-roslyn netcoredbg
+    omnisharp-roslyn
+    netcoredbg
   ];
 
   # --- Appearance & Theme (GTK / QT) ---
@@ -228,18 +241,22 @@ in
   xdg.configFile."wofi/style.css".source = ./wofi/style.css;
   xdg.configFile."mako/config".source = ./mako/config;
 
+  # Global OpenCode agent: 'talk' — web-search-only agent available in any project.
+  # Placed in ~/.config/opencode/agents/ so opencode picks it up globally.
+  xdg.configFile."opencode/agents/talk.md".source = ./opencode/agents/talk.md;
+
   # --- Background Services (User Level) ---
   services.network-manager-applet.enable = true;
 
-  # Power Monitor Service: 
+  # Power Monitor Service:
   # Automatically manages power profiles (performance/balanced/power-saver)
   # based on AC status and battery percentage.
   systemd.user.services.power-monitor = {
     Unit = {
       Description = "Intelligent Power Profile Management";
-      After = [ "graphical-session.target" ];
+      After = ["graphical-session.target"];
     };
-    Install.WantedBy = [ "graphical-session.target" ];
+    Install.WantedBy = ["graphical-session.target"];
     Service = {
       ExecStart = pkgs.writeShellScript "power-monitor" ''
         # Find battery and AC devices
@@ -298,7 +315,7 @@ in
           else
              set_profile "balanced"
           fi
-          
+
           sleep 60
         done
       '';

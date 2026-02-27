@@ -1,6 +1,8 @@
-{ config, pkgs, ... }:
-
 {
+  config,
+  pkgs,
+  ...
+}: {
   # Haveged is generally not needed on modern kernels (5.6+)
   services.haveged.enable = false;
 

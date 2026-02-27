@@ -1,6 +1,4 @@
-{ config, ... }:
-
-{
+{config, ...}: {
   # Hostname
   networking.hostName = "nixos";
 

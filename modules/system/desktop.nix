@@ -1,10 +1,14 @@
-{ config, pkgs, inputs, lib, ... }:
-
 {
+  config,
+  pkgs,
+  inputs,
+  lib,
+  ...
+}: {
   # --- Display & Window Management ---
 
   # X11 windowing system
-  # Disabled for a minimal, Wayland-native setup. 
+  # Disabled for a minimal, Wayland-native setup.
   # XWayland still provides compatibility for legacy apps.
   services.xserver.enable = false;
 
@@ -35,8 +39,8 @@
   # Essential for Wayland features like screen sharing and file pickers.
   xdg.portal = {
     enable = true;
-    extraPortals = with pkgs; [ xdg-desktop-portal-gtk xdg-desktop-portal-wlr ];
-    config.common.default = [ "gtk" "wlr" ];
+    extraPortals = with pkgs; [xdg-desktop-portal-gtk xdg-desktop-portal-wlr];
+    config.common.default = ["gtk" "wlr"];
   };
 
   # --- System Utilities ---
@@ -52,7 +56,7 @@
   fonts.packages = with pkgs; [
     pkgs.nerd-fonts."symbols-only"
   ];
-  
+
   # Chromium - Kept for specific web-app support and DRM.
   programs.chromium.enable = true;
 

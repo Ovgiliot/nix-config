@@ -1,6 +1,4 @@
-{ config, ... }:
-
-{
+{config, ...}: {
   # Disable PulseAudio in favor of PipeWire
   services.pulseaudio.enable = false;
 
