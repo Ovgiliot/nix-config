@@ -60,6 +60,7 @@ in
 
     # CLI / TUI Essentials (Minimal Power Tools)
     gemini-cli          # AI Assistant
+    opencode            # OpenCode AI Assistant
     jq                  # JSON processor
     ripgrep             # Search utility
     fd                  # Find utility

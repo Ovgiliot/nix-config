@@ -250,6 +250,43 @@ require("lazy").setup({
 		end
 	},
 
+	-- OpenCode AI
+	{
+		"sudo-tee/opencode.nvim",
+		dependencies = {
+			{
+				"folke/snacks.nvim",
+				opts = {
+					input = {},
+					picker = {},
+					terminal = {},
+				},
+			},
+		},
+		config = function()
+			-- Enable reloading files when changed
+			vim.o.autoread = true
+
+			-- Keybindings
+			vim.keymap.set({ "n", "v" }, "<leader>oa", function()
+				require("opencode").ask()
+			end, { desc = "OpenCode: Ask" })
+
+			vim.keymap.set({ "n", "v" }, "<leader>oo", function()
+				require("opencode").toggle()
+			end, { desc = "OpenCode: Toggle" })
+
+			-- Operator pending mappings
+			vim.keymap.set({ "n", "x" }, "go", function()
+				return require("opencode").operator()
+			end, { expr = true, desc = "OpenCode: Operator" })
+
+			vim.keymap.set("n", "goo", function()
+				return require("opencode").operator() .. "_"
+			end, { expr = true, desc = "OpenCode: Operator Line" })
+		end,
+	},
+
 	-- LSP Configuration
 	{
 		"neovim/nvim-lspconfig",
