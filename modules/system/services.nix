@@ -1,15 +1,10 @@
-{
-  config,
-  pkgs,
-  ...
-}: {
-  # Haveged is generally not needed on modern kernels (5.6+)
-  services.haveged.enable = false;
-
+{...}: {
   # Bluetooth support
   hardware.bluetooth = {
     enable = true;
-    powerOnBoot = true;
+    # Don't power on at boot — saves battery on a laptop.
+    # Enable manually or via the bluetooth-menu script when needed.
+    powerOnBoot = false;
   };
 
   services.blueman.enable = true;

@@ -11,6 +11,27 @@
   accent_fg = "#ffffff";
   header_bg = "#1a1a1b";
   card_bg = "#1d1d1e";
+  # --- Shared Shell Aliases ---
+  # Defined once here to keep fish and bash in sync.
+  commonAliases = {
+    ll = "ls -la";
+    ".." = "cd ..";
+    # Delete profile generations older than 7 days (user + system), then GC.
+    # Run the user part first (no sudo), then the system part (sudo).
+    clean-nix = "nix-collect-garbage --delete-older-than 7d && sudo nix-collect-garbage --delete-older-than 7d";
+  };
+
+  # --- Shared GTK3 / GTK4 CSS Theme Variables ---
+  # Defined once to keep GTK3 and GTK4 in sync.
+  gtkCss = ''
+    @define-color window_bg_color ${bg};
+    @define-color window_fg_color ${fg};
+    @define-color headerbar_bg_color ${header_bg};
+    @define-color headerbar_fg_color ${fg};
+    @define-color card_bg_color ${card_bg};
+    @define-color accent_bg_color ${accent};
+    @define-color accent_fg_color ${accent_fg};
+  '';
 in {
   # Import user-specific modules
   imports = [
@@ -53,7 +74,7 @@ in {
     kanata # Keyboard remapping (homerow mods)
     brightnessctl # Screen brightness
     swayidle # Idle management
-    swaylock # Screen locker
+    # swaylock is managed via programs.swaylock below (config + package)
     playerctl # Media control (for waybar/niri)
     linux-wallpaperengine # Live wallpapers
 
@@ -61,7 +82,6 @@ in {
     nerd-fonts.jetbrains-mono
 
     # CLI / TUI Essentials (Minimal Power Tools)
-    gemini-cli # AI Assistant
     opencode # OpenCode AI Assistant
     jq # JSON processor
     ripgrep # Search utility
@@ -139,24 +159,8 @@ in {
       name = "Adwaita";
       package = pkgs.adwaita-icon-theme;
     };
-    gtk3.extraCss = ''
-      @define-color window_bg_color ${bg};
-      @define-color window_fg_color ${fg};
-      @define-color headerbar_bg_color ${header_bg};
-      @define-color headerbar_fg_color ${fg};
-      @define-color card_bg_color ${card_bg};
-      @define-color accent_bg_color ${accent};
-      @define-color accent_fg_color ${accent_fg};
-    '';
-    gtk4.extraCss = ''
-      @define-color window_bg_color ${bg};
-      @define-color window_fg_color ${fg};
-      @define-color headerbar_bg_color ${header_bg};
-      @define-color headerbar_fg_color ${fg};
-      @define-color card_bg_color ${card_bg};
-      @define-color accent_bg_color ${accent};
-      @define-color accent_fg_color ${accent_fg};
-    '';
+    gtk3.extraCss = gtkCss;
+    gtk4.extraCss = gtkCss;
   };
 
   qt = {
@@ -202,26 +206,48 @@ in {
   # Shell Configuration (Aliases for productivity)
   programs.fish = {
     enable = true;
-    shellAliases = {
-      ll = "ls -la";
-      ".." = "cd ..";
-      clean-nix = "sudo nix-env -p /nix/var/nix/profiles/system --delete-generations +10 && sudo nix-collect-garbage -d";
-    };
+    shellAliases = commonAliases;
   };
 
   programs.bash = {
     enable = true;
-    shellAliases = {
-      ll = "ls -la";
-      ".." = "cd ..";
-      clean-nix = "sudo nix-env -p /nix/var/nix/profiles/system --delete-generations +10 && sudo nix-collect-garbage -d";
-    };
+    shellAliases = commonAliases;
   };
 
   # Performance HUD for Games
   programs.mangohud = {
     enable = true;
     enableSessionWide = false;
+  };
+
+  # Screen Locker (themed to match the colour palette)
+  # The config here generates ~/.config/swaylock/config.
+  # swayidle in niri/config.kdl invokes 'swaylock -f'.
+  programs.swaylock = {
+    enable = true;
+    settings = {
+      color = "131314";
+      font = "JetBrainsMono Nerd Font";
+      font-size = 16;
+      indicator-radius = 80;
+      indicator-thickness = 8;
+      line-color = "131314";
+      ring-color = "2f81f7";
+      inside-color = "1d1d1e";
+      key-hl-color = "2f81f7";
+      separator-color = "00000000";
+      text-color = "e6edf3";
+      bs-hl-color = "ff3333";
+      ring-wrong-color = "ff3333";
+      text-wrong-color = "ff3333";
+      inside-wrong-color = "1d1d1e";
+      line-wrong-color = "ff3333";
+      inside-clear-color = "1d1d1e";
+      text-clear-color = "e6edf3";
+      ring-clear-color = "2f81f7";
+      line-clear-color = "131314";
+      show-failed-attempts = true;
+    };
   };
 
   # --- XDG Config Linkage ---
@@ -251,74 +277,29 @@ in {
   # Power Monitor Service:
   # Automatically manages power profiles (performance/balanced/power-saver)
   # based on AC status and battery percentage.
-  systemd.user.services.power-monitor = {
+  # The script lives in scripts/power-monitor.sh; pkgs.writeShellApplication
+  # wraps it with a strict PATH containing only the declared runtimeInputs.
+  systemd.user.services.power-monitor = let
+    powerMonitor = pkgs.writeShellApplication {
+      name = "power-monitor";
+      runtimeInputs = with pkgs; [
+        upower
+        gnugrep
+        gawk
+        coreutils
+        power-profiles-daemon
+        libnotify
+      ];
+      text = builtins.readFile ./scripts/power-monitor.sh;
+    };
+  in {
     Unit = {
       Description = "Intelligent Power Profile Management";
       After = ["graphical-session.target"];
     };
     Install.WantedBy = ["graphical-session.target"];
     Service = {
-      ExecStart = pkgs.writeShellScript "power-monitor" ''
-        # Find battery and AC devices
-        BAT=$( ${pkgs.upower}/bin/upower -e | ${pkgs.gnugrep}/bin/grep -E 'battery_BAT[0-9]' | ${pkgs.coreutils}/bin/head -n 1 )
-        AC=$( ${pkgs.upower}/bin/upower -e | ${pkgs.gnugrep}/bin/grep -E 'line_power|AC|ADP' | ${pkgs.coreutils}/bin/head -n 1 )
-
-        # Helper functions
-        get_battery_percent() {
-          if [ -n "$BAT" ]; then
-            ${pkgs.upower}/bin/upower -i "$BAT" | ${pkgs.gnugrep}/bin/grep 'percentage' | ${pkgs.gawk}/bin/awk '{print $2}' | ${pkgs.coreutils}/bin/tr -d '%'
-          fi
-        }
-
-        is_on_ac() {
-          if [ -n "$AC" ]; then
-            ${pkgs.upower}/bin/upower -i "$AC" | ${pkgs.gnugrep}/bin/grep 'online' | ${pkgs.gawk}/bin/awk '{print $2}'
-          else
-            echo "no"
-          fi
-        }
-
-        set_profile() {
-          new_profile="$1"
-          current=$(${pkgs.power-profiles-daemon}/bin/powerprofilesctl get)
-          if [ "$current" != "$new_profile" ]; then
-            if ${pkgs.power-profiles-daemon}/bin/powerprofilesctl set "$new_profile"; then
-               ${pkgs.libnotify}/bin/notify-send -u normal "Power Profile" "Switched to $new_profile"
-            fi
-          fi
-        }
-
-        while true; do
-          # Check for user overrides in /tmp
-          if [ -f /tmp/power_profile_override ]; then
-            OVERRIDE=$(cat /tmp/power_profile_override)
-            if [ "$OVERRIDE" = "auto" ]; then
-              rm /tmp/power_profile_override
-            elif [ -n "$OVERRIDE" ]; then
-               set_profile "$OVERRIDE"
-               sleep 60
-               continue
-            fi
-          fi
-
-          AC_STATUS=$(is_on_ac)
-          BAT_PERCENT=$(get_battery_percent)
-
-          if [ "$AC_STATUS" = "yes" ]; then
-            set_profile "performance"
-          elif [ -n "$BAT_PERCENT" ]; then
-            if [ "$BAT_PERCENT" -gt 40 ]; then
-              set_profile "balanced"
-            else
-              set_profile "power-saver"
-            fi
-          else
-             set_profile "balanced"
-          fi
-
-          sleep 60
-        done
-      '';
+      ExecStart = "${powerMonitor}/bin/power-monitor";
       Restart = "always";
       RestartSec = 5;
     };

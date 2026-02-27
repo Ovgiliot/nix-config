@@ -1,7 +1,5 @@
 {
-  config,
   pkgs,
-  inputs,
   lib,
   ...
 }: {
@@ -14,13 +12,10 @@
 
   # Display Manager (Greetd)
   # Uses tuigreet as a lightweight TUI login manager.
+  # initial_session is intentionally absent: always require authentication.
   services.greetd = {
     enable = true;
     settings = {
-      initial_session = {
-        command = "niri-session";
-        user = "ovg";
-      };
       default_session = {
         command = "${pkgs.tuigreet}/bin/tuigreet --greeting 'Suckless NixOS' --asterisks --remember --remember-user-session --time --cmd niri-session";
         user = "greeter";
@@ -37,16 +32,17 @@
 
   # XDG desktop portal
   # Essential for Wayland features like screen sharing and file pickers.
+  # xdg-desktop-portal-gnome handles screen share/cast on niri.
+  # xdg-desktop-portal-wlr is wlroots-only and does not work with niri.
   xdg.portal = {
     enable = true;
-    extraPortals = with pkgs; [xdg-desktop-portal-gtk xdg-desktop-portal-wlr];
-    config.common.default = ["gtk" "wlr"];
+    extraPortals = with pkgs; [xdg-desktop-portal-gtk xdg-desktop-portal-gnome];
+    config.common.default = ["gnome" "gtk"];
   };
 
   # --- System Utilities ---
 
   environment.systemPackages = with pkgs; [
-    vim
     git
     pciutils
     usbutils
@@ -69,6 +65,8 @@
   # Security and session management
   security.rtkit.enable = true;
   security.polkit.enable = true;
+  # swaylock reads PAM to authenticate; without this entry it rejects every password.
+  security.pam.services.swaylock = {};
 
   # Hardware Acceleration (Intel)
   hardware.graphics = {

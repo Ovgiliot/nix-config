@@ -6,8 +6,6 @@ binds {
     // "Mod" is a special modifier equal to Super when running on a TTY, and to Alt
     // when running as a winit window.
     //
-// Example: enable rounded corners for all windows.
-// (This example rule is commented out with a "/- in front.)
     // Most actions that you can bind here can also be invoked programmatically with
     // `niri msg action do-something`.
 
@@ -18,8 +16,8 @@ binds {
     // Suggested binds for running programs: terminal, app launcher, screen locker.
     Mod+Return hotkey-overlay-title="Open a Terminal: ghostty" { spawn "ghostty"; }
     Mod+Shift+Return hotkey-overlay-title="Open Quick Terminal: ghostty" { spawn "ghostty" "--quick-terminal"; }
-    Mod+D hotkey-overlay-title="Run an Application: fuzzel" { spawn "fuzzel"; }
-    // Super+Alt+L hotkey-overlay-title="Lock the Screen: swaylock" { spawn "swaylock"; }
+    Mod+D hotkey-overlay-title="Run an Application: wofi" { spawn "wofi" "--show" "drun"; }
+    Super+Alt+L hotkey-overlay-title="Lock the Screen: swaylock" { spawn "swaylock" "-f"; }
     Mod+Space hotkey-overlay-title="Open Launcher" { spawn "wofi" "--show" "drun"; }
     Mod+N hotkey-overlay-title="Create Roam Node" { spawn "ghostty" "-e" "nvim" "-c" "lua require('org-roam').api.find_node()"; }
     Mod+O hotkey-overlay-title="Open Notes" { spawn "sh" "-c" "mkdir -p ~/Documents/org && ghostty -e ranger ~/Documents/org"; }
@@ -30,7 +28,7 @@ binds {
     // NixOS maintenance (run in ghostty and keep output visible)
     Mod+Shift+R hotkey-overlay-title="NixOS Rebuild" { spawn "ghostty" "--class=nixos-rebuild" "-e" "bash" "-c" "/home/ovg/dotfiles/nix/home/ovg/scripts/nixos-rebuild-with-git.sh"; }
     Mod+Shift+U hotkey-overlay-title="Update + Rebuild NixOS" { spawn "ghostty" "--class=nixos-rebuild" "-e" "bash" "-c" "cd /home/ovg/dotfiles/nix && echo 'Updating flakes...' && nix flake update && echo 'Building preview...' && nixos-rebuild build --flake .#nixos && nix store diff-closures /run/current-system ./result && echo && read -p 'Apply updates? (y/N) ' -n 1 -r response && echo && if [ \"$response\" = \"y\" ] || [ \"$response\" = \"Y\" ]; then sudo nixos-rebuild switch --flake .#nixos; else echo 'Cancelled.'; git checkout flake.lock; fi; rm -f result; echo; read -n 1 -s -r -p 'Press any key to close'"; }
-    Mod+Ctrl+Shift+C hotkey-overlay-title="Gemini CLI" { spawn "ghostty" "-e" "bash" "-c" "cd /home/ovg/dotfiles/nix && gemini"; }
+    Mod+Ctrl+Shift+C hotkey-overlay-title="OpenCode" { spawn "ghostty" "-e" "bash" "-c" "cd /home/ovg/dotfiles/nix && opencode"; }
 
     // Use spawn-sh to run a shell command. Do this if you need pipes, multiple commands, etc.
     // Note: the entire command goes as a single argument. It's passed verbatim to `sh -c`.
@@ -65,7 +63,7 @@ binds {
     XF86Display          { spawn "niri" "msg" "action" "focus-monitor-next"; }
     XF86Keyboard         { spawn "ghostty" "-e" "nvim" "/home/ovg/dotfiles/nix/home/ovg/kanata.kbd"; } // Mapping keyboard icon to config
     XF86Messenger        { spawn "ghostty"; } // Often the "star" or "flower" key maps to this or Favorite
-    XF86Favorites        { spawn "fuzzel"; }
+    XF86Favorites        { spawn "wofi" "--show" "drun"; }
 
     // Mod+O repeat=false { toggle-overview; }
     Mod+Shift+O repeat=false { toggle-overview; }

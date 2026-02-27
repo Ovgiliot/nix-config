@@ -1,8 +1,4 @@
-{
-  config,
-  pkgs,
-  ...
-}: {
+{...}: {
   # GameMode: A daemon that optimizes system performance on demand
   # When a game starts, it automatically:
   # - Sets the CPU governor to 'performance'
@@ -37,9 +33,14 @@
       # to prevent crashes during heavy memory usage.
       "vm.max_map_count" = 2147483642;
 
-      # Reduce the 'swappiness' to prefer keeping data in RAM rather than
-      # moving it to swap space (zram/disk), which is much slower.
-      "vm.swappiness" = 10;
+      # With zram enabled, high swappiness is preferred: the kernel should
+      # eagerly swap to the fast in-memory zram rather than holding everything
+      # in RAM. A low value like 10 would defeat the purpose of zram.
+      "vm.swappiness" = 100;
+
+      # Disable swap readahead clustering. zram decompresses page-by-page so
+      # reading ahead clusters wastes CPU cycles with no IO benefit.
+      "vm.page-cluster" = 0;
     };
   };
 }

@@ -2,6 +2,7 @@
   config,
   pkgs,
   lib,
+  swapLuksUuid,
   ...
 }: {
   # Power management services
@@ -14,17 +15,14 @@
   # Fan control for ThinkPads
   services.thinkfan.enable = true;
 
-  # Fix for Intel throttling issues
-  services.throttled.enable = true;
-
   # Intel-specific optimizations
   # Enable Hardware P-States (HWP)
   boot.kernelParams = [
     "intel_pstate=active"
-    "resume=/dev/mapper/luks-9de9918d-99aa-4f0d-8a35-22af09cf8049"
+    "resume=/dev/mapper/luks-${swapLuksUuid}"
   ];
 
-  boot.resumeDevice = "/dev/mapper/luks-9de9918d-99aa-4f0d-8a35-22af09cf8049";
+  boot.resumeDevice = "/dev/mapper/luks-${swapLuksUuid}";
 
   # ThinkPad specific battery management
   boot.extraModulePackages = with config.boot.kernelPackages; [

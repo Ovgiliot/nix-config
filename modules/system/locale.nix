@@ -1,4 +1,4 @@
-{config, ...}: {
+{...}: {
   # Time zone
   time.timeZone = "Europe/Kyiv";
 

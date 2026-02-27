@@ -2,6 +2,7 @@
   config,
   pkgs,
   lib,
+  kanataConfig,
   ...
 }: {
   # Kernel modules for uinput (needed for Kanata)
@@ -20,7 +21,8 @@
     enable = true;
     keyboards = {
       default = {
-        configFile = ../../home/ovg/kanata.kbd;
+        # Path is passed from flake.nix specialArgs to avoid fragile ../../ navigation.
+        configFile = kanataConfig;
         devices = ["/dev/input/by-path/platform-i8042-serio-0-event-kbd"];
       };
     };

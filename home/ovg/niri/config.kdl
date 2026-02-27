@@ -22,14 +22,8 @@ spawn-at-startup "xwayland-satellite"
 // Start Linux Wallpaper Engine
 spawn-at-startup "linux-wallpaperengine" "--silent" "--screen-root" "eDP-1" "2994243715"
 
-// Start Noctalia shell.
-// spawn-at-startup "noctalia-shell"
-
 // Idle management
 spawn-sh-at-startup "swayidle -w timeout 300 'brightnessctl -s set 10%' resume 'brightnessctl -r' timeout 600 'swaylock -f' timeout 900 'niri msg action power-off-monitors' timeout 1800 'systemctl hibernate' before-sleep 'swaylock -f'"
-
-// To run a shell command (with variables, pipes, etc.), use spawn-sh-at-startup:
-// spawn-sh-at-startup "qs -c ~/source/qs/MyAwesomeShell"
 
 hotkey-overlay {
     // Uncomment this line to disable the "Important Hotkeys" pop-up at startup.

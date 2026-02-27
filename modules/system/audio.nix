@@ -1,4 +1,4 @@
-{config, ...}: {
+{...}: {
   # Disable PulseAudio in favor of PipeWire
   services.pulseaudio.enable = false;
 
@@ -9,6 +9,6 @@
     alsa.support32Bit = true;
     pulse.enable = true;
     jack.enable = true;
-    wireplumber.enable = true; # Explicitly enable wireplumber
+    # wireplumber is the default session manager since NixOS 23.05; no need to declare it.
   };
 }

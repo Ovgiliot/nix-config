@@ -34,12 +34,23 @@
     niri,
     ...
   } @ inputs: {
+    # Expose alejandra as the canonical formatter so `nix fmt` works.
+    formatter.x86_64-linux = nixpkgs.legacyPackages.x86_64-linux.alejandra;
+
     nixosConfigurations = {
       # Machine name: 'nixos'
       # Build with: sudo nixos-rebuild switch --flake .#nixos
       nixos = nixpkgs.lib.nixosSystem {
         system = "x86_64-linux";
-        specialArgs = {inherit inputs;};
+        specialArgs = {
+          inherit inputs;
+          # LUKS UUID for the swap/hibernate partition.
+          # Defined here once; used in boot.nix and power.nix.
+          swapLuksUuid = "9de9918d-99aa-4f0d-8a35-22af09cf8049";
+          # Kanata config path resolved from the flake root (more robust than
+          # the ../../ relative path inside the module).
+          kanataConfig = ./home/ovg/kanata.kbd;
+        };
         modules = [
           # Hardware configuration (Machine-specific)
           ./hosts/nixos/hardware-configuration.nix

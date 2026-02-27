@@ -6,20 +6,22 @@
   webAppBrowser = "${pkgs.chromium}/bin/chromium";
   webApps = [
     # { name = "app-name"; url = "https://example.com"; icon = "app-icon"; }
+    # Icons must exist in the active icon theme (Adwaita).
+    # Use `gtk4-icon-browser` or `xdg-open` to verify icon names.
     {
       name = "YouTube";
       url = "https://www.youtube.com";
-      icon = "youtube";
+      icon = "video-x-generic";
     }
     {
       name = "Apple Music";
       url = "https://music.apple.com";
-      icon = "apple-music";
+      icon = "audio-x-generic";
     }
     {
       name = "Nix Packages Search";
       url = "https://search.nixos.org/packages";
-      icon = "nix";
+      icon = "system-software-install";
     }
   ];
 
