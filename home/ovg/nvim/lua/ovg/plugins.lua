@@ -355,8 +355,7 @@ require("lazy").setup({
 				group = vim.api.nvim_create_augroup("UserLspConfig", {}),
 				callback = function(ev)
 					-- Buffer local mappings
-					local opts = { buffer = ev.buf }
-                    local builtin = require("telescope.builtin")
+					local builtin = require("telescope.builtin")
 
 				-- Standard LSP mappings (Telescope versions)
 				vim.keymap.set("n", "gd", builtin.lsp_definitions, { desc = "LSP: Go to Definition (also <leader>cl)", buffer = ev.buf })
