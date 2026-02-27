@@ -358,21 +358,21 @@ require("lazy").setup({
 					local opts = { buffer = ev.buf }
                     local builtin = require("telescope.builtin")
 
-					-- Standard LSP mappings (Telescope versions)
-					vim.keymap.set("n", "gd", builtin.lsp_definitions, { desc = "LSP: Go to Definition", buffer = ev.buf })
-					vim.keymap.set("n", "gr", builtin.lsp_references, { desc = "LSP: References", buffer = ev.buf })
-					vim.keymap.set("n", "gi", builtin.lsp_implementations, { desc = "LSP: Go to Implementation", buffer = ev.buf })
-					vim.keymap.set("n", "K", vim.lsp.buf.hover, { desc = "Hover", buffer = ev.buf })
+				-- Standard LSP mappings (Telescope versions)
+				vim.keymap.set("n", "gd", builtin.lsp_definitions, { desc = "LSP: Go to Definition (also <leader>cl)", buffer = ev.buf })
+				vim.keymap.set("n", "gr", builtin.lsp_references, { desc = "LSP: References (also <leader>cr)", buffer = ev.buf })
+				vim.keymap.set("n", "gi", builtin.lsp_implementations, { desc = "LSP: Go to Implementation", buffer = ev.buf })
+				vim.keymap.set("n", "K", vim.lsp.buf.hover, { desc = "LSP: Hover (also <leader>ch)", buffer = ev.buf })
 
-					-- Requested <leader>c mappings
-					vim.keymap.set("n", "<leader>cl", builtin.lsp_definitions, { desc = "LSP: Go to Definition", buffer = ev.buf })
-					vim.keymap.set("n", "<leader>cr", builtin.lsp_references, { desc = "LSP: References", buffer = ev.buf })
-					vim.keymap.set("n", "<leader>cn", vim.lsp.buf.rename, { desc = "LSP: Rename", buffer = ev.buf })
-					vim.keymap.set({ "n", "v" }, "<leader>ca", vim.lsp.buf.code_action, { desc = "LSP: Code Action", buffer = ev.buf })
-					vim.keymap.set("n", "<leader>ch", vim.lsp.buf.hover, { desc = "LSP: Hover", buffer = ev.buf })
-					vim.keymap.set("n", "<leader>cD", vim.lsp.buf.declaration, { desc = "LSP: Go to Declaration", buffer = ev.buf })
-                    vim.keymap.set("n", "<leader>cs", builtin.lsp_document_symbols, { desc = "LSP: Document Symbols", buffer = ev.buf })
-                    vim.keymap.set("n", "<leader>cw", builtin.lsp_workspace_symbols, { desc = "LSP: Workspace Symbols", buffer = ev.buf })
+				-- Requested <leader>c mappings
+				vim.keymap.set("n", "<leader>cl", builtin.lsp_definitions, { desc = "LSP: Go to Definition (also gd)", buffer = ev.buf })
+				vim.keymap.set("n", "<leader>cr", builtin.lsp_references, { desc = "LSP: References (also gr)", buffer = ev.buf })
+				vim.keymap.set("n", "<leader>cn", vim.lsp.buf.rename, { desc = "LSP: Rename", buffer = ev.buf })
+				vim.keymap.set({ "n", "v" }, "<leader>ca", vim.lsp.buf.code_action, { desc = "LSP: Code Action", buffer = ev.buf })
+				vim.keymap.set("n", "<leader>ch", vim.lsp.buf.hover, { desc = "LSP: Hover (also K)", buffer = ev.buf })
+				vim.keymap.set("n", "<leader>cD", vim.lsp.buf.declaration, { desc = "LSP: Go to Declaration", buffer = ev.buf })
+				vim.keymap.set("n", "<leader>cs", builtin.lsp_document_symbols, { desc = "LSP: Document Symbols", buffer = ev.buf })
+				vim.keymap.set("n", "<leader>cw", builtin.lsp_workspace_symbols, { desc = "LSP: Workspace Symbols", buffer = ev.buf })
 				end,
 			})
 		end,
