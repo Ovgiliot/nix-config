@@ -30,20 +30,11 @@ require("lazy").setup({
 		"nvim-treesitter/nvim-treesitter",
 		build = ":TSUpdate",
 		config = function()
-			local ok, configs = pcall(require, "nvim-treesitter.configs")
-			if ok then
-				configs.setup({
-					ensure_installed = { "markdown", "markdown_inline", "lua", "vim", "vimdoc", "query", "c", "cpp", "nix", "glsl", "hlsl", "bash", "fish", "c_sharp", "org" },
-					highlight = { enable = true },
-					indent = { enable = true },
-				})
-			else
-				local ts = require("nvim-treesitter")
-				ts.setup({
-					auto_install = true,
-					highlight = { enable = true },
-				})
-			end
+			require("nvim-treesitter.configs").setup({
+				ensure_installed = { "markdown", "markdown_inline", "lua", "vim", "vimdoc", "query", "c", "cpp", "nix", "glsl", "hlsl", "bash", "fish", "c_sharp", "org" },
+				highlight = { enable = true },
+				indent = { enable = true },
+			})
 		end,
 	},
 
