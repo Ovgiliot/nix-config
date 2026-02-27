@@ -1,6 +1,6 @@
 -- Set leader keys
 vim.g.mapleader = " "
-vim.g.maplocalleader = " "
+vim.g.maplocalleader = "\\"
 
 -- Quick escape from insert mode using 'jk'
 vim.keymap.set("i", "jk", "<Esc>", { desc = "Exit insert mode" })
