@@ -21,7 +21,20 @@ require("lazy").setup({
 	{
 		"folke/which-key.nvim",
 		config = function()
-			require("which-key").setup({})
+			local wk = require("which-key")
+			wk.setup({})
+			wk.add({
+				{ "<leader>a", group = "ai" },
+				{ "<leader>b", group = "buffer" },
+				{ "<leader>c", group = "code" },
+				{ "<leader>f", group = "find" },
+				{ "<leader>g", group = "git" },
+				{ "<leader>m", group = "org-mode" },
+				{ "<leader>o", group = "org" },
+				{ "<leader>r", group = "roam" },
+				{ "<leader>t", group = "tab" },
+				{ "<leader>w", group = "window" },
+			})
 		end,
 	},
 
