@@ -255,9 +255,6 @@ require("lazy").setup({
 			},
 		},
 		config = function()
-			-- Enable reloading files when changed
-			vim.o.autoread = true
-
 			-- Keybindings
 			vim.keymap.set({ "n", "v" }, "<leader>aa", function()
 				require("opencode").ask()

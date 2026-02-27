@@ -3,6 +3,10 @@ if vim.loader then
     vim.loader.enable()
 end
 
+-- Leader keys (must be set before lazy.nvim loads)
+vim.g.mapleader = " "
+vim.g.maplocalleader = "\\"
+
 -- Bootstrap lazy.nvim
 local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
 if not vim.uv.fs_stat(lazypath) then
@@ -51,6 +55,7 @@ vim.opt.scrolloff = 8           -- Minimal number of screen lines to keep above 
 vim.opt.updatetime = 250        -- Decrease update time (default 4000ms) for better IO/UX
 vim.opt.timeoutlen = 400        -- Time to wait for a mapped sequence to complete (in ms)
 vim.opt.conceallevel = 2        -- Conceal text (useful for Markdown/Org mode)
+vim.opt.autoread = true         -- Reload files changed outside of Neovim
 
 require("ovg.remap")
 require("ovg.plugins")
