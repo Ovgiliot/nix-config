@@ -10,11 +10,18 @@ end
 
 -- File Navigation & Search (Telescope)
 vim.keymap.set("n", "<leader>ff", function()
-    -- Try git_files first, fallback to find_files
-    local ok = pcall(require("telescope.builtin").git_files)
-    if not ok then require("telescope.builtin").find_files() end
+	-- Try git_files first, fallback to find_files
+	local ok = pcall(require("telescope.builtin").git_files)
+	if not ok then
+		require("telescope.builtin").find_files()
+	end
 end, { desc = "Find files (Git/All)" })
-vim.keymap.set("n", "<leader>fF", telescope_builtin("find_files", { no_ignore = true, hidden = true }), { desc = "Find ALL files" })
+vim.keymap.set(
+	"n",
+	"<leader>fF",
+	telescope_builtin("find_files", { no_ignore = true, hidden = true }),
+	{ desc = "Find ALL files" }
+)
 vim.keymap.set("n", "<leader>fg", telescope_builtin("live_grep"), { desc = "Live grep (text search)" })
 vim.keymap.set("n", "<leader>fw", telescope_builtin("grep_string"), { desc = "Grep word under cursor" })
 vim.keymap.set("n", "<leader>,", telescope_builtin("buffers"), { desc = "Switch Buffers" })
@@ -27,7 +34,12 @@ vim.keymap.set("n", "<leader>fl", telescope_builtin("loclist"), { desc = "Search
 vim.keymap.set("n", "<leader>fc", telescope_builtin("commands"), { desc = "Run Command" })
 vim.keymap.set("n", "<leader>fk", telescope_builtin("keymaps"), { desc = "View Keymaps" })
 vim.keymap.set("n", "<leader>fm", telescope_builtin("marks"), { desc = "View Marks" })
-vim.keymap.set("n", "<leader>fS", telescope_builtin("colorscheme", { enable_preview = true }), { desc = "Pick Colorscheme" })
+vim.keymap.set(
+	"n",
+	"<leader>fS",
+	telescope_builtin("colorscheme", { enable_preview = true }),
+	{ desc = "Pick Colorscheme" }
+)
 vim.keymap.set("n", "<leader>f/", telescope_builtin("search_history"), { desc = "Search History" })
 vim.keymap.set("n", "<leader>f:", telescope_builtin("command_history"), { desc = "Command History" })
 
@@ -85,5 +97,3 @@ vim.keymap.set("n", "<leader>gh", "<cmd>DiffviewFileHistory %<cr>", { desc = "Fi
 -- Org Mode
 vim.keymap.set("n", "<leader>oa", "<cmd>Org agenda<cr>", { desc = "Org: Open Agenda" })
 vim.keymap.set("n", "<leader>oc", "<cmd>Org capture<cr>", { desc = "Org: Capture Task" })
-
-

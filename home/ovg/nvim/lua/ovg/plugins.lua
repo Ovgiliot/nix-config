@@ -31,7 +31,23 @@ require("lazy").setup({
 		build = ":TSUpdate",
 		config = function()
 			require("nvim-treesitter.configs").setup({
-				ensure_installed = { "markdown", "markdown_inline", "lua", "vim", "vimdoc", "query", "c", "cpp", "nix", "glsl", "hlsl", "bash", "fish", "c_sharp", "org" },
+				ensure_installed = {
+					"markdown",
+					"markdown_inline",
+					"lua",
+					"vim",
+					"vimdoc",
+					"query",
+					"c",
+					"cpp",
+					"nix",
+					"glsl",
+					"hlsl",
+					"bash",
+					"fish",
+					"c_sharp",
+					"org",
+				},
 				highlight = { enable = true },
 				indent = { enable = true },
 			})
@@ -47,7 +63,7 @@ require("lazy").setup({
 				"nvim-telescope/telescope-fzf-native.nvim",
 				build = "make", -- Requires make and gcc/clang
 			},
-            "nvim-telescope/telescope-ui-select.nvim",
+			"nvim-telescope/telescope-ui-select.nvim",
 		},
 		config = function()
 			local telescope = require("telescope")
@@ -65,16 +81,16 @@ require("lazy").setup({
 						override_file_sorter = true, -- override the file sorter
 						case_mode = "smart_case", -- or "ignore_case" or "respect_case"
 					},
-                    ["ui-select"] = {
-                        require("telescope.themes").get_dropdown {
-                            -- even more opts
-                        }
-                    }
+					["ui-select"] = {
+						require("telescope.themes").get_dropdown({
+							-- even more opts
+						}),
+					},
 				},
 			})
 			-- Load extensions
 			telescope.load_extension("fzf")
-            telescope.load_extension("ui-select")
+			telescope.load_extension("ui-select")
 		end,
 	},
 
@@ -128,14 +144,44 @@ require("lazy").setup({
 
 					-- Org File Mappings
 					vim.keymap.set("n", "<leader>mt", "<cmd>Org todo<cr>", { buffer = true, desc = "Org: Todo" })
-					vim.keymap.set("n", "<leader>ms", "<cmd>Org schedule<cr>", { buffer = true, desc = "Org: Schedule" })
-					vim.keymap.set("n", "<leader>md", "<cmd>Org deadline<cr>", { buffer = true, desc = "Org: Deadline" })
-					vim.keymap.set("n", "<leader>mi", "<cmd>Org toggle-checkbox<cr>", { buffer = true, desc = "Org: Toggle Checkbox" })
-					vim.keymap.set("n", "<leader>ml", "<cmd>Org insert-link<cr>", { buffer = true, desc = "Org: Insert Link" })
+					vim.keymap.set(
+						"n",
+						"<leader>ms",
+						"<cmd>Org schedule<cr>",
+						{ buffer = true, desc = "Org: Schedule" }
+					)
+					vim.keymap.set(
+						"n",
+						"<leader>md",
+						"<cmd>Org deadline<cr>",
+						{ buffer = true, desc = "Org: Deadline" }
+					)
+					vim.keymap.set(
+						"n",
+						"<leader>mi",
+						"<cmd>Org toggle-checkbox<cr>",
+						{ buffer = true, desc = "Org: Toggle Checkbox" }
+					)
+					vim.keymap.set(
+						"n",
+						"<leader>ml",
+						"<cmd>Org insert-link<cr>",
+						{ buffer = true, desc = "Org: Insert Link" }
+					)
 					vim.keymap.set("n", "<leader>ma", "<cmd>Org agenda<cr>", { buffer = true, desc = "Org: Agenda" })
 					vim.keymap.set("n", "<leader>mc", "<cmd>Org capture<cr>", { buffer = true, desc = "Org: Capture" })
-					vim.keymap.set("n", "<leader>me", "<cmd>Org export-dispatch<cr>", { buffer = true, desc = "Org: Export" })
-					vim.keymap.set("n", "<leader>mp", "<cmd>Org set-tags-command<cr>", { buffer = true, desc = "Org: Set Tags" })
+					vim.keymap.set(
+						"n",
+						"<leader>me",
+						"<cmd>Org export-dispatch<cr>",
+						{ buffer = true, desc = "Org: Export" }
+					)
+					vim.keymap.set(
+						"n",
+						"<leader>mp",
+						"<cmd>Org set-tags-command<cr>",
+						{ buffer = true, desc = "Org: Set Tags" }
+					)
 				end,
 			})
 		end,
@@ -149,14 +195,62 @@ require("lazy").setup({
 			"kkharji/sqlite.lua",
 		},
 		keys = {
-			{ "<leader>rf", function() require("org-roam").api.find_node() end, desc = "OrgRoam: Find Node" },
-			{ "<leader>ri", function() require("org-roam").api.insert_node() end, desc = "OrgRoam: Insert Node" },
-			{ "<leader>rc", function() require("org-roam").api.capture_node() end, desc = "OrgRoam: Capture Node" },
-			{ "<leader>rs", function() require("org-roam").api.sync() end, desc = "OrgRoam: Sync Database" },
-			{ "<leader>rl", function() require("org-roam").ui.node_buffer.toggle() end, desc = "OrgRoam: Toggle Buffer" },
-			{ "<leader>rt", function() require("org-roam").extensions.dailies.capture_today() end, desc = "OrgRoam: Today" },
-			{ "<leader>ry", function() require("org-roam").extensions.dailies.capture_yesterday() end, desc = "OrgRoam: Yesterday" },
-			{ "<leader>rm", function() require("org-roam").extensions.dailies.capture_tomorrow() end, desc = "OrgRoam: Tomorrow" },
+			{
+				"<leader>rf",
+				function()
+					require("org-roam").api.find_node()
+				end,
+				desc = "OrgRoam: Find Node",
+			},
+			{
+				"<leader>ri",
+				function()
+					require("org-roam").api.insert_node()
+				end,
+				desc = "OrgRoam: Insert Node",
+			},
+			{
+				"<leader>rc",
+				function()
+					require("org-roam").api.capture_node()
+				end,
+				desc = "OrgRoam: Capture Node",
+			},
+			{
+				"<leader>rs",
+				function()
+					require("org-roam").api.sync()
+				end,
+				desc = "OrgRoam: Sync Database",
+			},
+			{
+				"<leader>rl",
+				function()
+					require("org-roam").ui.node_buffer.toggle()
+				end,
+				desc = "OrgRoam: Toggle Buffer",
+			},
+			{
+				"<leader>rt",
+				function()
+					require("org-roam").extensions.dailies.capture_today()
+				end,
+				desc = "OrgRoam: Today",
+			},
+			{
+				"<leader>ry",
+				function()
+					require("org-roam").extensions.dailies.capture_yesterday()
+				end,
+				desc = "OrgRoam: Yesterday",
+			},
+			{
+				"<leader>rm",
+				function()
+					require("org-roam").extensions.dailies.capture_tomorrow()
+				end,
+				desc = "OrgRoam: Tomorrow",
+			},
 		},
 		config = function()
 			local roam = require("org-roam")
@@ -194,22 +288,29 @@ require("lazy").setup({
 		end,
 	},
 
-    -- Org Mode Styling
-    {
-        "lukas-reineke/headlines.nvim",
-        dependencies = "nvim-treesitter/nvim-treesitter",
-        config = function()
-            require("headlines").setup({
-                org = {
-                    headline_highlights = { "Headline1", "Headline2", "Headline3", "Headline4", "Headline5", "Headline6" },
-                },
-            })
-        end,
-    },
-    {
-        "akinsho/org-bullets.nvim",
-        config = true,
-    },
+	-- Org Mode Styling
+	{
+		"lukas-reineke/headlines.nvim",
+		dependencies = "nvim-treesitter/nvim-treesitter",
+		config = function()
+			require("headlines").setup({
+				org = {
+					headline_highlights = {
+						"Headline1",
+						"Headline2",
+						"Headline3",
+						"Headline4",
+						"Headline5",
+						"Headline6",
+					},
+				},
+			})
+		end,
+	},
+	{
+		"akinsho/org-bullets.nvim",
+		config = true,
+	},
 
 	-- Git
 	{
@@ -231,14 +332,14 @@ require("lazy").setup({
 		end,
 		config = function()
 			-- Accept suggestion with Ctrl+l
-			vim.keymap.set('i', '<C-l>', 'copilot#Accept("\\<CR>")', {
+			vim.keymap.set("i", "<C-l>", 'copilot#Accept("\\<CR>")', {
 				expr = true,
-				replace_keycodes = false
+				replace_keycodes = false,
 			})
-			
+
 			-- Accept word with Ctrl+Shift+l (mapped via <Plug>)
-			vim.keymap.set('i', '<C-S-l>', '<Plug>(copilot-accept-word)', { remap = true })
-		end
+			vim.keymap.set("i", "<C-S-l>", "<Plug>(copilot-accept-word)", { remap = true })
+		end,
 	},
 
 	-- OpenCode AI
@@ -285,7 +386,8 @@ require("lazy").setup({
 		},
 		config = function()
 			local capabilities = require("cmp_nvim_lsp").default_capabilities()
-			local servers = { "lua_ls", "nixd", "clangd", "pyright", "ts_ls", "rust_analyzer", "bashls", "omnisharp", "glslls" }
+			local servers =
+				{ "lua_ls", "nixd", "clangd", "pyright", "ts_ls", "rust_analyzer", "bashls", "omnisharp", "glslls" }
 
 			-- Support for Neovim 0.11+ using the new LSP configuration API
 			if vim.lsp.config and vim.lsp.enable then
@@ -354,26 +456,80 @@ require("lazy").setup({
 					-- Buffer local mappings
 					local builtin = require("telescope.builtin")
 
-				-- Standard LSP mappings (Telescope versions)
-				vim.keymap.set("n", "gd", builtin.lsp_definitions, { desc = "LSP: Go to Definition (also <leader>cl)", buffer = ev.buf })
-				vim.keymap.set("n", "gr", builtin.lsp_references, { desc = "LSP: References (also <leader>cr)", buffer = ev.buf })
-				vim.keymap.set("n", "gi", builtin.lsp_implementations, { desc = "LSP: Go to Implementation", buffer = ev.buf })
-				vim.keymap.set("n", "K", vim.lsp.buf.hover, { desc = "LSP: Hover (also <leader>ch)", buffer = ev.buf })
+					-- Standard LSP mappings (Telescope versions)
+					vim.keymap.set(
+						"n",
+						"gd",
+						builtin.lsp_definitions,
+						{ desc = "LSP: Go to Definition (also <leader>cl)", buffer = ev.buf }
+					)
+					vim.keymap.set(
+						"n",
+						"gr",
+						builtin.lsp_references,
+						{ desc = "LSP: References (also <leader>cr)", buffer = ev.buf }
+					)
+					vim.keymap.set(
+						"n",
+						"gi",
+						builtin.lsp_implementations,
+						{ desc = "LSP: Go to Implementation", buffer = ev.buf }
+					)
+					vim.keymap.set(
+						"n",
+						"K",
+						vim.lsp.buf.hover,
+						{ desc = "LSP: Hover (also <leader>ch)", buffer = ev.buf }
+					)
 
-				-- Requested <leader>c mappings
-				vim.keymap.set("n", "<leader>cl", builtin.lsp_definitions, { desc = "LSP: Go to Definition (also gd)", buffer = ev.buf })
-				vim.keymap.set("n", "<leader>cr", builtin.lsp_references, { desc = "LSP: References (also gr)", buffer = ev.buf })
-				vim.keymap.set("n", "<leader>cn", vim.lsp.buf.rename, { desc = "LSP: Rename", buffer = ev.buf })
-				vim.keymap.set({ "n", "v" }, "<leader>ca", vim.lsp.buf.code_action, { desc = "LSP: Code Action", buffer = ev.buf })
-				vim.keymap.set("n", "<leader>ch", vim.lsp.buf.hover, { desc = "LSP: Hover (also K)", buffer = ev.buf })
-				vim.keymap.set("n", "<leader>cD", vim.lsp.buf.declaration, { desc = "LSP: Go to Declaration", buffer = ev.buf })
-				vim.keymap.set("n", "<leader>cs", builtin.lsp_document_symbols, { desc = "LSP: Document Symbols", buffer = ev.buf })
-				vim.keymap.set("n", "<leader>cw", builtin.lsp_workspace_symbols, { desc = "LSP: Workspace Symbols", buffer = ev.buf })
+					-- Requested <leader>c mappings
+					vim.keymap.set(
+						"n",
+						"<leader>cl",
+						builtin.lsp_definitions,
+						{ desc = "LSP: Go to Definition (also gd)", buffer = ev.buf }
+					)
+					vim.keymap.set(
+						"n",
+						"<leader>cr",
+						builtin.lsp_references,
+						{ desc = "LSP: References (also gr)", buffer = ev.buf }
+					)
+					vim.keymap.set("n", "<leader>cn", vim.lsp.buf.rename, { desc = "LSP: Rename", buffer = ev.buf })
+					vim.keymap.set(
+						{ "n", "v" },
+						"<leader>ca",
+						vim.lsp.buf.code_action,
+						{ desc = "LSP: Code Action", buffer = ev.buf }
+					)
+					vim.keymap.set(
+						"n",
+						"<leader>ch",
+						vim.lsp.buf.hover,
+						{ desc = "LSP: Hover (also K)", buffer = ev.buf }
+					)
+					vim.keymap.set(
+						"n",
+						"<leader>cD",
+						vim.lsp.buf.declaration,
+						{ desc = "LSP: Go to Declaration", buffer = ev.buf }
+					)
+					vim.keymap.set(
+						"n",
+						"<leader>cs",
+						builtin.lsp_document_symbols,
+						{ desc = "LSP: Document Symbols", buffer = ev.buf }
+					)
+					vim.keymap.set(
+						"n",
+						"<leader>cw",
+						builtin.lsp_workspace_symbols,
+						{ desc = "LSP: Workspace Symbols", buffer = ev.buf }
+					)
 				end,
 			})
 		end,
 	},
-
 
 	-- Completion
 	{
@@ -459,11 +615,11 @@ require("lazy").setup({
 			local lint = require("lint")
 			lint.linters_by_ft = {
 				-- lua = { "luacheck" }, -- lua_ls handles diagnostics usually
-                -- nix = { "nix" }, -- nixd handles it
-                bash = { "shellcheck" },
-                sh = { "shellcheck" },
-                glsl = { "glslang" },
-                hlsl = { "glslang" },
+				-- nix = { "nix" }, -- nixd handles it
+				bash = { "shellcheck" },
+				sh = { "shellcheck" },
+				glsl = { "glslang" },
+				hlsl = { "glslang" },
 			}
 
 			local lint_augroup = vim.api.nvim_create_augroup("lint", { clear = true })
@@ -481,7 +637,7 @@ require("lazy").setup({
 		"mfussenegger/nvim-dap",
 		dependencies = {
 			"rcarriga/nvim-dap-ui",
-            "nvim-neotest/nvim-nio",
+			"nvim-neotest/nvim-nio",
 		},
 		config = function()
 			local dap = require("dap")
@@ -501,42 +657,42 @@ require("lazy").setup({
 			dap.listeners.before.event_exited.dapui_config = function()
 				dapui.close()
 			end
-            
-            -- Adapters
-            dap.adapters.gdb = {
-                type = "executable",
-                command = "gdb",
-                args = { "-i", "dap" }
-            }
-            dap.configurations.c = {
-                {
-                    name = "Launch",
-                    type = "gdb",
-                    request = "launch",
-                    program = function()
-                        return vim.fn.input('Path to executable: ', vim.fn.getcwd() .. '/', 'file')
-                    end,
-                    cwd = "${workspaceFolder}",
-                    stopAtBeginningOfMainSubprogram = false,
-                },
-            }
-            dap.configurations.cpp = dap.configurations.c
 
-            dap.adapters.coreclr = {
-                type = "executable",
-                command = "netcoredbg",
-                args = { "--interpreter=vscode" },
-            }
-            dap.configurations.cs = {
-                {
-                    type = "coreclr",
-                    name = "launch - netcoredbg",
-                    request = "launch",
-                    program = function()
-                        return vim.fn.input('Path to dll: ', vim.fn.getcwd() .. '/bin/Debug/', 'file')
-                    end,
-                },
-            }
+			-- Adapters
+			dap.adapters.gdb = {
+				type = "executable",
+				command = "gdb",
+				args = { "-i", "dap" },
+			}
+			dap.configurations.c = {
+				{
+					name = "Launch",
+					type = "gdb",
+					request = "launch",
+					program = function()
+						return vim.fn.input("Path to executable: ", vim.fn.getcwd() .. "/", "file")
+					end,
+					cwd = "${workspaceFolder}",
+					stopAtBeginningOfMainSubprogram = false,
+				},
+			}
+			dap.configurations.cpp = dap.configurations.c
+
+			dap.adapters.coreclr = {
+				type = "executable",
+				command = "netcoredbg",
+				args = { "--interpreter=vscode" },
+			}
+			dap.configurations.cs = {
+				{
+					type = "coreclr",
+					name = "launch - netcoredbg",
+					request = "launch",
+					program = function()
+						return vim.fn.input("Path to dll: ", vim.fn.getcwd() .. "/bin/Debug/", "file")
+					end,
+				},
+			}
 
 			-- Keymaps
 			vim.keymap.set("n", "<leader>cb", dap.toggle_breakpoint, { desc = "Debug: Toggle Breakpoint" })
@@ -548,16 +704,16 @@ require("lazy").setup({
 		end,
 	},
 
-    -- Autosave
-    {
-        "okuuva/auto-save.nvim",
-        cmd = "ASToggle",
-        event = { "InsertLeave", "TextChanged" },
-        opts = {
-            trigger_events = { "InsertLeave", "TextChanged" },
-            debounce_delay = 1000, -- Delay in ms before saving
-        },
-    },
+	-- Autosave
+	{
+		"okuuva/auto-save.nvim",
+		cmd = "ASToggle",
+		event = { "InsertLeave", "TextChanged" },
+		opts = {
+			trigger_events = { "InsertLeave", "TextChanged" },
+			debounce_delay = 1000, -- Delay in ms before saving
+		},
+	},
 }, {
 	lockfile = vim.fn.stdpath("state") .. "/lazy-lock.json",
 })
