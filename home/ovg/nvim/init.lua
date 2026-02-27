@@ -3,23 +3,17 @@ if vim.loader then
 	vim.loader.enable()
 end
 
--- Leader keys (must be set before lazy.nvim loads)
+-- Leader keys (must be set before plugins load)
 vim.g.mapleader = " "
 vim.g.maplocalleader = "\\"
 
--- Bootstrap lazy.nvim
-local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
-if not vim.uv.fs_stat(lazypath) then
-	vim.fn.system({
-		"git",
-		"clone",
-		"--filter=blob:none",
-		"https://github.com/folke/lazy.nvim.git",
-		"--branch=stable",
-		lazypath,
-	})
-end
-vim.opt.rtp:prepend(lazypath)
+-- Enable treesitter highlighting for any filetype that has a parser available.
+-- Parsers are provided by Nix (pkgs.vimPlugins.nvim-treesitter.withPlugins).
+vim.api.nvim_create_autocmd("FileType", {
+	callback = function(args)
+		pcall(vim.treesitter.start, args.buf)
+	end,
+})
 
 -- General Options
 vim.opt.number = true -- Show line numbers

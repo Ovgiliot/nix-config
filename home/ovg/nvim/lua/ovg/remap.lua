@@ -63,8 +63,10 @@ vim.keymap.set("n", "<leader>ac", function()
 	end
 end, { desc = "Toggle Copilot" })
 
--- File Manager (Ranger)
-vim.keymap.set("n", "<leader>.", "<cmd>Ranger<cr>", { desc = "Open Ranger file manager" })
+-- File Manager (ranger-nvim)
+vim.keymap.set("n", "<leader>.", function()
+	require("ranger-nvim").open(true)
+end, { desc = "Open Ranger file manager" })
 
 -- Tab Management
 vim.keymap.set("n", "<leader>tn", "<cmd>tabnew<cr>", { desc = "New tab" })
