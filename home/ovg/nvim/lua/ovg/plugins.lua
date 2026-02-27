@@ -268,11 +268,11 @@ require("lazy").setup({
 			vim.o.autoread = true
 
 			-- Keybindings
-			vim.keymap.set({ "n", "v" }, "<leader>oa", function()
+			vim.keymap.set({ "n", "v" }, "<leader>aa", function()
 				require("opencode").ask()
 			end, { desc = "OpenCode: Ask" })
 
-			vim.keymap.set({ "n", "v" }, "<leader>oo", function()
+			vim.keymap.set({ "n", "v" }, "<leader>ao", function()
 				require("opencode").toggle()
 			end, { desc = "OpenCode: Toggle" })
 
