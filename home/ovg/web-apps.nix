@@ -23,6 +23,11 @@
       url = "https://search.nixos.org/packages";
       icon = "system-software-install";
     }
+    {
+      name = "Neuro Karaoke";
+      url = "https://neurokaraoke.com";
+      icon = "audio-x-generic";
+    }
   ];
 
   mkDesktopFile = app: let
