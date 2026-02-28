@@ -65,6 +65,24 @@ esac
 info "Detected platform: $PLATFORM"
 
 # ---------------------------------------------------------------------------
+# Ensure Nix is installed
+# ---------------------------------------------------------------------------
+if ! command -v nix &>/dev/null; then
+	warn "Nix not found — installing via the Determinate Systems installer..."
+	curl --proto '=https' --tlsv1.2 -sSf -L https://install.determinate.systems/nix |
+		sh -s -- install --no-confirm ||
+		die "Nix installation failed. Install manually: https://determinate.systems/nix"
+
+	# Make nix available in the current shell without requiring a restart.
+	NIX_PROFILE="/nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh"
+	# shellcheck source=/dev/null
+	[[ -f "$NIX_PROFILE" ]] && source "$NIX_PROFILE" ||
+		die "Nix installed but profile not found at $NIX_PROFILE — open a new shell and re-run."
+
+	ok "Nix installed and available."
+fi
+
+# ---------------------------------------------------------------------------
 # Profile selection
 # ---------------------------------------------------------------------------
 if [[ "$PLATFORM" == "darwin" ]]; then
@@ -305,8 +323,14 @@ fi
 if grep -q "\"${HOSTNAME}\"" "$FLAKE_DIR/flake.nix"; then
 	warn "$HOSTNAME already in flake.nix — skipping injection."
 else
-	# Insert the new entry on the line before the marker
-	sed -i "s|${MARKER}|${ENTRY}\n      ${MARKER}|" "$FLAKE_DIR/flake.nix"
+	# Insert the new entry on the line before the marker.
+	# awk is used instead of sed -i because BSD sed (macOS) requires a different
+	# -i syntax and does not support \n in replacement strings.
+	awk -v entry="      ${ENTRY}" -v marker="${MARKER}" '
+		index($0, marker) > 0 { print entry }
+		{ print }
+	' "$FLAKE_DIR/flake.nix" >"$FLAKE_DIR/flake.nix.tmp" &&
+		mv "$FLAKE_DIR/flake.nix.tmp" "$FLAKE_DIR/flake.nix"
 	ok "flake.nix updated."
 fi
 
@@ -349,6 +373,13 @@ if [[ ! "$yn" =~ ^[Nn]$ ]]; then
 		fi
 	fi
 	ok "Build complete. This machine is now '${HOSTNAME}' running the '${PROFILE}' profile."
+	if [[ "$PROFILE" == "darwin" ]]; then
+		printf '\n'
+		info "Kanata is installed but requires a one-time manual driver setup on macOS."
+		info "Install the Karabiner-Elements virtual HID driver, then run kanata as root:"
+		echo "  https://github.com/jtroo/kanata/blob/main/docs/macos.md"
+		echo "  sudo kanata --cfg ~/.config/kanata/kanata.kbd"
+	fi
 else
 	info "Skipped build. Run manually:"
 	if [[ "$PLATFORM" == "linux" ]]; then

@@ -23,6 +23,9 @@
     chromium.enableWideVine = true;
   };
 
+  # Weekly GC via systemd timer (set here because nix.nix is shared with macOS).
+  nix.gc.dates = "weekly";
+
   home-manager = {
     useGlobalPkgs = true;
     useUserPackages = true;
