@@ -9,7 +9,6 @@
     # Wayland / Desktop Utilities
     xwayland-satellite # X11 app support in Niri
     inputs.zen-browser.packages.${pkgs.stdenv.hostPlatform.system}.default
-    waybar
     wofi
     mako
     wl-clipboard
@@ -18,7 +17,7 @@
     kanata # Keyboard remapping (homerow mods)
     brightnessctl
     swayidle
-    playerctl # Media control (for waybar/niri)
+    playerctl # Media control (for niri)
     linux-wallpaperengine # Live wallpapers
 
     # GUI Applications

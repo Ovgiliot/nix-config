@@ -13,9 +13,6 @@ include "binds.kdl"
 // which may be more convenient to use.
 // See the binds section below for more spawn examples.
 
-// Start Waybar.
-spawn-at-startup "waybar"
-
 // Start XWayland satellite
 spawn-at-startup "xwayland-satellite"
 

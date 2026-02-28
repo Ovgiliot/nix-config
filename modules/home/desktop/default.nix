@@ -2,7 +2,7 @@
   imports = [
     ./theme.nix
     ./niri.nix
-    ./waybar.nix
+    ./quickshell.nix
     ./ghostty.nix
     ./notifications.nix
     ./launcher.nix
