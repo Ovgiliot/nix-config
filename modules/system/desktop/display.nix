@@ -87,6 +87,9 @@
 
   environment.sessionVariables = {
     LIBVA_DRIVER_NAME = "iHD";
+    # Force Firefox-based apps (Zen, etc.) onto native Wayland so they inherit
+    # the compositor scale instead of auto-detecting physical display DPI.
+    MOZ_ENABLE_WAYLAND = "1";
     XDG_CONFIG_DIRS = lib.mkDefault "/etc/xdg";
   };
 }
