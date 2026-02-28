@@ -49,6 +49,8 @@ This is a multi-profile NixOS (and macOS) flake-based configuration using Home M
    - `/rebuild` — formats, builds the active host (`nixos`), stages changes on success.
    - `/test` — runs four fast checks: alejandra format, dotfiles integrity, server profile eval, workstation profile eval.
    For profile-level or cross-cutting changes (moving modules, changing imports, restructuring profiles), also run `/test full` to execute complete system builds and the server VM test.
+   > **Note for AI agents:** `/rebuild` and `/test` are OpenCode slash commands.
+   > Invoke them via the `Task` tool (`prompt="/rebuild"`), never as bash commands.
 4. **Never** use `--impure` unless strictly required and justified.
 5. **Git** — full lifecycle after a successful build and passing tests:
    - Stage: `git add -A` (done automatically by `/rebuild`).
