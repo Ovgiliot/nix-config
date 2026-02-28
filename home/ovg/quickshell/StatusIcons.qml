@@ -1,11 +1,12 @@
 // Status icons widget: WiFi, Bluetooth, Power Profile, Battery.
 // Polls status.sh every 5 s. Pill background driven by battery state.
 // Icons mapped from named ASCII states; all glyphs live here in QML.
+// Shadow: offset y=5, blur 0.7, #00000077 — matches Niri window shadow config.
 
 import Quickshell
 import Quickshell.Io
 import QtQuick
-import QtQuick.Layouts
+import QtQuick.Effects
 
 Item {
     id: root
@@ -24,9 +25,9 @@ Item {
     readonly property color criticalColor: Qt.rgba(248/255, 81/255,  73/255, 1.0)
 
     function wifiIcon(state) {
-        if (state === "ethernet")  return "\uDB80\uDE00"   // U+F0200
-        if (state === "on")        return "\uDB81\uDDA9"   // U+F05A9
-        return "\uDB81\uDDAA"                              // U+F05AA  off
+        if (state === "ethernet") return "\uDB80\uDE00"   // U+F0200
+        if (state === "on")       return "\uDB81\uDDA9"   // U+F05A9
+        return "\uDB81\uDDAA"                             // U+F05AA  off
     }
 
     function btIcon(state) {
@@ -36,7 +37,7 @@ Item {
     }
 
     function btColor(state) {
-        if (state === "connected") return "#fafafa"
+        if (state === "connected") return "#58a6ff"   // blue — device active
         if (state === "on")        return Qt.rgba(250/255, 250/255, 250/255, 0.7)
         return Qt.rgba(250/255, 250/255, 250/255, 0.4)
     }
@@ -62,8 +63,9 @@ Item {
         return "\uf244"
     }
 
-    // Pill background — colour driven by battery state
+    // ── Pill background (hidden — MultiEffect renders it with shadow) ─────────
     Rectangle {
+        id: pillBg
         anchors.fill: parent
         color: {
             if (root.batState === "critical") return root.criticalColor
@@ -72,10 +74,22 @@ Item {
         }
         bottomLeftRadius:  12
         bottomRightRadius: 12
+        visible: false
         Behavior on color { ColorAnimation { duration: 400 } }
     }
 
-    // Action processes
+    MultiEffect {
+        source:               pillBg
+        anchors.fill:         pillBg
+        autoPaddingEnabled:   true
+        shadowEnabled:        true
+        shadowColor:          "#77000000"
+        shadowBlur:           0.7
+        shadowVerticalOffset: 5
+        shadowHorizontalOffset: 0
+    }
+
+    // ── Action processes ─────────────────────────────────────────────────────
     Process { id: wifiMenuProc;  command: ["wifi-menu"] }
     Process { id: btMenuProc;    command: ["bluetooth-menu"] }
     Process {
@@ -83,11 +97,11 @@ Item {
         command: ["/home/ovg/.config/waybar/scripts/cycle-power-profile.sh"]
     }
 
-    // Icons row
+    // ── Icons row — 6px spacing for consistent visual separation ─────────────
     Row {
         id: iconsRow
         anchors.centerIn: parent
-        spacing: 0
+        spacing: 6
 
         // WiFi
         Text {
@@ -148,7 +162,7 @@ Item {
         }
     }
 
-    // Script poller
+    // ── Script poller ─────────────────────────────────────────────────────────
     Process {
         id: statusProc
         command: ["/home/ovg/.config/waybar/scripts/status.sh"]
@@ -156,11 +170,11 @@ Item {
             onStreamFinished: {
                 try {
                     const d = JSON.parse(text.trim())
-                    root.wifiState  = d.wifi       || "off"
-                    root.btState    = d.bt         || "off"
-                    root.powerState = d.power      || "balanced"
-                    root.batLevel   = d.bat_level  ?? 100
-                    root.batState   = d.bat_state  || "normal"
+                    root.wifiState  = d.wifi      || "off"
+                    root.btState    = d.bt        || "off"
+                    root.powerState = d.power     || "balanced"
+                    root.batLevel   = d.bat_level ?? 100
+                    root.batState   = d.bat_state || "normal"
                 } catch (_) {}
             }
         }
@@ -175,7 +189,6 @@ Item {
         onTriggered: if (!statusProc.running) statusProc.running = true
     }
 
-    // Quick re-poll after power profile cycle click
     Timer {
         id: refreshTimer
         interval: 800

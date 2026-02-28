@@ -1,12 +1,13 @@
 // CPU + Memory widget.
 // Polls cpu-mem.sh every 2 s; parses JSON {cpu, mem}.
-// Pill background: standard dark (same as clock).
-// Bar tracks: same color, fully opaque. Bar fills: green/amber/red per bar,
-// animated independently. Bars are 16 px tall, centered in the 24 px pill.
+// Pill background: standard dark. Bar tracks: opaque dark with 1px black border.
+// Bar fills: green/amber/red per bar, 80 px wide, animated.
+// Shadow: offset y=5, blur 0.7, #00000077 — matches Niri window shadow config.
 
 import Quickshell
 import Quickshell.Io
 import QtQuick
+import QtQuick.Effects
 
 Item {
     id: root
@@ -16,7 +17,6 @@ Item {
     property int cpuPct: 0
     property int memPct: 0
 
-    // Per-bar fill colours — change when the bar's own load crosses thresholds
     readonly property color cpuFillColor: cpuPct >= 75
         ? Qt.rgba(248/255,  81/255,  73/255, 0.9)
         : cpuPct >= 40
@@ -29,95 +29,94 @@ Item {
             ? Qt.rgba(210/255, 153/255,  34/255, 0.9)
             : Qt.rgba( 63/255, 185/255,  80/255, 0.9)
 
-    // Pill background — same color as clock, semi-transparent
+    // ── Pill background (hidden — MultiEffect renders it with shadow) ─────────
     Rectangle {
+        id: pillBg
         anchors.fill: parent
         color: Qt.rgba(36/255, 41/255, 46/255, 0.7)
         bottomLeftRadius:  12
         bottomRightRadius: 12
+        visible: false
     }
 
-    // Content row — all items are height 16 so the row is exactly 16 px,
-    // which anchors.centerIn centers at y=4 inside the 24 px pill.
+    MultiEffect {
+        source:               pillBg
+        anchors.fill:         pillBg
+        autoPaddingEnabled:   true
+        shadowEnabled:        true
+        shadowColor:          "#77000000"
+        shadowBlur:           0.7
+        shadowVerticalOffset: 5
+        shadowHorizontalOffset: 0
+    }
+
+    // ── Content row ───────────────────────────────────────────────────────────
+    // All items are height 16; anchors.centerIn gives 4px top/bottom padding.
     Row {
         id: contentRow
         anchors.centerIn: parent
         spacing: 0
 
-        // ── CPU ──────────────────────────────────────────────────────────────
+        // ── CPU ───────────────────────────────────────────────────────────────
         Text {
             height: 16
             verticalAlignment: Text.AlignVCenter
             text: "CPU"
             font.family:    "JetBrainsMono Nerd Font"
-            font.pixelSize: 12
+            font.pixelSize: 14
             color: "#fafafa"
         }
         Item { width: 6; height: 16 }
         Rectangle {
-            width: 40; height: 16; radius: 2
-            color: Qt.rgba(36/255, 41/255, 46/255, 1.0)  // opaque track
+            width: 80; height: 16; radius: 2
+            color: Qt.rgba(36/255, 41/255, 46/255, 1.0)
+            border.width: 1
+            border.color: "#000000"
 
             Rectangle {
                 id: cpuFill
-                width:  Math.max(0, parent.width * root.cpuPct / 100)
-                height: parent.height
+                width:  Math.max(0, (parent.width - 2) * root.cpuPct / 100)
+                height: parent.height - 2
+                x: 1; y: 1
                 radius: 2
                 color:  root.cpuFillColor
                 Behavior on color { ColorAnimation { duration: 400 } }
                 Behavior on width { NumberAnimation { duration: 300; easing.type: Easing.OutCubic } }
             }
         }
-        Item { width: 6; height: 16 }
-        Text {
-            width: 40; height: 16
-            verticalAlignment:   Text.AlignVCenter
-            horizontalAlignment: Text.AlignRight
-            text: root.cpuPct + "%"
-            font.family:    "JetBrainsMono Nerd Font"
-            font.pixelSize: 12
-            color: "#fafafa"
-        }
 
         Item { width: 12; height: 16 }   // section gap
 
-        // ── MEM ──────────────────────────────────────────────────────────────
+        // ── MEM ───────────────────────────────────────────────────────────────
         Text {
             height: 16
             verticalAlignment: Text.AlignVCenter
             text: "MEM"
             font.family:    "JetBrainsMono Nerd Font"
-            font.pixelSize: 12
+            font.pixelSize: 14
             color: "#fafafa"
         }
         Item { width: 6; height: 16 }
         Rectangle {
-            width: 40; height: 16; radius: 2
+            width: 80; height: 16; radius: 2
             color: Qt.rgba(36/255, 41/255, 46/255, 1.0)
+            border.width: 1
+            border.color: "#000000"
 
             Rectangle {
                 id: memFill
-                width:  Math.max(0, parent.width * root.memPct / 100)
-                height: parent.height
+                width:  Math.max(0, (parent.width - 2) * root.memPct / 100)
+                height: parent.height - 2
+                x: 1; y: 1
                 radius: 2
                 color:  root.memFillColor
                 Behavior on color { ColorAnimation { duration: 400 } }
                 Behavior on width { NumberAnimation { duration: 300; easing.type: Easing.OutCubic } }
             }
         }
-        Item { width: 6; height: 16 }
-        Text {
-            width: 40; height: 16
-            verticalAlignment:   Text.AlignVCenter
-            horizontalAlignment: Text.AlignRight
-            text: root.memPct + "%"
-            font.family:    "JetBrainsMono Nerd Font"
-            font.pixelSize: 12
-            color: "#fafafa"
-        }
     }
 
-    // Script poller
+    // ── Script poller ─────────────────────────────────────────────────────────
     Process {
         id: cpuMemProc
         command: ["/home/ovg/.config/waybar/scripts/cpu-mem.sh"]

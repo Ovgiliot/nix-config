@@ -1,12 +1,14 @@
 // Workspaces widget driven by Niri IPC EventStream.
-// Bullet style: focused = • at full opacity (purple), unfocused = • at 28% opacity.
+// Bullet style: ● focused = purple full opacity, unfocused = 28% opacity.
 // Scroll to switch workspace; click bullet to focus that workspace.
 // Socket path is read from $NIRI_SOCKET at startup via a shell process,
 // because Qt.environ() does not exist in QML.
+// Shadow: offset y=5, blur 0.7, #00000077 — matches Niri window shadow config.
 
 import Quickshell
 import Quickshell.Io
 import QtQuick
+import QtQuick.Effects
 
 Item {
     id: root
@@ -69,7 +71,7 @@ Item {
         command: ["niri", "msg", "action", "focus-workspace", targetIdx]
     }
 
-    // ── Pill background (width tracks bullet row) ────────────────────────────
+    // ── Pill background (hidden — MultiEffect renders it with shadow) ─────────
     Rectangle {
         id: pillBg
         width:  wsRow.implicitWidth + 16
@@ -77,6 +79,18 @@ Item {
         color:  Qt.rgba(36/255, 41/255, 46/255, 0.7)
         bottomLeftRadius:  12
         bottomRightRadius: 12
+        visible: false
+    }
+
+    MultiEffect {
+        source:               pillBg
+        anchors.fill:         pillBg
+        autoPaddingEnabled:   true
+        shadowEnabled:        true
+        shadowColor:          "#77000000"
+        shadowBlur:           0.7
+        shadowVerticalOffset: 5
+        shadowHorizontalOffset: 0
     }
 
     // ── Scroll handler ───────────────────────────────────────────────────────
@@ -100,8 +114,8 @@ Item {
             Text {
                 required property var modelData
 
-                text:           "•"
-                font.pixelSize: 12
+                text:           "●"
+                font.pixelSize: 14
                 font.family:    "JetBrainsMono Nerd Font"
                 color:          "#a12fff"
                 opacity:        modelData.is_focused ? 1.0 : 0.28
