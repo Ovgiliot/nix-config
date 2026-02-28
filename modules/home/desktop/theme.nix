@@ -23,7 +23,7 @@ in {
     enable = true;
     font = {
       name = "JetBrainsMono Nerd Font";
-      size = 13;
+      size = 11;
     };
     theme = {
       name = "adw-gtk3-dark";
