@@ -1,0 +1,10 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "instructions": ["AGENTS.md"],
+  "formatter": {
+    "alejandra": {
+      "command": ["alejandra", "$FILE"],
+      "extensions": [".nix"]
+    }
+  }
+}

@@ -1,19 +1,10 @@
-{ config, pkgs, ... }:
-
-{
-  # Improve boot time entropy generation
-  services.haveged.enable = true;
-
-  # Essential system packages
-  environment.systemPackages = with pkgs; [
-    git
-    vim
-  ];
-
+{...}: {
   # Bluetooth support
   hardware.bluetooth = {
     enable = true;
-    powerOnBoot = true;
+    # Don't power on at boot — saves battery on a laptop.
+    # Enable manually or via the bluetooth-menu script when needed.
+    powerOnBoot = false;
   };
 
   services.blueman.enable = true;

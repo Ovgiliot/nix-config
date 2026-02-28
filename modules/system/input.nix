@@ -1,8 +1,12 @@
-{ config, pkgs, lib, ... }:
-
 {
+  config,
+  pkgs,
+  lib,
+  kanataConfig,
+  ...
+}: {
   # Kernel modules for uinput (needed for Kanata)
-  boot.kernelModules = [ "uinput" ];
+  boot.kernelModules = ["uinput"];
   hardware.uinput.enable = true;
 
   # Uinput setup for Kanata
@@ -10,15 +14,16 @@
     KERNEL=="uinput", MODE="0660", GROUP="uinput", OPTIONS+="static_node=uinput"
   '';
 
-  users.groups.uinput = { };
+  users.groups.uinput = {};
 
   # Enable the Kanata service
   services.kanata = {
     enable = true;
     keyboards = {
       default = {
-        configFile = ../../home/ovg/kanata.kbd;
-        devices = [ "/dev/input/by-path/platform-i8042-serio-0-event-kbd" ];
+        # Path is passed from flake.nix specialArgs to avoid fragile ../../ navigation.
+        configFile = kanataConfig;
+        devices = ["/dev/input/by-path/platform-i8042-serio-0-event-kbd"];
       };
     };
   };
