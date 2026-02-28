@@ -1,6 +1,6 @@
 # macOS profile (nix-darwin + home-manager)
-# Core nix settings + full CLI + desktop apps managed by nix.
-# System-level macOS preferences via nix-darwin; no Wayland/display server config.
+# Core nix settings + full CLI. No Wayland/display server config (macOS-specific
+# desktop config lives in modules/home/darwin).
 {
   inputs,
   dotfilesDir,
@@ -9,11 +9,19 @@
   imports = [
     inputs.home-manager.darwinModules.home-manager
     ../modules/system/core/nix.nix
-    ../modules/system/core/locale.nix
+    # locale.nix is intentionally excluded: i18n.* options are NixOS-only.
+    # macOS locale is managed via System Settings.
   ];
 
   # Required on macOS: nix-daemon runs as a system service
   services.nix-daemon.enable = true;
+
+  # Weekly garbage collection via launchd (macOS equivalent of nix.gc.dates).
+  nix.gc.interval = {
+    Hour = 3;
+    Minute = 0;
+    Weekday = 0;
+  };
 
   nixpkgs.config.allowUnfree = true;
 
@@ -24,7 +32,6 @@
     extraSpecialArgs = {inherit inputs dotfilesDir;};
     users.ovg.imports = [
       ../modules/home/core
-      ../modules/home/desktop
       ../modules/home/darwin
     ];
   };

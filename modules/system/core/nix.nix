@@ -10,10 +10,11 @@
     auto-optimise-store = true;
   };
 
-  # Automatic Garbage Collection
+  # Automatic Garbage Collection.
+  # Scheduling (dates/interval) is set per-profile because NixOS uses systemd
+  # timers (nix.gc.dates) while nix-darwin uses launchd (nix.gc.interval).
   nix.gc = {
     automatic = true;
-    dates = "weekly";
     options = "--delete-older-than 7d";
   };
 
