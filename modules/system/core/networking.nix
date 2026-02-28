@@ -1,6 +1,5 @@
 {...}: {
-  # Hostname
-  networking.hostName = "nixos";
+  # hostname is declared per-host in hosts/<name>/default.nix
 
   # Enable NetworkManager for easy network management
   networking.networkmanager.enable = true;

@@ -1,95 +1,205 @@
 {
   description = "Suckless NixOS configuration with Flakes and Home Manager";
 
-  # Optimal Nix settings for performance and caching
   nixConfig = {
     extra-substituters = ["https://nix-community.cachix.org"];
     extra-trusted-public-keys = ["nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs="];
   };
 
-  # External Repository Inputs
-  inputs.nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
+  inputs = {
+    nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
 
-  inputs.home-manager = {
-    url = "github:nix-community/home-manager";
-    inputs.nixpkgs.follows = "nixpkgs";
-  };
+    home-manager = {
+      url = "github:nix-community/home-manager";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
 
-  # Niri Window Manager
-  inputs.niri.url = "github:sodiboo/niri-flake";
+    nix-darwin = {
+      url = "github:LnL7/nix-darwin";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
 
-  # Zen Browser
-  inputs.zen-browser = {
-    url = "github:0xc000022070/zen-browser-flake";
-    inputs = {
-      nixpkgs.follows = "nixpkgs";
-      home-manager.follows = "home-manager";
+    # Niri Window Manager (Wayland; Linux only)
+    niri.url = "github:sodiboo/niri-flake";
+
+    # Zen Browser (Linux only)
+    zen-browser = {
+      url = "github:0xc000022070/zen-browser-flake";
+      inputs = {
+        nixpkgs.follows = "nixpkgs";
+        home-manager.follows = "home-manager";
+      };
     };
   };
 
   outputs = {
     self,
     nixpkgs,
-    home-manager,
-    niri,
+    nix-darwin,
     ...
-  } @ inputs: {
-    # Expose alejandra as the canonical formatter so `nix fmt` works.
-    formatter.x86_64-linux = nixpkgs.legacyPackages.x86_64-linux.alejandra;
+  } @ inputs: let
+    # Build a NixOS system from hosts/<hostname>/default.nix.
+    # The host file is a function { inputs }: { system, specialArgs, modules }.
+    mkNixosHost = hostname: let
+      cfg = import ./hosts/${hostname} {inherit inputs;};
+    in
+      nixpkgs.lib.nixosSystem {
+        inherit (cfg) system specialArgs modules;
+      };
 
+    # Build a nix-darwin system from hosts/<hostname>/default.nix.
+    # Same host file convention as mkNixosHost.
+    mkDarwinHost = hostname: let
+      cfg = import ./hosts/${hostname} {inherit inputs;};
+    in
+      nix-darwin.lib.darwinSystem {
+        inherit (cfg) system specialArgs modules;
+      };
+  in {
+    # `nix fmt` support for all platforms in use.
+    formatter = {
+      x86_64-linux = nixpkgs.legacyPackages.x86_64-linux.alejandra;
+      aarch64-darwin = nixpkgs.legacyPackages.aarch64-darwin.alejandra;
+      x86_64-darwin = nixpkgs.legacyPackages.x86_64-darwin.alejandra;
+    };
+
+    # NixOS hosts
+    # Build:  sudo nixos-rebuild switch --flake .#<hostname>
     nixosConfigurations = {
-      # Machine name: 'nixos'
-      # Build with: sudo nixos-rebuild switch --flake .#nixos
-      nixos = nixpkgs.lib.nixosSystem {
-        system = "x86_64-linux";
-        specialArgs = {
-          inherit inputs;
-          # LUKS UUID for the swap/hibernate partition.
-          # Defined here once; used in boot.nix and power.nix.
-          swapLuksUuid = "9de9918d-99aa-4f0d-8a35-22af09cf8049";
-          # Kanata config path resolved from the flake root (more robust than
-          # the ../../ relative path inside the module).
-          kanataConfig = ./home/ovg/kanata.kbd;
+      nixos = mkNixosHost "nixos";
+      # <<NIXOS_HOSTS>>
+    };
+
+    # macOS hosts (nix-darwin)
+    # First run:   nix run nix-darwin -- switch --flake .#<hostname>
+    # Subsequent:  darwin-rebuild switch --flake .#<hostname>
+    darwinConfigurations = {
+      # <<DARWIN_HOSTS>>
+    };
+
+    # `nix flake check` targets — run all with `nix flake check`, or target
+    # individual checks with `nix build .#checks.x86_64-linux.<name>`.
+    #
+    # Quick  (seconds): *-eval, dotfiles-integrity, fmt
+    # Full   (minutes): nixos-build, *-build, server-vm-test
+    checks = let
+      pkgs = nixpkgs.legacyPackages.x86_64-linux;
+
+      # Stub specialArgs used for profile eval/build tests.
+      # Real values are host-specific; these are sufficient for evaluation.
+      testSpecialArgs = {
+        inherit inputs;
+        dotfilesDir = ./home/ovg;
+        # Placeholder UUID — only consumed by laptop/boot.nix and power.nix,
+        # neither of which is imported by server or workstation profiles.
+        swapLuksUuid = "00000000-0000-0000-0000-000000000000";
+        # kanata.kbd must be a real file so builtins.readFile can evaluate.
+        kanataConfig = ./home/ovg/kanata.kbd;
+      };
+
+      # Minimal NixOS host module shared by all profile tests.
+      testHostModule = {
+        networking.hostName = "test";
+        system.stateVersion = "25.11";
+        users.users.ovg = {isNormalUser = true;};
+      };
+
+      # Eval-only profile check. Forces the full module graph to be evaluated
+      # at Nix eval time via string interpolation; the build step is trivial.
+      # Catches type errors, bad imports, and missing specialArgs without
+      # building the full system closure.
+      evalProfile = name: profile: let
+        sys = nixpkgs.lib.nixosSystem {
+          system = "x86_64-linux";
+          specialArgs = testSpecialArgs;
+          modules = [profile testHostModule];
         };
-        modules = [
-          # Hardware configuration (Machine-specific)
-          ./hosts/nixos/hardware-configuration.nix
+      in
+        pkgs.runCommand "eval-${name}" {} "echo '${sys.config.networking.hostName}' > $out";
+    in {
+      x86_64-linux = {
+        # ── Full builds ───────────────────────────────────────────────────────
+        # The active host: equivalent to `nixos-rebuild build`. Cached by nix
+        # when inputs are unchanged, so this is usually a no-op.
+        nixos-build = self.nixosConfigurations.nixos.config.system.build.toplevel;
 
-          # Global NixPKGS configuration
-          {
-            nixpkgs.overlays = [niri.overlays.niri];
-            nixpkgs.config = {
-              allowUnfree = true;
-              chromium.enableWideVine = true; # Needed for music/video DRM
-            };
-          }
+        # Full system closures for profiles not deployed on this machine.
+        # Run explicitly: `nix build .#checks.x86_64-linux.server-build`
+        server-build =
+          (nixpkgs.lib.nixosSystem {
+            system = "x86_64-linux";
+            specialArgs = testSpecialArgs;
+            modules = [./profiles/server.nix testHostModule];
+          })
+        .config.system.build.toplevel;
 
-          # Core System Modules
-          niri.nixosModules.niri
-          ./modules/system/boot.nix
-          ./modules/system/networking.nix
-          ./modules/system/locale.nix
-          ./modules/system/desktop.nix
-          ./modules/system/audio.nix
-          ./modules/system/services.nix
-          ./modules/system/power.nix
-          ./modules/system/input.nix
-          ./modules/system/gaming.nix
-          ./modules/system/nix.nix
+        workstation-build =
+          (nixpkgs.lib.nixosSystem {
+            system = "x86_64-linux";
+            specialArgs = testSpecialArgs;
+            modules = [./profiles/workstation.nix testHostModule];
+          })
+        .config.system.build.toplevel;
 
-          # Home Manager Bridge
-          home-manager.nixosModules.home-manager
-          {
-            home-manager.useGlobalPkgs = true;
-            home-manager.useUserPackages = true;
-            home-manager.users.ovg = import ./home/ovg;
-            home-manager.extraSpecialArgs = {inherit inputs;};
-            home-manager.backupFileExtension = "bak";
-          }
+        # ── Eval-only checks ──────────────────────────────────────────────────
+        # Fast: no packages built. Used by `/test` for quick feedback.
+        server-eval = evalProfile "server" ./profiles/server.nix;
+        workstation-eval = evalProfile "workstation" ./profiles/workstation.nix;
 
-          # Host-specific tweaks
-          ./hosts/nixos/configuration.nix
-        ];
+        # ── Dotfiles integrity ────────────────────────────────────────────────
+        # All paths referenced via dotfilesDir in modules/home/ must exist.
+        # Nix resolves path literals at build time; a missing path fails here
+        # before it can produce a broken xdg.configFile symlink at activation.
+        dotfiles-integrity = pkgs.runCommand "dotfiles-integrity" {} ''
+          test -e ${./home/ovg/nvim}                           || exit 1
+          test -f ${./home/ovg/ranger/rc.conf}                 || exit 1
+          test -f ${./home/ovg/ranger/rifle.conf}              || exit 1
+          test -f ${./home/ovg/ranger/scope.sh}                || exit 1
+          test -f ${./home/ovg/opencode/agents/talk.md}        || exit 1
+          test -e ${./home/ovg/niri}                           || exit 1
+          test -f ${./home/ovg/ghostty/config}                 || exit 1
+          test -e ${./home/ovg/ghostty/shaders}                || exit 1
+          test -f ${./home/ovg/mako/config}                    || exit 1
+          test -f ${./home/ovg/waybar/config.jsonc}            || exit 1
+          test -f ${./home/ovg/waybar/style.css}               || exit 1
+          test -e ${./home/ovg/waybar/scripts}                 || exit 1
+          test -f ${./home/ovg/wofi/config}                    || exit 1
+          test -f ${./home/ovg/wofi/style.css}                 || exit 1
+          test -f ${./home/ovg/wofi/scripts/wifi-menu.sh}      || exit 1
+          test -f ${./home/ovg/wofi/scripts/bluetooth-menu.sh} || exit 1
+          test -f ${./home/ovg/wofi/scripts/power-menu.sh}     || exit 1
+          test -f ${./home/ovg/kanata.kbd}                     || exit 1
+          test -f ${./home/ovg/scripts/power-monitor.sh}       || exit 1
+          touch $out
+        '';
+
+        # ── Format check ──────────────────────────────────────────────────────
+        # Fails if any .nix file in the repo is not formatted with alejandra.
+        # Enforces the "format before commit" rule mechanically.
+        fmt = pkgs.runCommand "alejandra-check" {nativeBuildInputs = [pkgs.alejandra];} ''
+          alejandra --check ${./.} && touch $out
+        '';
+
+        # ── VM test ───────────────────────────────────────────────────────────
+        # Boots the server profile in a QEMU VM and asserts: multi-user.target
+        # reached, user ovg exists, NetworkManager is active.
+        server-vm-test = pkgs.testers.runNixOSTest {
+          name = "server-profile";
+          nodes.server = {...}: {
+            imports = [./profiles/server.nix];
+            # Inject testSpecialArgs so profile modules receive inputs,
+            # dotfilesDir, etc. as function arguments via the module system.
+            _module.args = testSpecialArgs;
+            networking.hostName = "test-server";
+            system.stateVersion = "25.11";
+            users.users.ovg = {isNormalUser = true;};
+          };
+          testScript = ''
+            server.wait_for_unit("multi-user.target")
+            server.succeed("id ovg")
+            server.succeed("systemctl is-active NetworkManager")
+          '';
+        };
       };
     };
   };
