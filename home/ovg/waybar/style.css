@@ -70,7 +70,7 @@ window#waybar {
 /* ── 2  CLOCK ────────────────────────────────────────────────────────────── */
 #clock {
     background-color: rgba(36, 41, 46, 0.7);
-    font-size: 12px;
+    font-size: 14px;
     font-weight: bold;
 }
 
