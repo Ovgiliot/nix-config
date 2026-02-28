@@ -31,7 +31,7 @@ Item {
         anchors.centerIn: parent
         text:           root.langText
         font.family:    "JetBrainsMono Nerd Font"
-        font.pixelSize: 16
+        font.pixelSize: 12
         font.bold:      true
         color:          "#fafafa"
     }

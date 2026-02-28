@@ -35,7 +35,7 @@ Item {
         elide: Text.ElideRight
         horizontalAlignment: Text.AlignHCenter
         font.family:    "JetBrainsMono Nerd Font"
-        font.pixelSize: 16
+        font.pixelSize: 12
         color: "#fafafa"
     }
 

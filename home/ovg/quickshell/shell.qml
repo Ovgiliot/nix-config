@@ -15,7 +15,7 @@ ShellRoot {
             left: true
             right: true
         }
-        height: 24
+        implicitHeight: 24
         color: "transparent"
 
         WlrLayershell.layer: WlrLayer.Top

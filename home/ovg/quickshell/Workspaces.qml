@@ -1,6 +1,8 @@
 // Workspaces widget driven by Niri IPC EventStream.
 // Bullet style: focused = • at full opacity (purple), unfocused = • at 28% opacity.
 // Scroll to switch workspace; click bullet to focus that workspace.
+// Socket path is read from $NIRI_SOCKET at startup via a shell process,
+// because Qt.environ() does not exist in QML.
 
 import Quickshell
 import Quickshell.Io
@@ -11,13 +13,27 @@ Item {
     implicitWidth: pillBg.width
     implicitHeight: 24
 
-    property var workspaceModel: []
+    property var    workspaceModel: []
+    property string socketPath:     ""
+
+    // ── Read NIRI_SOCKET from the environment via shell ───────────────────────
+    Process {
+        id: getSocketPath
+        command: ["sh", "-c", "printf '%s' \"$NIRI_SOCKET\""]
+        stdout: StdioCollector {
+            onStreamFinished: {
+                const p = text.trim()
+                if (p) root.socketPath = p
+            }
+        }
+    }
+    Component.onCompleted: getSocketPath.running = true
 
     // ── Niri IPC EventStream ─────────────────────────────────────────────────
     Socket {
         id: niriSocket
-        path: Qt.environ("NIRI_SOCKET") || ""
-        connected: true
+        path:      root.socketPath
+        connected: root.socketPath !== ""
 
         onConnectedChanged: {
             if (connected)
@@ -30,7 +46,7 @@ Item {
                 if (!line.trim()) return
                 try {
                     const msg = JSON.parse(line)
-                    if (msg.Ok !== undefined) return   // handshake acknowledgement
+                    if (msg.Ok !== undefined) return   // acknowledgement
                     if (msg.WorkspacesChanged) {
                         root.workspaceModel = msg.WorkspacesChanged.workspaces
                     } else if (msg.WorkspaceFocusChanged) {
@@ -85,7 +101,7 @@ Item {
                 required property var modelData
 
                 text:           "•"
-                font.pixelSize: 18
+                font.pixelSize: 12
                 font.family:    "JetBrainsMono Nerd Font"
                 color:          "#a12fff"
                 opacity:        modelData.is_focused ? 1.0 : 0.28

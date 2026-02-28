@@ -13,8 +13,8 @@ Item {
     implicitHeight: 24
 
     // Named states from status.sh
-    property string wifiState:  "wifi_off"
-    property string btState:    "bt_off"
+    property string wifiState:  "off"
+    property string btState:    "off"
     property string powerState: "balanced"
     property int    batLevel:   100
     property string batState:   "normal"   // "normal" | "charging" | "warning" | "critical"
@@ -25,19 +25,19 @@ Item {
 
     function wifiIcon(state) {
         if (state === "ethernet")  return "\uDB80\uDE00"   // U+F0200
-        if (state === "wifi_on")   return "\uDB81\uDDA9"   // U+F05A9
-        return "\uDB81\uDDAA"                              // U+F05AA  wifi_off
+        if (state === "on")        return "\uDB81\uDDA9"   // U+F05A9
+        return "\uDB81\uDDAA"                              // U+F05AA  off
     }
 
     function btIcon(state) {
-        if (state === "bt_connected") return "\uDB80\uDCB1"   // U+F00B1
-        if (state === "bt_on")        return "\uDB80\uDCAF"   // U+F00AF
-        return "\uDB80\uDCB2"                                 // U+F00B2  bt_off
+        if (state === "connected") return "\uDB80\uDCB1"   // U+F00B1
+        if (state === "on")        return "\uDB80\uDCAF"   // U+F00AF
+        return "\uDB80\uDCB2"                              // U+F00B2  off
     }
 
     function btColor(state) {
-        if (state === "bt_connected") return "#fafafa"
-        if (state === "bt_on")        return Qt.rgba(250/255, 250/255, 250/255, 0.7)
+        if (state === "connected") return "#fafafa"
+        if (state === "on")        return Qt.rgba(250/255, 250/255, 250/255, 0.7)
         return Qt.rgba(250/255, 250/255, 250/255, 0.4)
     }
 
@@ -54,7 +54,7 @@ Item {
     }
 
     function batIcon(level, state) {
-        if (state === "charging") return "\uDB80\uDE04"   // U+F0204
+        if (state === "charging") return "\uf1e6"   // U+F1E6  FA plug
         if (level > 87) return "\uf240"
         if (level > 62) return "\uf241"
         if (level > 37) return "\uf242"
@@ -156,8 +156,8 @@ Item {
             onStreamFinished: {
                 try {
                     const d = JSON.parse(text.trim())
-                    root.wifiState  = d.wifi       || "wifi_off"
-                    root.btState    = d.bt         || "bt_off"
+                    root.wifiState  = d.wifi       || "off"
+                    root.btState    = d.bt         || "off"
                     root.powerState = d.power      || "balanced"
                     root.batLevel   = d.bat_level  ?? 100
                     root.batState   = d.bat_state  || "normal"

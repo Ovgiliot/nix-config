@@ -50,7 +50,7 @@ Item {
             verticalAlignment: Text.AlignVCenter
             text: "CPU"
             font.family:    "JetBrainsMono Nerd Font"
-            font.pixelSize: 16
+            font.pixelSize: 12
             color: "#fafafa"
         }
         Item { width: 6; height: 16 }
@@ -75,7 +75,7 @@ Item {
             horizontalAlignment: Text.AlignRight
             text: root.cpuPct + "%"
             font.family:    "JetBrainsMono Nerd Font"
-            font.pixelSize: 16
+            font.pixelSize: 12
             color: "#fafafa"
         }
 
@@ -87,7 +87,7 @@ Item {
             verticalAlignment: Text.AlignVCenter
             text: "MEM"
             font.family:    "JetBrainsMono Nerd Font"
-            font.pixelSize: 16
+            font.pixelSize: 12
             color: "#fafafa"
         }
         Item { width: 6; height: 16 }
@@ -112,7 +112,7 @@ Item {
             horizontalAlignment: Text.AlignRight
             text: root.memPct + "%"
             font.family:    "JetBrainsMono Nerd Font"
-            font.pixelSize: 16
+            font.pixelSize: 12
             color: "#fafafa"
         }
     }
