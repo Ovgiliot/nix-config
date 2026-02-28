@@ -9,7 +9,7 @@ import QtQuick
 Item {
     id: root
     // width is set by anchors in shell.qml — do not set implicitWidth here
-    implicitHeight: 30
+    implicitHeight: 24
 
     property string infoText:  ""
     property string infoClass: "none"
@@ -35,7 +35,7 @@ Item {
         elide: Text.ElideRight
         horizontalAlignment: Text.AlignHCenter
         font.family:    "JetBrainsMono Nerd Font"
-        font.pixelSize: 13
+        font.pixelSize: 16
         color: "#fafafa"
     }
 

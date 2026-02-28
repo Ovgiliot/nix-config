@@ -6,7 +6,7 @@ import QtQuick
 Item {
     id: root
     implicitWidth:  timeText.implicitWidth + 24
-    implicitHeight: 30
+    implicitHeight: 24
 
     // Pill background
     Rectangle {
@@ -30,7 +30,7 @@ Item {
             return h + ":" + m
         }
         font.family:    "JetBrainsMono Nerd Font"
-        font.pixelSize: 14
+        font.pixelSize: 16
         font.bold:      true
         color:          "#fafafa"
     }

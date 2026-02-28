@@ -15,11 +15,11 @@ ShellRoot {
             left: true
             right: true
         }
-        height: 30
+        height: 24
         color: "transparent"
 
         WlrLayershell.layer: WlrLayer.Top
-        WlrLayershell.exclusiveZone: 30
+        WlrLayershell.exclusiveZone: 24
         WlrLayershell.namespace: "bar"
 
         Item {
@@ -29,8 +29,9 @@ ShellRoot {
             Row {
                 id: leftSection
                 anchors.left: parent.left
+                anchors.leftMargin: 6
                 anchors.verticalCenter: parent.verticalCenter
-                spacing: 0
+                spacing: 6
 
                 CpuMem {}
                 Workspaces {}
@@ -59,8 +60,9 @@ ShellRoot {
             Row {
                 id: rightSection
                 anchors.right: parent.right
+                anchors.rightMargin: 6
                 anchors.verticalCenter: parent.verticalCenter
-                spacing: 0
+                spacing: 6
 
                 Language {}
                 StatusIcons {}

@@ -9,7 +9,7 @@ import QtQuick
 Item {
     id: root
     implicitWidth: pillBg.width
-    implicitHeight: 30
+    implicitHeight: 24
 
     property var workspaceModel: []
 
@@ -34,7 +34,6 @@ Item {
                     if (msg.WorkspacesChanged) {
                         root.workspaceModel = msg.WorkspacesChanged.workspaces
                     } else if (msg.WorkspaceFocusChanged) {
-                        // Update is_focused field in place without re-fetching
                         const id = msg.WorkspaceFocusChanged.id ?? -1
                         root.workspaceModel = root.workspaceModel.map(ws =>
                             Object.assign({}, ws, { is_focused: ws.id === id })
@@ -45,7 +44,7 @@ Item {
         }
     }
 
-    // ── Action processes (reused for all scroll events) ──────────────────────
+    // ── Action processes ─────────────────────────────────────────────────────
     Process { id: focusUpProc;   command: ["niri", "msg", "action", "focus-workspace-up"]   }
     Process { id: focusDownProc; command: ["niri", "msg", "action", "focus-workspace-down"] }
     Process {
@@ -58,13 +57,13 @@ Item {
     Rectangle {
         id: pillBg
         width:  wsRow.implicitWidth + 16
-        height: 30
+        height: 24
         color:  Qt.rgba(36/255, 41/255, 46/255, 0.7)
         bottomLeftRadius:  12
         bottomRightRadius: 12
     }
 
-    // ── Scroll handler covers the full pill ──────────────────────────────────
+    // ── Scroll handler ───────────────────────────────────────────────────────
     MouseArea {
         anchors.fill: parent
         onWheel: (wheel) => {
