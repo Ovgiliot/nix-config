@@ -15,7 +15,10 @@ ShellRoot {
             left: true
             right: true
         }
-        implicitHeight: 24
+        // Window is taller than the bar so MultiEffect shadows can render below the pills.
+        // exclusiveZone stays at 24 — Niri only reserves 24px; the extra 20px overlap the
+        // desktop transparently and carry the drop shadows.
+        implicitHeight: 44
         color: "transparent"
 
         WlrLayershell.layer: WlrLayer.Top
@@ -23,7 +26,8 @@ ShellRoot {
         WlrLayershell.namespace: "bar"
 
         Item {
-            anchors.fill: parent
+            width: parent.width
+            height: 24
 
             // ── LEFT: CpuMem + Workspaces ───────────────────────────────────
             Row {

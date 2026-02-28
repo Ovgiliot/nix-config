@@ -51,11 +51,14 @@ Item {
                     if (msg.Ok !== undefined) return   // acknowledgement
                     if (msg.WorkspacesChanged) {
                         root.workspaceModel = msg.WorkspacesChanged.workspaces
-                    } else if (msg.WorkspaceFocusChanged) {
-                        const id = msg.WorkspaceFocusChanged.id ?? -1
-                        root.workspaceModel = root.workspaceModel.map(ws =>
-                            Object.assign({}, ws, { is_focused: ws.id === id })
-                        )
+                    } else if (msg.WorkspaceActivated) {
+                        // WorkspaceActivated fires on focus change; only update when focused === true
+                        if (msg.WorkspaceActivated.focused) {
+                            const id = msg.WorkspaceActivated.id
+                            root.workspaceModel = root.workspaceModel.map(ws =>
+                                Object.assign({}, ws, { is_focused: ws.id === id })
+                            )
+                        }
                     }
                 } catch (_) {}
             }
