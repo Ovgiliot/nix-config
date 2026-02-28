@@ -19,7 +19,7 @@ window#waybar {
 #clock,
 #custom-info-box,
 #custom-language,
-#group-status {
+#status {
     border-radius: 0 0 12px 12px;
     margin: 0 3px;
     padding: 0 12px;
@@ -28,25 +28,25 @@ window#waybar {
 /* ── 0  CPU + MEMORY ─────────────────────────────────────────────────────── */
 #custom-cpu-mem {
     font-family: "JetBrainsMono Nerd Font", monospace;
-    background: rgba(63, 185, 80, 0.7);   /* default low */
-    transition: background 0.4s ease;
+    background-color: rgba(63, 185, 80, 0.7);   /* default low */
+    transition: background-color 0.4s ease;
 }
 
 #custom-cpu-mem.low {
-    background: rgba(63, 185, 80, 0.7);
+    background-color: rgba(63, 185, 80, 0.7);
 }
 
 #custom-cpu-mem.medium {
-    background: rgba(210, 153, 34, 0.7);
+    background-color: rgba(210, 153, 34, 0.7);
 }
 
 #custom-cpu-mem.high {
-    background: rgba(248, 81, 73, 0.7);
+    background-color: rgba(248, 81, 73, 0.7);
 }
 
 /* ── 1  WORKSPACES ───────────────────────────────────────────────────────── */
 #workspaces {
-    background: rgba(36, 41, 46, 0.7);
+    background-color: rgba(36, 41, 46, 0.7);
     padding: 0 4px;
 }
 
@@ -69,20 +69,20 @@ window#waybar {
 
 /* ── 2  CLOCK ────────────────────────────────────────────────────────────── */
 #clock {
-    background: rgba(36, 41, 46, 0.7);
+    background-color: rgba(36, 41, 46, 0.7);
     font-size: 12px;
     font-weight: bold;
 }
 
 /* ── 3  INFO BOX ─────────────────────────────────────────────────────────── */
 #custom-info-box {
-    background: rgba(36, 41, 46, 0.55);
+    background-color: rgba(36, 41, 46, 0.55);
     min-width: 200px;
-    transition: background 0.3s ease;
+    transition: background-color 0.3s ease;
 }
 
 #custom-info-box.warning {
-    background: rgba(248, 81, 73, 0.8);
+    background-color: rgba(248, 81, 73, 0.8);
     color: #ffffff;
 }
 
@@ -98,40 +98,42 @@ window#waybar {
 
 /* ── 4  KEYBOARD LANGUAGE ───────────────────────────────────────────────── */
 #custom-language {
-    transition: background 0.3s ease;
+    transition: background-color 0.3s ease;
     font-weight: bold;
 }
 
 #custom-language.en {
-    background: rgba(80, 80, 90, 0.7);
+    background-color: rgba(80, 80, 90, 0.7);
 }
 
 #custom-language.ru {
-    background: rgba(30, 100, 200, 0.7);
+    background-color: rgba(30, 100, 200, 0.7);
 }
 
 /* ── 5  STATUS ICONS ─────────────────────────────────────────────────────── */
-#group-status {
-    background: rgba(80, 80, 90, 0.7);
-    transition: background 0.4s ease;
-    padding: 0 8px;
+/* group/status → CSS id is #status (the part after the slash)               */
+#status {
+    background-color: rgba(80, 80, 90, 0.7);
+    transition: background-color 0.4s ease;
+    padding: 0 4px;
 }
 
-#group-status.warning {
-    background: rgba(210, 153, 34, 0.7);
+#status.warning {
+    background-color: rgba(210, 153, 34, 0.7);
 }
 
-#group-status.critical {
-    background: rgba(248, 81, 73, 1.0);
+#status.critical {
+    background-color: rgba(248, 81, 73, 1.0);
 }
 
-/* Status icon children – transparent backgrounds, let the group carry the bg */
+/* Status icon children – transparent bg, let the group carry it             */
 #network,
 #bluetooth,
 #power-profiles-daemon,
 #battery {
     background: transparent;
-    padding: 0 5px;
+    padding: 0 6px;
+    min-width: 16px;
     color: #fafafa;
 }
 

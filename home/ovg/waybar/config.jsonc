@@ -53,7 +53,7 @@
 
     // ── 5  STATUS ICONS ──────────────────────────────────────────────────────
     "group/status": {
-        "orientation": "horizontal",
+        "orientation": "inherit",
         "modules": ["network", "bluetooth", "power-profiles-daemon", "battery"]
     },
 
