@@ -283,25 +283,25 @@ require("headlines").setup({
 })
 
 local function set_org_highlights()
-	-- Per-level headline background bars (also controls separator color via reverse)
-	vim.api.nvim_set_hl(0, "Headline1", { bg = "#1e2a3a" }) -- dark blue tint
-	vim.api.nvim_set_hl(0, "Headline2", { bg = "#1e2e1e" }) -- dark green tint
-	vim.api.nvim_set_hl(0, "Headline3", { bg = "#2e2a18" }) -- dark yellow tint
-	vim.api.nvim_set_hl(0, "Headline4", { bg = "#2e1e1e" }) -- dark red tint
-	vim.api.nvim_set_hl(0, "Headline5", { bg = "#1e2a2e" }) -- dark cyan tint
-	vim.api.nvim_set_hl(0, "Headline6", { bg = "#2a1e2e" }) -- dark purple tint
+	-- Per-level headline background bars (dark tints derived from terminal palette)
+	vim.api.nvim_set_hl(0, "Headline1", { bg = "#182030" }) -- dark blue  (#58a6ff tint)
+	vim.api.nvim_set_hl(0, "Headline2", { bg = "#182018" }) -- dark green (#3fb950 tint)
+	vim.api.nvim_set_hl(0, "Headline3", { bg = "#252010" }) -- dark gold  (#d29922 tint)
+	vim.api.nvim_set_hl(0, "Headline4", { bg = "#201818" }) -- dark red   (#ff7b72 tint)
+	vim.api.nvim_set_hl(0, "Headline5", { bg = "#182025" }) -- dark cyan  (#39c5cf tint)
+	vim.api.nvim_set_hl(0, "Headline6", { bg = "#1c1828" }) -- dark purple(#bc8cff tint)
 
-	-- Per-level headline text colors (Emacs-inspired, distinct and saturated)
-	vim.api.nvim_set_hl(0, "@org.headline.level1", { fg = "#7ab0e0", bold = true }) -- blue
-	vim.api.nvim_set_hl(0, "@org.headline.level2", { fg = "#7cc47c", bold = true }) -- green
-	vim.api.nvim_set_hl(0, "@org.headline.level3", { fg = "#e5c07b", bold = true }) -- yellow
-	vim.api.nvim_set_hl(0, "@org.headline.level4", { fg = "#e06c75", bold = true }) -- red/pink
-	vim.api.nvim_set_hl(0, "@org.headline.level5", { fg = "#56b6c2", bold = true }) -- cyan
-	vim.api.nvim_set_hl(0, "@org.headline.level6", { fg = "#c678dd", bold = true }) -- purple
-	vim.api.nvim_set_hl(0, "@org.headline.level7", { fg = "#e5a868", bold = true }) -- orange
-	vim.api.nvim_set_hl(0, "@org.headline.level8", { fg = "#98c379", bold = true }) -- light green
+	-- Per-level headline text colors (exact terminal palette colors)
+	vim.api.nvim_set_hl(0, "@org.headline.level1", { fg = "#58a6ff", bold = true }) -- blue      (palette 4)
+	vim.api.nvim_set_hl(0, "@org.headline.level2", { fg = "#3fb950", bold = true }) -- green     (palette 2)
+	vim.api.nvim_set_hl(0, "@org.headline.level3", { fg = "#d29922", bold = true }) -- gold      (palette 3)
+	vim.api.nvim_set_hl(0, "@org.headline.level4", { fg = "#ff7b72", bold = true }) -- red       (palette 1)
+	vim.api.nvim_set_hl(0, "@org.headline.level5", { fg = "#39c5cf", bold = true }) -- cyan      (palette 6)
+	vim.api.nvim_set_hl(0, "@org.headline.level6", { fg = "#bc8cff", bold = true }) -- purple    (palette 5)
+	vim.api.nvim_set_hl(0, "@org.headline.level7", { fg = "#ffa198", bold = true }) -- salmon    (palette 9)
+	vim.api.nvim_set_hl(0, "@org.headline.level8", { fg = "#56d364", bold = true }) -- lime      (palette 10)
 
-	-- Links: visible blue with underline
+	-- Links: visible blue with underline (cursor color + light blue from palette 12)
 	vim.api.nvim_set_hl(0, "@org.hyperlink", { fg = "#2f81f7", underline = true })
 	vim.api.nvim_set_hl(0, "@org.hyperlink.desc", { fg = "#2f81f7", underline = true })
 	vim.api.nvim_set_hl(0, "@org.hyperlink.url", { fg = "#79c0ff", underline = true })
