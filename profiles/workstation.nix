@@ -11,6 +11,7 @@
     ../modules/system/core/nix.nix
     ../modules/system/core/locale.nix
     ../modules/system/core/networking.nix
+    ../modules/system/core/security.nix
     ../modules/system/desktop/audio.nix
     ../modules/system/desktop/display.nix
     ../modules/system/desktop/input.nix
