@@ -58,6 +58,7 @@ in {
   programs.swaylock = {
     enable = true;
     settings = {
+      image = "/home/ovg/Pictures/Wallpapers/wallhaven_qdgmr5.jpg";
       color = "131314";
       font = "JetBrainsMono Nerd Font";
       font-size = 16;

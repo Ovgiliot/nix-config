@@ -55,6 +55,49 @@
       nix-darwin.lib.darwinSystem {
         inherit (cfg) system specialArgs modules;
       };
+
+    # Build a headless NixOS installer ISO for a given system architecture.
+    # Includes NetworkManager (nmtui), git, alejandra, and a bootstrap script
+    # that clones the dotfiles repo and runs install.sh.
+    # Usage: nix build .#installMedia-x86_64
+    mkInstaller = system:
+      nixpkgs.lib.nixosSystem {
+        inherit system;
+        modules = [
+          "${nixpkgs}/nixos/modules/installer/cd-dvd/installation-cd-minimal.nix"
+          ({
+            pkgs,
+            lib,
+            ...
+          }: {
+            # NetworkManager (includes nmtui). Disable the installer's default
+            # wpa_supplicant so the two wifi stacks don't conflict.
+            networking.networkmanager.enable = true;
+            networking.wireless.enable = lib.mkForce false;
+
+            environment.systemPackages = [
+              pkgs.alejandra
+              pkgs.git
+              # One-shot helper: clone dotfiles from GitHub, then run install.sh.
+              (pkgs.writeShellScriptBin "bootstrap" ''
+                set -euo pipefail
+                DEST="/home/ovg/dotfiles/nix"
+                if [ ! -d "$DEST" ]; then
+                  mkdir -p /home/ovg/dotfiles
+                  git clone https://github.com/Ovgiliot/nix-config.git "$DEST"
+                fi
+                cd "$DEST"
+                bash install.sh
+              '')
+            ];
+
+            # Hint displayed at the login prompt after boot.
+            services.getty.helpLine =
+              lib.mkForce
+              "\nRun 'bootstrap' to clone the config and start installation.";
+          })
+        ];
+      };
   in {
     # `nix fmt` support for all platforms in use.
     formatter = {
@@ -67,6 +110,7 @@
     # Build:  sudo nixos-rebuild switch --flake .#<hostname>
     nixosConfigurations = {
       nixos = mkNixosHost "nixos";
+      installer-x86_64 = mkInstaller "x86_64-linux";
       # <<NIXOS_HOSTS>>
     };
 
@@ -75,6 +119,46 @@
     # Subsequent:  darwin-rebuild switch --flake .#<hostname>
     darwinConfigurations = {
       # <<DARWIN_HOSTS>>
+    };
+
+    # Installer USB images.
+    # Build:  nix build .#installMedia-x86_64
+    # Flash:  nix run .#flash -- /dev/sdX  (installs Ventoy + copies ISO)
+    packages = {
+      x86_64-linux = {
+        installMedia-x86_64 =
+          self.nixosConfigurations.installer-x86_64.config.system.build.isoImage;
+      };
+    };
+
+    # Flash helper: installs Ventoy on a USB drive and copies the installer ISO.
+    # Usage: nix run .#flash -- /dev/sdX
+    apps = let
+      pkgs = nixpkgs.legacyPackages.x86_64-linux;
+      x86_iso = self.nixosConfigurations.installer-x86_64.config.system.build.isoImage;
+    in {
+      x86_64-linux.flash = {
+        type = "app";
+        program = toString (pkgs.writeShellScript "flash-usb" ''
+          set -euo pipefail
+          DEVICE=''${1:?Usage: nix run .#flash -- /dev/sdX}
+          echo "==> This will ERASE $DEVICE. Continue? [y/N]"
+          read -r yn
+          [[ "$yn" =~ ^[Yy]$ ]] || exit 1
+          echo "==> Installing Ventoy on $DEVICE..."
+          sudo ${pkgs.ventoy}/bin/ventoy -I "$DEVICE"
+          MNT=$(mktemp -d)
+          # Ventoy puts the ISO data partition first (/dev/sdX1).
+          sudo mount "''${DEVICE}1" "$MNT"
+          echo "==> Copying NixOS installer ISO..."
+          sudo cp ${x86_iso}/iso/*.iso "$MNT/"
+          sudo umount "$MNT"
+          rmdir "$MNT"
+          echo "==> Done. Boot from USB on any x86_64 UEFI machine."
+          echo "    Select the NixOS ISO from the Ventoy menu."
+          echo "    Then: nmtui  ->  bootstrap"
+        '');
+      };
     };
 
     # `nix flake check` targets — run all with `nix flake check`, or target

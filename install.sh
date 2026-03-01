@@ -65,6 +65,19 @@ esac
 info "Detected platform: $PLATFORM"
 
 # ---------------------------------------------------------------------------
+# Architecture detection (Linux only)
+# ---------------------------------------------------------------------------
+LINUX_SYSTEM="x86_64-linux"
+if [[ "$PLATFORM" == "linux" ]]; then
+	case "$(uname -m)" in
+	x86_64) LINUX_SYSTEM="x86_64-linux" ;;
+	aarch64) LINUX_SYSTEM="aarch64-linux" ;;
+	*) die "Unsupported Linux architecture: $(uname -m)" ;;
+	esac
+	info "Detected system: $LINUX_SYSTEM"
+fi
+
+# ---------------------------------------------------------------------------
 # Ensure Nix is installed
 # ---------------------------------------------------------------------------
 if ! command -v nix &>/dev/null; then
@@ -144,7 +157,7 @@ if [[ "$PROFILE" == "laptop" ]]; then
 {inputs}: let
   dotfilesDir = ../../home/ovg;
 in {
-  system = "x86_64-linux";
+  system = "${LINUX_SYSTEM}";
 
   specialArgs = {
     inherit inputs dotfilesDir;
@@ -186,7 +199,7 @@ elif [[ "$PROFILE" == "workstation" ]]; then
 {inputs}: let
   dotfilesDir = ../../home/ovg;
 in {
-  system = "x86_64-linux";
+  system = "${LINUX_SYSTEM}";
 
   specialArgs = {
     inherit inputs dotfilesDir;
@@ -228,7 +241,7 @@ elif [[ "$PROFILE" == "server" ]]; then
 {inputs}: let
   dotfilesDir = ../../home/ovg;
 in {
-  system = "x86_64-linux";
+  system = "${LINUX_SYSTEM}";
 
   specialArgs = {
     inherit inputs dotfilesDir;
