@@ -48,6 +48,12 @@
     text = stripShebang (builtins.readFile (dotfilesDir + "/wofi/scripts/bluetooth-menu.sh"));
   };
 
+  powerMenu = pkgs.writeShellApplication {
+    name = "power-menu";
+    runtimeInputs = [pkgs.wofi pkgs.systemd pkgs.coreutils];
+    text = stripShebang (builtins.readFile (dotfilesDir + "/wofi/scripts/power-menu.sh"));
+  };
+
   scriptsQml = ''
     import QtQuick
 
@@ -59,10 +65,12 @@
         readonly property string cyclePower: "${cyclePower}/bin/cycle-power-profile"
         readonly property string wifiMenu:   "${wifiMenu}/bin/wifi-menu"
         readonly property string btMenu:     "${btMenu}/bin/bluetooth-menu"
+        readonly property string powerMenu:  "${powerMenu}/bin/power-menu"
     }
   '';
 in {
-  home.packages = [pkgs.quickshell];
+  # quickshell itself + menu scripts that niri key-binds invoke by name
+  home.packages = [pkgs.quickshell wifiMenu btMenu powerMenu];
 
   # Link each QML file individually so Scripts.qml (generated) can live alongside them
   xdg.configFile."quickshell/shell.qml".source = dotfilesDir + "/quickshell/shell.qml";
