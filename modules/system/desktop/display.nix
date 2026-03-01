@@ -3,6 +3,7 @@
   lib,
   inputs,
   videoAcceleration,
+  primaryUser,
   ...
 }: {
   # Niri overlay applied here so pkgs.niri-unstable is available system-wide
@@ -18,10 +19,17 @@
 
   # Display Manager (Greetd)
   # Uses tuigreet as a lightweight TUI login manager.
-  # initial_session is intentionally absent: always require authentication.
+  # initial_session autologins after boot — TPM2 unlocks the disk silently,
+  # then greetd starts the Niri session directly (macOS FileVault-style flow).
+  # default_session is the fallback when the autologin session exits or fails.
+  # swaylock provides session-lock security; run `swaylock` to protect the screen.
   services.greetd = {
     enable = true;
     settings = {
+      initial_session = {
+        command = "niri-session";
+        user = primaryUser;
+      };
       default_session = {
         command = "${pkgs.tuigreet}/bin/tuigreet --greeting 'Suckless NixOS' --asterisks --remember --remember-user-session --time --cmd niri-session";
         user = "greeter";

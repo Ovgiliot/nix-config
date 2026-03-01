@@ -19,6 +19,8 @@ in {
     kanataDevice = "/dev/input/by-path/platform-i8042-serio-0-event-kbd";
     # Intel integrated graphics: enable VA-API acceleration packages.
     videoAcceleration = "intel";
+    # Primary user for greetd autologin (display.nix).
+    primaryUser = "ovg";
   };
 
   modules = [

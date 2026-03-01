@@ -82,6 +82,20 @@ part() {
 	fi
 }
 
+# Enroll a LUKS partition for TPM2 auto-unlock.
+# $1 = block device (the raw LUKS partition, e.g. /dev/sda2)
+# $2 = path to a file containing the existing LUKS passphrase
+enroll_tpm2() {
+	local dev="$1" keyfile="$2"
+	info "  Enrolling TPM2 for $dev ..."
+	systemd-cryptenroll \
+		--tpm2-device=auto \
+		--tpm2-pcrs="" \
+		--unlock-key-file="$keyfile" \
+		"$dev" && ok "  $dev enrolled." ||
+		warn "  TPM2 enrollment failed for $dev — enroll manually later with:"$'\n'"    sudo systemd-cryptenroll --tpm2-device=auto --tpm2-pcrs=\"\" $dev"
+}
+
 # ---------------------------------------------------------------------------
 # Platform detection
 # ---------------------------------------------------------------------------
@@ -835,6 +849,8 @@ in {
     kanataConfig = dotfilesDir + "/kanata.kbd";
     kanataDevice = "${KANATA_DEVICE}";
     videoAcceleration = "${VIDEO_ACCEL}";
+    # Primary user for greetd autologin (display.nix).
+    primaryUser = "ovg";
   };
 
   modules = [
@@ -878,6 +894,8 @@ in {
     kanataConfig = dotfilesDir + "/kanata.kbd";
     kanataDevice = "${KANATA_DEVICE}";
     videoAcceleration = "${VIDEO_ACCEL}";
+    # Primary user for greetd autologin (display.nix).
+    primaryUser = "ovg";
   };
 
   modules = [
@@ -1100,6 +1118,56 @@ if [[ "$LIVE_ISO" == true ]]; then
 			-e "s|swapDevice = \"\"|swapDevice = \"${SWAP_DEVICE}\"|" \
 			"$HOST_DIR/default.nix"
 		ok "default.nix patched with swap UUIDs."
+	fi
+
+	# ------------------------------------------------------------------
+	# Optional: TPM2 enrollment for password-free LUKS unlock at boot.
+	# Requires: systemd-cryptenroll (part of systemd, present on NixOS ISO).
+	# No PCR binding (--tpm2-pcrs="") — unlock always works, never breaks
+	# on BIOS updates. Protection: disk removed to another machine = locked.
+	# ------------------------------------------------------------------
+	if [[ "$ENCRYPT" == "yes" ]] || [[ "${HOME_ENCRYPT:-no}" == "yes" ]]; then
+		if systemd-cryptenroll --tpm2-device=list &>/dev/null 2>&1; then
+			choose ENROLL_TPM "Enroll TPM2 for password-free disk unlock at boot?" "yes" "no"
+			if [[ "$ENROLL_TPM" == "yes" ]]; then
+				info "Enrolling LUKS partitions with TPM2..."
+				TPM_KEYFILE="$(mktemp)"
+				printf '%s' "$LUKS_PASSPHRASE" >"$TPM_KEYFILE"
+
+				if [[ "$ENCRYPT" == "yes" ]]; then
+					if [[ "$PROFILE" == "laptop" ]]; then
+						# Partition order: ESP(1) swap(2) root(3) [home(4) single-disk]
+						enroll_tpm2 "$(part "$SYSTEM_DISK" 2)" "$TPM_KEYFILE"
+						enroll_tpm2 "$(part "$SYSTEM_DISK" 3)" "$TPM_KEYFILE"
+						if [[ "$SEPARATE_HOME" == false ]]; then
+							enroll_tpm2 "$(part "$SYSTEM_DISK" 4)" "$TPM_KEYFILE"
+						fi
+					else
+						# workstation/server: ESP(1) root(2) [home(3) single-disk]
+						enroll_tpm2 "$(part "$SYSTEM_DISK" 2)" "$TPM_KEYFILE"
+						if [[ "$SEPARATE_HOME" == false ]]; then
+							enroll_tpm2 "$(part "$SYSTEM_DISK" 3)" "$TPM_KEYFILE"
+						fi
+					fi
+				fi
+
+				rm -f "$TPM_KEYFILE"
+
+				# Home disk (two-disk only, separately encrypted)
+				if [[ "$SEPARATE_HOME" == true ]] && [[ "${HOME_ENCRYPT:-no}" == "yes" ]]; then
+					HOME_TPM_KEYFILE="$(mktemp)"
+					printf '%s' "$HOME_PASSPHRASE" >"$HOME_TPM_KEYFILE"
+					enroll_tpm2 "$(part "$HOME_DISK" 1)" "$HOME_TPM_KEYFILE"
+					rm -f "$HOME_TPM_KEYFILE"
+				fi
+
+				ok "TPM2 enrollment complete."
+			fi
+		else
+			info "No TPM2 device found — skipping TPM2 enrollment."
+			info "You can enroll manually after first boot with:"
+			echo "  sudo systemd-cryptenroll --tpm2-device=auto --tpm2-pcrs=\"\" /dev/disk/by-uuid/<luks-uuid>"
+		fi
 	fi
 
 	# ------------------------------------------------------------------

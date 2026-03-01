@@ -199,6 +199,8 @@
         kanataDevice = "/dev/input/by-path/platform-i8042-serio-0-event-kbd";
         # No Intel hardware in test environments; skip VA-API packages.
         videoAcceleration = "none";
+        # Placeholder primary user for greetd autologin (display.nix).
+        primaryUser = "ovg";
       };
 
       # Minimal NixOS host module shared by all profile tests.
