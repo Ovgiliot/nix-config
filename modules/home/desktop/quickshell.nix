@@ -68,21 +68,28 @@
         readonly property string powerMenu:  "${powerMenu}/bin/power-menu"
     }
   '';
+
+  # Bundle all QML files into one derivation so QML module resolution finds
+  # sibling types correctly. Per-file symlinks each resolve to an isolated
+  # store path, causing "X is not a type" crashes at runtime.
+  shellConfig = pkgs.runCommand "quickshell-config" {} ''
+    mkdir $out
+    cp ${dotfilesDir}/quickshell/shell.qml       $out/shell.qml
+    cp ${dotfilesDir}/quickshell/Clock.qml       $out/Clock.qml
+    cp ${dotfilesDir}/quickshell/Workspaces.qml  $out/Workspaces.qml
+    cp ${dotfilesDir}/quickshell/CpuMem.qml      $out/CpuMem.qml
+    cp ${dotfilesDir}/quickshell/InfoBox.qml     $out/InfoBox.qml
+    cp ${dotfilesDir}/quickshell/Language.qml    $out/Language.qml
+    cp ${dotfilesDir}/quickshell/StatusIcons.qml $out/StatusIcons.qml
+    cp ${pkgs.writeText "Scripts.qml" scriptsQml} $out/Scripts.qml
+  '';
 in {
   # quickshell itself + menu scripts that niri key-binds invoke by name
   home.packages = [pkgs.quickshell wifiMenu btMenu powerMenu];
 
-  # Link each QML file individually so Scripts.qml (generated) can live alongside them
-  xdg.configFile."quickshell/shell.qml".source = dotfilesDir + "/quickshell/shell.qml";
-  xdg.configFile."quickshell/Clock.qml".source = dotfilesDir + "/quickshell/Clock.qml";
-  xdg.configFile."quickshell/Workspaces.qml".source = dotfilesDir + "/quickshell/Workspaces.qml";
-  xdg.configFile."quickshell/CpuMem.qml".source = dotfilesDir + "/quickshell/CpuMem.qml";
-  xdg.configFile."quickshell/InfoBox.qml".source = dotfilesDir + "/quickshell/InfoBox.qml";
-  xdg.configFile."quickshell/Language.qml".source = dotfilesDir + "/quickshell/Language.qml";
-  xdg.configFile."quickshell/StatusIcons.qml".source = dotfilesDir + "/quickshell/StatusIcons.qml";
-
-  # Scripts.qml: generated QtObject exposing Nix store paths for each shell script
-  xdg.configFile."quickshell/Scripts.qml".text = scriptsQml;
+  # Single directory link — all QML files (including generated Scripts.qml) live
+  # in one store path so QML module resolution finds siblings after symlink resolution.
+  xdg.configFile."quickshell".source = shellConfig;
 
   systemd.user.services.quickshell = {
     Unit = {
