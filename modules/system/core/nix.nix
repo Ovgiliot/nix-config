@@ -1,9 +1,4 @@
-{
-  config,
-  pkgs,
-  inputs,
-  ...
-}: {
+{inputs, ...}: {
   # Enable experimental Nix features for flakes
   nix.settings = {
     experimental-features = ["nix-command" "flakes"];
@@ -15,7 +10,7 @@
   # timers (nix.gc.dates) while nix-darwin uses launchd (nix.gc.interval).
   nix.gc = {
     automatic = true;
-    options = "--delete-older-than 7d";
+    options = "--delete-older-than 14d";
   };
 
   # Pin the system's nixpkgs registry entry to the exact flake input.

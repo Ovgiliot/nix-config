@@ -14,7 +14,7 @@
 
   infoBox = pkgs.writeShellApplication {
     name = "info-box";
-    runtimeInputs = [pkgs.coreutils pkgs.gawk pkgs.gnugrep pkgs.procps pkgs.playerctl];
+    runtimeInputs = [pkgs.coreutils pkgs.gawk pkgs.gnugrep pkgs.jq pkgs.procps pkgs.playerctl];
     text = stripShebang (builtins.readFile (dotfilesDir + "/waybar/scripts/info-box.sh"));
   };
 
@@ -85,7 +85,7 @@ in {
     Service = {
       ExecStart = "${pkgs.quickshell}/bin/quickshell";
       Restart = "on-failure";
-      RestartSec = "2";
+      RestartSec = 2;
     };
     Install = {
       WantedBy = ["graphical-session.target"];

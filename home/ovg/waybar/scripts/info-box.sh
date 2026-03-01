@@ -96,15 +96,16 @@ get_media_info() {
 		[ -z "$title" ] && title="Unknown"
 
 		text="$icon $artist - $title"
-		echo "{\"text\": \"$text\", \"class\": \"$player_status\", \"alt\": \"$player_status\"}"
+		jq -n --arg text "$text" --arg class "$player_status" \
+			'{"text": $text, "class": $class, "alt": $class}'
 	else
-		echo "{\"text\": \"\", \"class\": \"none\"}"
+		jq -n '{"text": "", "class": "none"}'
 	fi
 }
 
 # Main logic
 if warning_msg=$(get_warning); then
-	echo "{\"text\": \"$warning_msg\", \"class\": \"warning\", \"alt\": \"warning\"}"
+	jq -n --arg text "$warning_msg" '{"text": $text, "class": "warning", "alt": "warning"}'
 else
 	get_media_info
 fi
