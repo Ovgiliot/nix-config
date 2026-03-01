@@ -18,6 +18,7 @@
     brightnessctl
     swayidle
     playerctl # Media control (for niri)
+    pulsemixer # Audio control
     linux-wallpaperengine # Live wallpapers
 
     # GUI Applications
