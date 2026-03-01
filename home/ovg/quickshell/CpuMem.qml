@@ -71,7 +71,7 @@ Item {
             width: 80; height: 16; radius: 2
             color: Qt.rgba(36/255, 41/255, 46/255, 1.0)
             border.width: 1
-            border.color: "#000000"
+            border.color: "#060606"
 
             Rectangle {
                 id: cpuFill

@@ -6,7 +6,7 @@ if [ "$power_on" -eq 0 ]; then
 	if [ "$action" == "Power On" ]; then
 		bluetoothctl power on
 		sleep 1
-		exec $0
+		exec "$0"
 	else
 		exit
 	fi
@@ -38,7 +38,7 @@ if [ -n "$chosen" ]; then
 		sleep 15
 		bluetoothctl scan off
 		kill "$SCAN_PID" 2>/dev/null
-		$0 # Re-run script
+		exec "$0" # Re-run script
 	elif [ "$chosen" == "Power Off" ]; then
 		bluetoothctl power off
 	else
