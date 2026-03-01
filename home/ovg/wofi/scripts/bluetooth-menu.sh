@@ -40,7 +40,8 @@ if [ -n "$chosen" ]; then
 	elif [ "$chosen" == "Power Off" ]; then
 		bluetoothctl power off
 	else
-		mac=$(echo "$chosen" | sed 's/.*(\([^)]*\)).*/\1/')
+		re='\(([^)]*)\)'
+		[[ "$chosen" =~ $re ]] && mac="${BASH_REMATCH[1]}"
 		if [[ "$chosen" == CONNECTED:* ]]; then
 			bluetoothctl disconnect "$mac"
 		else

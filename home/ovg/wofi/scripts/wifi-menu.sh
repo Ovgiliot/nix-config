@@ -13,14 +13,16 @@ chosen=$(echo "$formatted_list" | wofi -dmenu -p "Wi-Fi Networks" -i || true)
 
 if [ -n "$chosen" ]; then
 	if [[ "$chosen" == CONNECTED:* ]]; then
-		ssid=$(echo "$chosen" | sed 's/CONNECTED: //; s/ (.*//')
+		ssid="${chosen#CONNECTED: }"
+		ssid="${ssid% (*}"
 		nmcli connection down id "$ssid"
 	else
-		ssid=$(echo "$chosen" | sed 's/ (.*//')
+		ssid="${chosen% (*}"
 		if nmcli connection show id "$ssid" >/dev/null 2>&1; then
 			nmcli connection up id "$ssid"
 		else
-			security=$(echo "$chosen" | sed 's/.*(\(.*\)).*/\1/')
+			re='\(([^)]*)\)'
+			if [[ "$chosen" =~ $re ]]; then security="${BASH_REMATCH[1]}"; else security=""; fi
 			if [[ "$security" == "--" || "$security" == "" ]]; then
 				nmcli device wifi connect "$ssid"
 			else
