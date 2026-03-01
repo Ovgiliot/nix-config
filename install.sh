@@ -1,8 +1,12 @@
 #!/usr/bin/env bash
 # install.sh — Interactive bootstrap for a new machine.
 #
-# Creates a host entry under hosts/<hostname>/, injects it into flake.nix,
-# sets the system hostname, and runs the initial build.
+# Two modes:
+#   Live ISO  — Detected automatically when / is a tmpfs (NixOS installer env).
+#               Prompts for a target disk, partitions it with disko, installs
+#               NixOS, and copies the dotfiles repo into the new system.
+#   Installed — Runs on an already-booted NixOS system.  Creates a host entry
+#               under hosts/<hostname>/ and runs nixos-rebuild switch.
 #
 # Usage: bash install.sh
 set -euo pipefail
@@ -29,6 +33,15 @@ prompt() {
 	if [[ -z "${!var}" && -n "$default" ]]; then
 		printf -v "$var" '%s' "$default"
 	fi
+	[[ -z "${!var}" ]] && die "Required value not provided."
+}
+
+prompt_secret() {
+	# Like prompt but disables echo. Result stored in the named variable.
+	local var="$1" msg="$2"
+	printf '%s: ' "$msg"
+	read -rs "$var"
+	printf '\n'
 	[[ -z "${!var}" ]] && die "Required value not provided."
 }
 
@@ -78,6 +91,18 @@ if [[ "$PLATFORM" == "linux" ]]; then
 fi
 
 # ---------------------------------------------------------------------------
+# Live ISO detection (Linux only)
+# ---------------------------------------------------------------------------
+# The NixOS minimal installer mounts / as a tmpfs. We treat this as the signal
+# that we are running inside the live environment and should do a fresh install
+# rather than a nixos-rebuild switch.
+LIVE_ISO=false
+if [[ "$PLATFORM" == "linux" ]] && grep -q '^tmpfs / tmpfs' /proc/mounts 2>/dev/null; then
+	LIVE_ISO=true
+	info "Live ISO environment detected — fresh install mode."
+fi
+
+# ---------------------------------------------------------------------------
 # Ensure Nix is installed
 # ---------------------------------------------------------------------------
 if ! command -v nix &>/dev/null; then
@@ -114,13 +139,60 @@ prompt HOSTNAME "Hostname for this machine" "$CURRENT_HOSTNAME"
 info "Hostname: $HOSTNAME"
 
 # ---------------------------------------------------------------------------
-# Profile-specific inputs
+# Profile-specific inputs (Linux desktop profiles)
 # ---------------------------------------------------------------------------
 SWAP_LUKS_UUID=""
-if [[ "$PROFILE" == "laptop" ]]; then
+KANATA_DEVICE=""
+VIDEO_ACCEL=""
+
+if [[ "$PROFILE" == "laptop" || "$PROFILE" == "workstation" ]]; then
+	choose VIDEO_ACCEL "GPU vendor (for hardware video acceleration):" "intel" "amd" "none"
+	info "Video acceleration: $VIDEO_ACCEL"
+
+	# Default is the ThinkPad / most-common PS/2 keyboard by-path alias.
+	# Adjust if your machine uses a USB keyboard or a different path.
+	DEFAULT_KBD="/dev/input/by-path/platform-i8042-serio-0-event-kbd"
+	prompt KANATA_DEVICE "Keyboard device path for Kanata" "$DEFAULT_KBD"
+	info "Kanata device: $KANATA_DEVICE"
+fi
+
+if [[ "$PROFILE" == "laptop" ]] && [[ "$LIVE_ISO" == false ]]; then
+	# On an already-installed system the swap partition already exists; just
+	# capture the LUKS UUID for hibernate support.
 	warn "Laptop profile requires the swap LUKS UUID for hibernate support."
 	warn "Find it with: lsblk -o NAME,UUID | grep luks"
 	prompt SWAP_LUKS_UUID "Swap LUKS UUID (leave empty to skip hibernate setup)"
+fi
+
+# ---------------------------------------------------------------------------
+# Live ISO: disk setup prompts
+# ---------------------------------------------------------------------------
+TARGET_DISK=""
+ENCRYPT=""
+LUKS_PASSPHRASE=""
+SWAP_SIZE=""
+
+if [[ "$LIVE_ISO" == true ]]; then
+	echo ""
+	info "Available block devices:"
+	lsblk -o NAME,SIZE,TYPE,MODEL | grep -v loop || true
+	echo ""
+	prompt TARGET_DISK "Target disk (e.g. /dev/sda or /dev/nvme0n1)"
+	[[ -b "$TARGET_DISK" ]] || die "Not a block device: $TARGET_DISK"
+
+	choose ENCRYPT "Encrypt the disk with LUKS?" "yes" "no"
+	if [[ "$ENCRYPT" == "yes" ]]; then
+		prompt_secret LUKS_PASSPHRASE "LUKS passphrase"
+		LUKS_CONFIRM=""
+		prompt_secret LUKS_CONFIRM "Confirm LUKS passphrase"
+		[[ "$LUKS_PASSPHRASE" == "$LUKS_CONFIRM" ]] || die "Passphrases do not match."
+		unset LUKS_CONFIRM
+	fi
+
+	if [[ "$PROFILE" == "laptop" ]]; then
+		prompt SWAP_SIZE "Swap partition size (e.g. 16G — should match RAM for hibernate)" "16G"
+		info "Swap size: $SWAP_SIZE"
+	fi
 fi
 
 # ---------------------------------------------------------------------------
@@ -136,19 +208,225 @@ fi
 mkdir -p "$HOST_DIR"
 
 # ---------------------------------------------------------------------------
-# Hardware configuration (Linux only)
+# Generate hosts/<hostname>/disko.nix  (live ISO installs only)
 # ---------------------------------------------------------------------------
-if [[ "$PLATFORM" == "linux" ]]; then
-	info "Generating hardware configuration..."
-	nixos-generate-config --show-hardware-config 2>/dev/null >"$HOST_DIR/hardware.nix" ||
-		die "nixos-generate-config failed. Run this script as root or with sudo."
-	ok "hardware.nix written."
+if [[ "$LIVE_ISO" == true ]]; then
+	info "Resolving disk ID for $TARGET_DISK..."
+	# Prefer stable /dev/disk/by-id path; fall back to raw device if unavailable.
+	DISK_BY_ID=$(readlink -f /dev/disk/by-id/* 2>/dev/null |
+		awk -v dev="$TARGET_DISK" '
+      $0 == dev { found=FILENAME }
+      END { print found }
+    ' 2>/dev/null || true)
+	# awk over /dev/disk/by-id symlinks is fiddly; use a simpler approach:
+	DISK_BY_ID=""
+	while IFS= read -r link; do
+		if [[ "$(readlink -f "$link")" == "$TARGET_DISK" ]]; then
+			DISK_BY_ID="$link"
+			break
+		fi
+	done < <(find /dev/disk/by-id -maxdepth 1 -type l 2>/dev/null | sort)
+	if [[ -z "$DISK_BY_ID" ]]; then
+		warn "No by-id symlink found for $TARGET_DISK — using raw device path."
+		DISK_BY_ID="$TARGET_DISK"
+	else
+		info "Disk ID: $DISK_BY_ID"
+	fi
+
+	info "Writing hosts/$HOSTNAME/disko.nix..."
+
+	if [[ "$ENCRYPT" == "yes" ]]; then
+		if [[ "$PROFILE" == "laptop" ]]; then
+			# Encrypted: ESP + LUKS swap + LUKS root
+			cat >"$HOST_DIR/disko.nix" <<NIXEOF
+# Disk layout for ${HOSTNAME} — GPT, LUKS-encrypted swap + root.
+# Generated by install.sh; do not edit manually.
+{...}: {
+  disko.devices.disk.main = {
+    type = "disk";
+    device = "${DISK_BY_ID}";
+    content = {
+      type = "gpt";
+      partitions = {
+        ESP = {
+          size = "512M";
+          type = "EF00";
+          content = {
+            type = "filesystem";
+            format = "vfat";
+            mountpoint = "/boot";
+            mountOptions = ["umask=0077"];
+          };
+        };
+        swap = {
+          size = "${SWAP_SIZE}";
+          content = {
+            type = "luks";
+            name = "cryptswap";
+            settings.allowDiscards = true;
+            content = {
+              type = "swap";
+            };
+          };
+        };
+        root = {
+          size = "100%";
+          content = {
+            type = "luks";
+            name = "cryptroot";
+            settings.allowDiscards = true;
+            content = {
+              type = "filesystem";
+              format = "ext4";
+              mountpoint = "/";
+              mountOptions = ["noatime"];
+            };
+          };
+        };
+      };
+    };
+  };
+}
+NIXEOF
+		else
+			# Encrypted: ESP + LUKS root (workstation / server)
+			cat >"$HOST_DIR/disko.nix" <<NIXEOF
+# Disk layout for ${HOSTNAME} — GPT, LUKS-encrypted root.
+# Generated by install.sh; do not edit manually.
+{...}: {
+  disko.devices.disk.main = {
+    type = "disk";
+    device = "${DISK_BY_ID}";
+    content = {
+      type = "gpt";
+      partitions = {
+        ESP = {
+          size = "512M";
+          type = "EF00";
+          content = {
+            type = "filesystem";
+            format = "vfat";
+            mountpoint = "/boot";
+            mountOptions = ["umask=0077"];
+          };
+        };
+        root = {
+          size = "100%";
+          content = {
+            type = "luks";
+            name = "cryptroot";
+            settings.allowDiscards = true;
+            content = {
+              type = "filesystem";
+              format = "ext4";
+              mountpoint = "/";
+              mountOptions = ["noatime"];
+            };
+          };
+        };
+      };
+    };
+  };
+}
+NIXEOF
+		fi
+	else
+		if [[ "$PROFILE" == "laptop" ]]; then
+			# Unencrypted: ESP + swap + root
+			cat >"$HOST_DIR/disko.nix" <<NIXEOF
+# Disk layout for ${HOSTNAME} — GPT, unencrypted swap + root.
+# Generated by install.sh; do not edit manually.
+{...}: {
+  disko.devices.disk.main = {
+    type = "disk";
+    device = "${DISK_BY_ID}";
+    content = {
+      type = "gpt";
+      partitions = {
+        ESP = {
+          size = "512M";
+          type = "EF00";
+          content = {
+            type = "filesystem";
+            format = "vfat";
+            mountpoint = "/boot";
+            mountOptions = ["umask=0077"];
+          };
+        };
+        swap = {
+          size = "${SWAP_SIZE}";
+          content = {
+            type = "swap";
+          };
+        };
+        root = {
+          size = "100%";
+          content = {
+            type = "filesystem";
+            format = "ext4";
+            mountpoint = "/";
+            mountOptions = ["noatime"];
+          };
+        };
+      };
+    };
+  };
+}
+NIXEOF
+		else
+			# Unencrypted: ESP + root (workstation / server)
+			cat >"$HOST_DIR/disko.nix" <<NIXEOF
+# Disk layout for ${HOSTNAME} — GPT, unencrypted root.
+# Generated by install.sh; do not edit manually.
+{...}: {
+  disko.devices.disk.main = {
+    type = "disk";
+    device = "${DISK_BY_ID}";
+    content = {
+      type = "gpt";
+      partitions = {
+        ESP = {
+          size = "512M";
+          type = "EF00";
+          content = {
+            type = "filesystem";
+            format = "vfat";
+            mountpoint = "/boot";
+            mountOptions = ["umask=0077"];
+          };
+        };
+        root = {
+          size = "100%";
+          content = {
+            type = "filesystem";
+            format = "ext4";
+            mountpoint = "/";
+            mountOptions = ["noatime"];
+          };
+        };
+      };
+    };
+  };
+}
+NIXEOF
+		fi
+	fi
+	ok "hosts/$HOSTNAME/disko.nix written."
 fi
 
 # ---------------------------------------------------------------------------
 # Generate hosts/<hostname>/default.nix
 # ---------------------------------------------------------------------------
 info "Writing hosts/$HOSTNAME/default.nix..."
+
+# disko.nix is included in the modules list for live ISO installs so that the
+# installed system picks up the filesystem declarations for future rebuilds.
+DISKO_MODULE=""
+if [[ "$LIVE_ISO" == true ]]; then
+	DISKO_MODULE="
+    inputs.disko.nixosModules.disko
+    ./disko.nix"
+fi
 
 if [[ "$PROFILE" == "laptop" ]]; then
 
@@ -163,11 +441,13 @@ in {
     inherit inputs dotfilesDir;
     swapLuksUuid = "${SWAP_LUKS_UUID}";
     kanataConfig = dotfilesDir + "/kanata.kbd";
+    kanataDevice = "${KANATA_DEVICE}";
+    videoAcceleration = "${VIDEO_ACCEL}";
   };
 
   modules = [
     ../../profiles/laptop.nix
-    ./hardware.nix
+    ./hardware.nix${DISKO_MODULE}
     ({pkgs, ...}: {
       networking.hostName = "${HOSTNAME}";
 
@@ -203,13 +483,14 @@ in {
 
   specialArgs = {
     inherit inputs dotfilesDir;
-    # Kanata keyboard device path may differ; adjust input.nix if needed.
     kanataConfig = dotfilesDir + "/kanata.kbd";
+    kanataDevice = "${KANATA_DEVICE}";
+    videoAcceleration = "${VIDEO_ACCEL}";
   };
 
   modules = [
     ../../profiles/workstation.nix
-    ./hardware.nix
+    ./hardware.nix${DISKO_MODULE}
     ({pkgs, ...}: {
       networking.hostName = "${HOSTNAME}";
 
@@ -249,7 +530,7 @@ in {
 
   modules = [
     ../../profiles/server.nix
-    ./hardware.nix
+    ./hardware.nix${DISKO_MODULE}
     ({pkgs, ...}: {
       networking.hostName = "${HOSTNAME}";
 
@@ -362,42 +643,131 @@ fi
 # ---------------------------------------------------------------------------
 # Format with alejandra
 # ---------------------------------------------------------------------------
-info "Formatting hosts/$HOSTNAME/default.nix with alejandra..."
-alejandra "$HOST_DIR/default.nix" 2>/dev/null ||
+info "Formatting hosts/$HOSTNAME/ with alejandra..."
+alejandra "$HOST_DIR/" 2>/dev/null ||
 	warn "alejandra not in PATH — skipping format (run 'nix fmt' later)."
 
 # ---------------------------------------------------------------------------
-# Initial build
+# Build / Install
 # ---------------------------------------------------------------------------
-info "Starting initial build for .#$HOSTNAME ..."
-printf 'Proceed with the build now? [Y/n]: '
+info "Ready to build .#$HOSTNAME"
+printf 'Proceed? [Y/n]: '
 read -r yn
-if [[ ! "$yn" =~ ^[Nn]$ ]]; then
-	cd "$FLAKE_DIR"
-	if [[ "$PLATFORM" == "linux" ]]; then
-		sudo nixos-rebuild switch --flake ".#${HOSTNAME}"
-	else
-		# First run: nix-darwin may not be installed yet
-		if command -v darwin-rebuild &>/dev/null; then
-			darwin-rebuild switch --flake ".#${HOSTNAME}"
-		else
-			info "darwin-rebuild not found — using nix run for first activation..."
-			nix run nix-darwin -- switch --flake ".#${HOSTNAME}"
-		fi
-	fi
-	ok "Build complete. This machine is now '${HOSTNAME}' running the '${PROFILE}' profile."
-	if [[ "$PROFILE" == "darwin" ]]; then
-		printf '\n'
-		info "Kanata is installed but requires a one-time manual driver setup on macOS."
-		info "Install the Karabiner-Elements virtual HID driver, then run kanata as root:"
-		echo "  https://github.com/jtroo/kanata/blob/main/docs/macos.md"
-		echo "  sudo kanata --cfg ~/.config/kanata/kanata.kbd"
-	fi
-else
-	info "Skipped build. Run manually:"
-	if [[ "$PLATFORM" == "linux" ]]; then
+[[ "$yn" =~ ^[Nn]$ ]] && {
+	info "Skipped. Run manually:"
+	if [[ "$LIVE_ISO" == true ]]; then
+		echo "  sudo disko --mode disko $HOST_DIR/disko.nix"
+		echo "  sudo nixos-generate-config --root /mnt --show-hardware-config > $HOST_DIR/hardware.nix"
+		echo "  sudo nixos-install --flake .#${HOSTNAME} --root /mnt --no-root-passwd"
+	elif [[ "$PLATFORM" == "linux" ]]; then
 		echo "  sudo nixos-rebuild switch --flake .#${HOSTNAME}"
 	else
 		echo "  darwin-rebuild switch --flake .#${HOSTNAME}"
 	fi
+	exit 0
+}
+
+if [[ "$LIVE_ISO" == true ]]; then
+	# ------------------------------------------------------------------
+	# Live ISO: partition → install → copy dotfiles
+	# ------------------------------------------------------------------
+	info "Partitioning $TARGET_DISK with disko..."
+	if [[ "$ENCRYPT" == "yes" ]]; then
+		# Supply the LUKS passphrase non-interactively via a key file so disko
+		# doesn't prompt once per LUKS partition.
+		KEYFILE="$(mktemp)"
+		printf '%s' "$LUKS_PASSPHRASE" >"$KEYFILE"
+		sudo disko --mode disko \
+			--arg passwordFile "\"$KEYFILE\"" \
+			"$HOST_DIR/disko.nix" || {
+			rm -f "$KEYFILE"
+			die "disko failed."
+		}
+		rm -f "$KEYFILE"
+	else
+		sudo disko --mode disko "$HOST_DIR/disko.nix" || die "disko failed."
+	fi
+	ok "Disk partitioned and mounted at /mnt."
+
+	# Capture LUKS UUIDs after disko has created the partitions.
+	# Partition order: ESP=1, (swap=2 if laptop), root=last.
+	if [[ "$PROFILE" == "laptop" && "$ENCRYPT" == "yes" ]]; then
+		# Determine the swap partition: 2nd partition on the disk.
+		# Works for both /dev/sda2 and /dev/nvme0n1p2 naming conventions.
+		if [[ "$TARGET_DISK" == *nvme* ]]; then
+			SWAP_PART="${TARGET_DISK}p2"
+		else
+			SWAP_PART="${TARGET_DISK}2"
+		fi
+		SWAP_LUKS_UUID="$(blkid -s UUID -o value "$SWAP_PART")" ||
+			warn "Could not read swap LUKS UUID — hibernate may not work."
+		info "Swap LUKS UUID: $SWAP_LUKS_UUID"
+		# Patch the placeholder UUID in default.nix.
+		sed -i "s/swapLuksUuid = \"\";/swapLuksUuid = \"${SWAP_LUKS_UUID}\";/" \
+			"$HOST_DIR/default.nix" || true
+	fi
+
+	info "Generating hardware configuration..."
+	sudo nixos-generate-config --root /mnt --show-hardware-config \
+		>"$HOST_DIR/hardware.nix" ||
+		die "nixos-generate-config failed."
+	ok "hardware.nix written."
+
+	# Re-format after hardware.nix was written.
+	alejandra "$HOST_DIR/" 2>/dev/null || true
+
+	info "Running nixos-install for .#$HOSTNAME ..."
+	cd "$FLAKE_DIR"
+	sudo nixos-install \
+		--flake ".#${HOSTNAME}" \
+		--root /mnt \
+		--no-root-passwd ||
+		die "nixos-install failed."
+	ok "NixOS installed."
+
+	# Copy dotfiles into the new system so they are available after reboot.
+	info "Copying dotfiles to /mnt/home/ovg/dotfiles/nix ..."
+	sudo mkdir -p /mnt/home/ovg/dotfiles
+	sudo cp -rT "$FLAKE_DIR" /mnt/home/ovg/dotfiles/nix
+	# ovg uid=1000 gid=1000 (standard NixOS first user).
+	sudo chown -R 1000:1000 /mnt/home/ovg/
+	ok "Dotfiles copied."
+
+	ok "Installation complete. Remove the USB and reboot."
+	echo "  reboot"
+
+elif [[ "$PLATFORM" == "linux" ]]; then
+	# ------------------------------------------------------------------
+	# Installed system: generate hardware config + rebuild
+	# ------------------------------------------------------------------
+	info "Generating hardware configuration..."
+	nixos-generate-config --show-hardware-config 2>/dev/null \
+		>"$HOST_DIR/hardware.nix" ||
+		die "nixos-generate-config failed. Run this script as root or with sudo."
+	ok "hardware.nix written."
+
+	alejandra "$HOST_DIR/" 2>/dev/null || true
+
+	info "Running nixos-rebuild switch for .#$HOSTNAME ..."
+	cd "$FLAKE_DIR"
+	sudo nixos-rebuild switch --flake ".#${HOSTNAME}"
+	ok "Build complete. This machine is now '${HOSTNAME}' running the '${PROFILE}' profile."
+
+else
+	# ------------------------------------------------------------------
+	# macOS: darwin-rebuild
+	# ------------------------------------------------------------------
+	cd "$FLAKE_DIR"
+	if command -v darwin-rebuild &>/dev/null; then
+		darwin-rebuild switch --flake ".#${HOSTNAME}"
+	else
+		info "darwin-rebuild not found — using nix run for first activation..."
+		nix run nix-darwin -- switch --flake ".#${HOSTNAME}"
+	fi
+	ok "Build complete. This machine is now '${HOSTNAME}' running the '${PROFILE}' profile."
+	printf '\n'
+	info "Kanata is installed but requires a one-time manual driver setup on macOS."
+	info "Install the Karabiner-Elements virtual HID driver, then run kanata as root:"
+	echo "  https://github.com/jtroo/kanata/blob/main/docs/macos.md"
+	echo "  sudo kanata --cfg ~/.config/kanata/kanata.kbd"
 fi

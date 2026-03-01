@@ -30,6 +30,12 @@
         home-manager.follows = "home-manager";
       };
     };
+
+    # Declarative disk partitioning — used by install.sh on fresh installs.
+    disko = {
+      url = "github:nix-community/disko";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs = {
@@ -70,6 +76,10 @@
             lib,
             ...
           }: {
+            # Enable flakes + nix command so the live env can run `nix build .#…`
+            # without extra flags. The minimal installer image does not set this.
+            nix.settings.experimental-features = ["nix-command" "flakes"];
+
             # NetworkManager (includes nmtui). Disable the installer's default
             # wpa_supplicant so the two wifi stacks don't conflict.
             networking.networkmanager.enable = true;
@@ -78,6 +88,7 @@
             environment.systemPackages = [
               pkgs.alejandra
               pkgs.git
+              inputs.disko.packages.${system}.default
               # One-shot helper: clone dotfiles from GitHub, then run install.sh.
               (pkgs.writeShellScriptBin "bootstrap" ''
                 set -euo pipefail
@@ -85,6 +96,8 @@
                 if [ ! -d "$DEST" ]; then
                   mkdir -p /home/ovg/dotfiles
                   git clone https://github.com/Ovgiliot/nix-config.git "$DEST"
+                else
+                  git -C "$DEST" pull
                 fi
                 cd "$DEST"
                 bash install.sh
@@ -147,6 +160,7 @@
           [[ "$yn" =~ ^[Yy]$ ]] || exit 1
           echo "==> Installing Ventoy on $DEVICE..."
           sudo ${pkgs.ventoy}/bin/ventoy -I "$DEVICE"
+          sudo udevadm settle
           MNT=$(mktemp -d)
           # Ventoy puts the ISO data partition first (/dev/sdX1).
           sudo mount "''${DEVICE}1" "$MNT"
