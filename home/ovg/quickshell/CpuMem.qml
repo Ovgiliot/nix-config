@@ -117,9 +117,11 @@ Item {
     }
 
     // ── Script poller ─────────────────────────────────────────────────────────
+    Scripts { id: scripts }
+
     Process {
         id: cpuMemProc
-        command: ["/home/ovg/.config/waybar/scripts/cpu-mem.sh"]
+        command: [scripts.cpuMem]
         stdout: StdioCollector {
             onStreamFinished: {
                 try {

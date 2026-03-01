@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-wifi_list=$(nmcli -t -f "SSID,SECURITY,BARS,ACTIVE" device wifi list | sed 's/\\:/--/g')
+wifi_list=$(nmcli -t -f "SSID,SECURITY,BARS,ACTIVE" device wifi list 2>/dev/null | sed 's/\\:/--/g' || true)
 formatted_list=$(echo "$wifi_list" | awk -F: '{ 
     ssid=$1; security=$2; bars=$3; active=$4; 
     gsub(/--/, ":", ssid);
@@ -9,7 +9,7 @@ formatted_list=$(echo "$wifi_list" | awk -F: '{
     else printf "%s (%s) %s\n", ssid, security, bars
 }' | sort -u)
 
-chosen=$(echo "$formatted_list" | wofi -dmenu -p "Wi-Fi Networks" -i)
+chosen=$(echo "$formatted_list" | wofi -dmenu -p "Wi-Fi Networks" -i || true)
 
 if [ -n "$chosen" ]; then
 	if [[ "$chosen" == CONNECTED:* ]]; then
@@ -24,7 +24,7 @@ if [ -n "$chosen" ]; then
 			if [[ "$security" == "--" || "$security" == "" ]]; then
 				nmcli device wifi connect "$ssid"
 			else
-				password=$(wofi -dmenu -p "Password for $ssid" -P)
+				password=$(wofi -dmenu -p "Password for $ssid" -P || true)
 				if [ -n "$password" ]; then
 					nmcli device wifi connect "$ssid" password "$password"
 				fi

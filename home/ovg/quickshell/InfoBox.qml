@@ -62,9 +62,11 @@ Item {
     }
 
     // ── Script poller ─────────────────────────────────────────────────────────
+    Scripts { id: scripts }
+
     Process {
         id: infoProc
-        command: ["/home/ovg/.config/waybar/scripts/info-box.sh"]
+        command: [scripts.infoBox]
         stdout: StdioCollector {
             onStreamFinished: {
                 try {

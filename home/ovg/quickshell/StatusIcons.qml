@@ -90,11 +90,12 @@ Item {
     }
 
     // ── Action processes ─────────────────────────────────────────────────────
-    Process { id: wifiMenuProc;  command: ["wifi-menu"] }
-    Process { id: btMenuProc;    command: ["bluetooth-menu"] }
+    Scripts { id: scripts }
+    Process { id: wifiMenuProc;  command: [scripts.wifiMenu] }
+    Process { id: btMenuProc;    command: [scripts.btMenu] }
     Process {
         id: cyclePowerProc
-        command: ["/home/ovg/.config/waybar/scripts/cycle-power-profile.sh"]
+        command: [scripts.cyclePower]
     }
 
     // ── Icons row — 6px spacing for consistent visual separation ─────────────
@@ -165,7 +166,7 @@ Item {
     // ── Script poller ─────────────────────────────────────────────────────────
     Process {
         id: statusProc
-        command: ["/home/ovg/.config/waybar/scripts/status.sh"]
+        command: [scripts.status]
         stdout: StdioCollector {
             onStreamFinished: {
                 try {

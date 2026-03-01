@@ -10,7 +10,7 @@ bat_level=$(cat /sys/class/power_supply/BAT1/capacity 2>/dev/null || echo 100)
 ac_online=$(cat /sys/class/power_supply/AC/online 2>/dev/null || echo 1)
 
 # ── WiFi / Network ────────────────────────────────────────────────────────────
-wifi_status=$(nmcli -t -f type,state dev 2>/dev/null)
+wifi_status=$(nmcli -t -f type,state dev 2>/dev/null || true)
 if echo "$wifi_status" | grep -qE '^wifi:connected'; then
 	wifi="on"
 elif echo "$wifi_status" | grep -qE '^ethernet:connected'; then
@@ -20,7 +20,7 @@ else
 fi
 
 # ── Bluetooth ─────────────────────────────────────────────────────────────────
-bt_info=$(bluetoothctl show 2>/dev/null)
+bt_info=$(bluetoothctl show 2>/dev/null || true)
 if echo "$bt_info" | grep -q 'Powered: yes'; then
 	if bluetoothctl info 2>/dev/null | grep -q 'Connected: yes'; then
 		bt="connected"

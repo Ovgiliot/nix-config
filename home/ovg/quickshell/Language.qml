@@ -52,9 +52,11 @@ Item {
     }
 
     // ── Script poller ─────────────────────────────────────────────────────────
+    Scripts { id: scripts }
+
     Process {
         id: langProc
-        command: ["/home/ovg/.config/waybar/scripts/language.sh"]
+        command: [scripts.language]
         stdout: StdioCollector {
             onStreamFinished: {
                 try {

@@ -2,7 +2,7 @@
 # Outputs current niri keyboard layout as JSON.
 # Class: "ru" for Russian, "en" for everything else.
 
-info=$(niri msg --json keyboard-layouts 2>/dev/null)
+info=$(niri msg --json keyboard-layouts 2>/dev/null || true)
 if [[ -z "$info" ]]; then
 	printf '{"text":"EN","class":"en"}\n'
 	exit 0
