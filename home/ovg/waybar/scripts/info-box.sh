@@ -2,14 +2,29 @@
 
 # Function to get system warnings
 get_warning() {
-	# 1. Battery: Unplugged and below 20%
-	BAT_PATH="/sys/class/power_supply/BAT1"
-	AC_PATH="/sys/class/power_supply/AC"
-	if [ -d "$BAT_PATH" ] && [ -d "$AC_PATH" ]; then
-		capacity=$(cat "$BAT_PATH/capacity")
-		online=$(cat "$AC_PATH/online")
-		if [ "$online" -eq 0 ] && [ "$capacity" -lt 20 ]; then
-			echo "󰂃 Low Battery: $capacity%"
+	# 1. Battery: Unplugged and below 20% (lowest battery, worst case)
+	ac_online=0
+	for psy in /sys/class/power_supply/*/; do
+		type=$(cat "$psy/type" 2>/dev/null || true)
+		if [ "$type" = "Mains" ] || [ "$type" = "USB" ]; then
+			online=$(cat "$psy/online" 2>/dev/null || true)
+			if [ "$online" = "1" ]; then
+				ac_online=1
+				break
+			fi
+		fi
+	done
+	if [ "$ac_online" -eq 0 ]; then
+		min_cap=100
+		for psy in /sys/class/power_supply/*/; do
+			type=$(cat "$psy/type" 2>/dev/null || true)
+			[ "$type" = "Battery" ] || continue
+			cap=$(cat "$psy/capacity" 2>/dev/null || true)
+			[ -n "$cap" ] || continue
+			[ "$cap" -lt "$min_cap" ] && min_cap=$cap
+		done
+		if [ "$min_cap" -lt 20 ] && [ "$min_cap" -ne 100 ]; then
+			echo "󰂃 Low Battery: $min_cap%"
 			return 0
 		fi
 	fi

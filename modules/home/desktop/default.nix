@@ -8,6 +8,4 @@
     ./launcher.nix
     ./apps.nix
   ];
-
-  services.network-manager-applet.enable = true;
 }

@@ -1,6 +1,7 @@
 // Status icons widget: WiFi, Bluetooth, Power Profile, Battery.
-// Polls status.sh every 5 s. Pill background driven by battery state.
+// Polls status.sh every 5 s. Pill background driven by worst battery state.
 // Icons mapped from named ASCII states; all glyphs live here in QML.
+// Per-battery display: each battery rendered individually via Repeater.
 // Shadow: offset y=5, blur 0.7, #00000077 — matches Niri window shadow config.
 
 import Quickshell
@@ -17,8 +18,19 @@ Item {
     property string wifiState:  "off"
     property string btState:    "off"
     property string powerState: "balanced"
-    property int    batLevel:   100
-    property string batState:   "normal"   // "normal" | "charging" | "warning" | "critical"
+    property var    batteries:  []   // [{level: int, state: string}, ...]
+
+    // Worst battery state across all batteries — drives pill color.
+    // Priority: critical > warning > normal/charging.
+    readonly property string worstBatState: {
+        var s = "normal"
+        for (var i = 0; i < root.batteries.length; i++) {
+            var b = root.batteries[i]
+            if (b.state === "critical") return "critical"
+            if (b.state === "warning")  s = "warning"
+        }
+        return s
+    }
 
     readonly property color normalColor:   Qt.rgba(36/255, 41/255, 46/255, 0.7)
     readonly property color warningColor:  Qt.rgba(210/255, 153/255, 34/255, 0.7)
@@ -68,8 +80,8 @@ Item {
         id: pillBg
         anchors.fill: parent
         color: {
-            if (root.batState === "critical") return root.criticalColor
-            if (root.batState === "warning")  return root.warningColor
+            if (root.worstBatState === "critical") return root.criticalColor
+            if (root.worstBatState === "warning")  return root.warningColor
             return root.normalColor
         }
         bottomLeftRadius:  12
@@ -152,14 +164,17 @@ Item {
             }
         }
 
-        // Battery
-        Text {
-            horizontalAlignment: Text.AlignHCenter
-            anchors.verticalCenter: parent.verticalCenter
-            text:           root.batIcon(root.batLevel, root.batState) + " " + root.batLevel + "%"
-            font.family:    "JetBrainsMono Nerd Font"
-            font.pixelSize: 16
-            color:          "#fafafa"
+        // Batteries — one entry per battery; empty array = desktop host, renders nothing
+        Repeater {
+            model: root.batteries
+            Text {
+                horizontalAlignment: Text.AlignHCenter
+                anchors.verticalCenter: parent.verticalCenter
+                text:           root.batIcon(modelData.level, modelData.state) + " " + modelData.level + "%"
+                font.family:    "JetBrainsMono Nerd Font"
+                font.pixelSize: 16
+                color:          "#fafafa"
+            }
         }
     }
 
@@ -174,8 +189,7 @@ Item {
                     root.wifiState  = d.wifi      || "off"
                     root.btState    = d.bt        || "off"
                     root.powerState = d.power     || "balanced"
-                    root.batLevel   = d.bat_level ?? 100
-                    root.batState   = d.bat_state || "normal"
+                    root.batteries  = d.batteries ?? []
                 } catch (_) {}
             }
         }

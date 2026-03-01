@@ -7,6 +7,8 @@
 
   # User identity — common across all Linux profiles.
   # Darwin profile overrides home.homeDirectory.
+  # stateVersion is also set in hosts/nixos/default.nix; kept here so profile
+  # eval tests (which use a minimal testHostModule) have a valid value.
   home.username = "ovg";
   home.homeDirectory = "/home/ovg";
   home.stateVersion = "25.11";

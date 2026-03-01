@@ -1,7 +1,7 @@
 window {
     margin: 0px;
-    border: 1px solid #2f363d; /* Slightly lighter dark grey for border */
-    background-color: #24292e; /* Dark grey for primary background */
+    border: 1px solid #1c2128; /* theme: base01 */
+    background-color: #131314; /* theme: base00 */
     font-family: "JetBrainsMono Nerd Font", "Symbols Nerd Font", sans-serif;
     font-size: 13px;
 }
@@ -15,8 +15,8 @@ window {
 #input {
     margin: 5px;
     border: none;
-    color: #fafafa; /* Off-white for text */
-    background-color: #2f363d; /* Slightly lighter dark grey for background */
+    color: #fafafa; /* theme: base07 */
+    background-color: #1c2128; /* theme: base01 */
 }
 
 #inner-box {
@@ -33,13 +33,13 @@ window {
 #text {
     margin: 5px;
     border: none;
-    color: #fafafa; /* Off-white for text */
+    color: #fafafa; /* theme: base07 */
 }
 
 #entry:selected {
-    background-color: #2f363d; /* Slightly lighter dark grey for selected entry background */
+    background-color: #1c2128; /* theme: base01 */
 }
 
 #text:selected {
-    color: #0366d6; /* Accent blue for selected text */
+    color: #2f81f7; /* theme: blue accent */
 }

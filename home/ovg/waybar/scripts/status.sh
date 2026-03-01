@@ -3,11 +3,52 @@
 # Uses named state strings only — no unicode. Icons are mapped in QML.
 # Fields: wifi (on|off|ethernet), bt (connected|on|off),
 #         power (performance|balanced|power-saver),
-#         bat_level (int), bat_state (normal|warning|critical|charging)
+#         batteries ([{level,state},...])
+# Batteries discovered via sysfs type=Battery; empty array on desktop hosts.
+# AC detection covers type=Mains (wired) and type=USB (USB-C PD).
 
-# ── Battery ───────────────────────────────────────────────────────────────────
-bat_level=$(cat /sys/class/power_supply/BAT1/capacity 2>/dev/null || echo 100)
-ac_online=$(cat /sys/class/power_supply/AC/online 2>/dev/null || echo 1)
+# ── AC detection (Mains or USB-C PD) ─────────────────────────────────────────
+ac_online=0
+for psy in /sys/class/power_supply/*/; do
+	type=$(cat "$psy/type" 2>/dev/null || true)
+	if [ "$type" = "Mains" ] || [ "$type" = "USB" ]; then
+		online=$(cat "$psy/online" 2>/dev/null || true)
+		if [ "$online" = "1" ]; then
+			ac_online=1
+			break
+		fi
+	fi
+done
+
+# ── Batteries ─────────────────────────────────────────────────────────────────
+bat_entries=""
+for psy in /sys/class/power_supply/*/; do
+	type=$(cat "$psy/type" 2>/dev/null || true)
+	[ "$type" = "Battery" ] || continue
+
+	level=$(cat "$psy/capacity" 2>/dev/null || true)
+	[ -n "$level" ] || continue
+
+	if [ "$ac_online" -eq 1 ]; then
+		state="charging"
+	elif [ "$level" -le 15 ]; then
+		state="critical"
+	elif [ "$level" -le 30 ]; then
+		state="warning"
+	else
+		state="normal"
+	fi
+
+	entry="{\"level\":$level,\"state\":\"$state\"}"
+	if [ -n "$bat_entries" ]; then
+		bat_entries="$bat_entries,$entry"
+	else
+		bat_entries="$entry"
+	fi
+done
+
+batteries_json="${bat_entries:+[$bat_entries]}"
+batteries_json="${batteries_json:-[]}"
 
 # ── WiFi / Network ────────────────────────────────────────────────────────────
 wifi_status=$(nmcli -t -f type,state dev 2>/dev/null || true)
@@ -34,16 +75,5 @@ fi
 # ── Power profile ─────────────────────────────────────────────────────────────
 power=$(powerprofilesctl get 2>/dev/null || echo "balanced")
 
-# ── Battery state ─────────────────────────────────────────────────────────────
-if [ "$ac_online" -eq 1 ]; then
-	bat_state="charging"
-elif [ "$bat_level" -le 15 ]; then
-	bat_state="critical"
-elif [ "$bat_level" -le 30 ]; then
-	bat_state="warning"
-else
-	bat_state="normal"
-fi
-
-printf '{"wifi":"%s","bt":"%s","power":"%s","bat_level":%d,"bat_state":"%s"}\n' \
-	"$wifi" "$bt" "$power" "$bat_level" "$bat_state"
+printf '{"wifi":"%s","bt":"%s","power":"%s","batteries":%s}\n' \
+	"$wifi" "$bt" "$power" "$batteries_json"
