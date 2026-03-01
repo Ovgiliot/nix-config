@@ -1,5 +1,6 @@
 {
   pkgs,
+  lib,
   swapLuksUuid,
   ...
 }: {
@@ -11,7 +12,10 @@
   # Use Zen kernel for better responsiveness and gaming
   boot.kernelPackages = pkgs.linuxPackages_zen;
 
-  # LUKS encryption setup for swap/hibernate partition.
-  # UUID is passed in from the host's specialArgs to avoid repetition with power.nix.
-  boot.initrd.luks.devices."luks-${swapLuksUuid}".device = "/dev/disk/by-uuid/${swapLuksUuid}";
+  # LUKS initrd entry for the encrypted swap partition.
+  # Only added when swapLuksUuid is non-empty (i.e. swap is LUKS-encrypted).
+  # Unencrypted swap or no swap: nothing to add here.
+  boot.initrd.luks.devices = lib.optionalAttrs (swapLuksUuid != "") {
+    "luks-${swapLuksUuid}".device = "/dev/disk/by-uuid/${swapLuksUuid}";
+  };
 }

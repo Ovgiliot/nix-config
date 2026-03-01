@@ -3,10 +3,16 @@
 #
 # Two modes:
 #   Live ISO  — Detected automatically when / is a tmpfs (NixOS installer env).
-#               Prompts for a target disk, partitions it with disko, installs
-#               NixOS, and copies the dotfiles repo into the new system.
+#               Prompts for disk(s), partitions with disko, installs NixOS,
+#               and copies the dotfiles repo into the new system.
 #   Installed — Runs on an already-booted NixOS system.  Creates a host entry
 #               under hosts/<hostname>/ and runs nixos-rebuild switch.
+#
+# Partition layout (live ISO):
+#   All profiles:  /boot  1 GiB  vfat (ESP)
+#   Laptop only:   swap   = RAM  [LUKS]  (hibernate support)
+#   All profiles:  /      user-specified or rest-of-disk  ext4  [LUKS]
+#   All profiles:  /home  rest of disk (or separate disk) ext4  [LUKS]
 #
 # Usage: bash install.sh
 set -euo pipefail
@@ -37,7 +43,6 @@ prompt() {
 }
 
 prompt_secret() {
-	# Like prompt but disables echo. Result stored in the named variable.
 	local var="$1" msg="$2"
 	printf '%s: ' "$msg"
 	read -rs "$var"
@@ -64,6 +69,17 @@ choose() {
 		fi
 		warn "Enter a number between 1 and ${#opts[@]}."
 	done
+}
+
+# Return the partition device for a given disk and partition number.
+# Handles both SATA (/dev/sda1) and NVMe/eMMC (/dev/nvme0n1p1) naming.
+part() {
+	local disk="$1" num="$2"
+	if [[ "$disk" == *nvme* || "$disk" == *mmcblk* ]]; then
+		echo "${disk}p${num}"
+	else
+		echo "${disk}${num}"
+	fi
 }
 
 # ---------------------------------------------------------------------------
@@ -111,7 +127,6 @@ if ! command -v nix &>/dev/null; then
 		sh -s -- install --no-confirm ||
 		die "Nix installation failed. Install manually: https://determinate.systems/nix"
 
-	# Make nix available in the current shell without requiring a restart.
 	NIX_PROFILE="/nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh"
 	# shellcheck source=/dev/null
 	[[ -f "$NIX_PROFILE" ]] && source "$NIX_PROFILE" ||
@@ -142,6 +157,7 @@ info "Hostname: $HOSTNAME"
 # Profile-specific inputs (Linux desktop profiles)
 # ---------------------------------------------------------------------------
 SWAP_LUKS_UUID=""
+SWAP_DEVICE=""
 KANATA_DEVICE=""
 VIDEO_ACCEL=""
 
@@ -149,49 +165,105 @@ if [[ "$PROFILE" == "laptop" || "$PROFILE" == "workstation" ]]; then
 	choose VIDEO_ACCEL "GPU vendor (for hardware video acceleration):" "intel" "amd" "none"
 	info "Video acceleration: $VIDEO_ACCEL"
 
-	# Default is the ThinkPad / most-common PS/2 keyboard by-path alias.
-	# Adjust if your machine uses a USB keyboard or a different path.
 	DEFAULT_KBD="/dev/input/by-path/platform-i8042-serio-0-event-kbd"
 	prompt KANATA_DEVICE "Keyboard device path for Kanata" "$DEFAULT_KBD"
 	info "Kanata device: $KANATA_DEVICE"
 fi
 
-if [[ "$PROFILE" == "laptop" ]] && [[ "$LIVE_ISO" == false ]]; then
-	# On an already-installed system the swap partition already exists; just
-	# capture the LUKS UUID for hibernate support.
+# On an already-installed system, capture the swap LUKS UUID manually for
+# hibernate support. On a live ISO the UUID is read from the disk after disko.
+if [[ "$PROFILE" == "laptop" && "$LIVE_ISO" == false ]]; then
 	warn "Laptop profile requires the swap LUKS UUID for hibernate support."
 	warn "Find it with: lsblk -o NAME,UUID | grep luks"
-	prompt SWAP_LUKS_UUID "Swap LUKS UUID (leave empty to skip hibernate setup)"
+	prompt SWAP_LUKS_UUID "Swap LUKS UUID (leave empty to skip hibernate)"
+	if [[ -n "$SWAP_LUKS_UUID" ]]; then
+		SWAP_DEVICE="/dev/mapper/luks-${SWAP_LUKS_UUID}"
+	fi
 fi
 
 # ---------------------------------------------------------------------------
 # Live ISO: disk setup prompts
 # ---------------------------------------------------------------------------
-TARGET_DISK=""
+SYSTEM_DISK=""
+HOME_DISK=""
+SEPARATE_HOME=false
 ENCRYPT=""
+HOME_ENCRYPT=""
 LUKS_PASSPHRASE=""
-SWAP_SIZE=""
+HOME_PASSPHRASE=""
+ROOT_SIZE=""
 
 if [[ "$LIVE_ISO" == true ]]; then
+	# --- RAM auto-detection (for laptop swap size) --------------------------
+	RAM_KB=$(grep '^MemTotal:' /proc/meminfo | awk '{print $2}')
+	RAM_GB=$(((RAM_KB + 1048575) / 1048576)) # round up to nearest GiB
+	SWAP_SIZE="${RAM_GB}G"
+	info "Detected RAM: ${RAM_GB} GiB — swap will be set to ${SWAP_SIZE}."
+
+	# --- Disk discovery -----------------------------------------------------
 	echo ""
 	info "Available block devices:"
-	lsblk -o NAME,SIZE,TYPE,MODEL | grep -v loop || true
+	lsblk -dpno NAME,SIZE,MODEL | grep -v '^$' | grep -v loop || true
 	echo ""
-	prompt TARGET_DISK "Target disk (e.g. /dev/sda or /dev/nvme0n1)"
-	[[ -b "$TARGET_DISK" ]] || die "Not a block device: $TARGET_DISK"
 
-	choose ENCRYPT "Encrypt the disk with LUKS?" "yes" "no"
+	mapfile -t ALL_DISKS < <(lsblk -dpno NAME | grep -v '^$' | grep -v loop)
+	[[ ${#ALL_DISKS[@]} -eq 0 ]] && die "No block devices found."
+
+	# --- System disk --------------------------------------------------------
+	if [[ ${#ALL_DISKS[@]} -eq 1 ]]; then
+		SYSTEM_DISK="${ALL_DISKS[0]}"
+		info "Only one disk found — using $SYSTEM_DISK as system disk."
+	else
+		prompt SYSTEM_DISK "System disk (for /boot, swap, /)" ""
+	fi
+	[[ -b "$SYSTEM_DISK" ]] || die "Not a block device: $SYSTEM_DISK"
+
+	# --- Separate home disk? ------------------------------------------------
+	if [[ ${#ALL_DISKS[@]} -gt 1 ]]; then
+		choose USE_SEPARATE_HOME "Use a separate disk for /home?" "yes" "no"
+		if [[ "$USE_SEPARATE_HOME" == "yes" ]]; then
+			SEPARATE_HOME=true
+			prompt HOME_DISK "Home disk (for /home)" ""
+			[[ "$HOME_DISK" != "$SYSTEM_DISK" ]] || die "Home disk must differ from system disk."
+			[[ -b "$HOME_DISK" ]] || die "Not a block device: $HOME_DISK"
+		fi
+	fi
+
+	# --- Root size (single-disk only) ---------------------------------------
+	if [[ "$SEPARATE_HOME" == false ]]; then
+		if [[ "$PROFILE" == "laptop" ]]; then
+			info "Boot=1G, swap=${SWAP_SIZE} are reserved automatically."
+		else
+			info "Boot=1G is reserved automatically."
+		fi
+		prompt ROOT_SIZE "Root (/) partition size (e.g. 60G — /home gets the remainder)"
+	fi
+
+	# --- System disk encryption ---------------------------------------------
+	choose ENCRYPT "Encrypt the system disk with LUKS?" "yes" "no"
 	if [[ "$ENCRYPT" == "yes" ]]; then
-		prompt_secret LUKS_PASSPHRASE "LUKS passphrase"
+		prompt_secret LUKS_PASSPHRASE "System disk LUKS passphrase"
 		LUKS_CONFIRM=""
-		prompt_secret LUKS_CONFIRM "Confirm LUKS passphrase"
+		prompt_secret LUKS_CONFIRM "Confirm passphrase"
 		[[ "$LUKS_PASSPHRASE" == "$LUKS_CONFIRM" ]] || die "Passphrases do not match."
 		unset LUKS_CONFIRM
 	fi
 
-	if [[ "$PROFILE" == "laptop" ]]; then
-		prompt SWAP_SIZE "Swap partition size (e.g. 16G — should match RAM for hibernate)" "16G"
-		info "Swap size: $SWAP_SIZE"
+	# --- Home disk encryption (separate disk only) --------------------------
+	if [[ "$SEPARATE_HOME" == true ]]; then
+		choose HOME_ENCRYPT "Encrypt the home disk with LUKS?" "yes" "no"
+		if [[ "$HOME_ENCRYPT" == "yes" ]]; then
+			choose SAME_PASS "Use the same passphrase as the system disk?" "yes" "no"
+			if [[ "$SAME_PASS" == "yes" ]]; then
+				HOME_PASSPHRASE="$LUKS_PASSPHRASE"
+			else
+				prompt_secret HOME_PASSPHRASE "Home disk LUKS passphrase"
+				HOME_CONFIRM=""
+				prompt_secret HOME_CONFIRM "Confirm passphrase"
+				[[ "$HOME_PASSPHRASE" == "$HOME_CONFIRM" ]] || die "Passphrases do not match."
+				unset HOME_CONFIRM
+			fi
+		fi
 	fi
 fi
 
@@ -211,45 +283,58 @@ mkdir -p "$HOST_DIR"
 # Generate hosts/<hostname>/disko.nix  (live ISO installs only)
 # ---------------------------------------------------------------------------
 if [[ "$LIVE_ISO" == true ]]; then
-	info "Resolving disk ID for $TARGET_DISK..."
-	# Prefer stable /dev/disk/by-id path; fall back to raw device if unavailable.
-	DISK_BY_ID=$(readlink -f /dev/disk/by-id/* 2>/dev/null |
-		awk -v dev="$TARGET_DISK" '
-      $0 == dev { found=FILENAME }
-      END { print found }
-    ' 2>/dev/null || true)
-	# awk over /dev/disk/by-id symlinks is fiddly; use a simpler approach:
-	DISK_BY_ID=""
-	while IFS= read -r link; do
-		if [[ "$(readlink -f "$link")" == "$TARGET_DISK" ]]; then
-			DISK_BY_ID="$link"
-			break
+	# Resolve stable /dev/disk/by-id paths for both disks.
+	resolve_disk_id() {
+		local dev="$1" result=""
+		while IFS= read -r link; do
+			if [[ "$(readlink -f "$link")" == "$dev" ]]; then
+				result="$link"
+				break
+			fi
+		done < <(find /dev/disk/by-id -maxdepth 1 -type l 2>/dev/null | sort)
+		if [[ -z "$result" ]]; then
+			warn "No by-id symlink found for $dev — using raw device path."
+			result="$dev"
 		fi
-	done < <(find /dev/disk/by-id -maxdepth 1 -type l 2>/dev/null | sort)
-	if [[ -z "$DISK_BY_ID" ]]; then
-		warn "No by-id symlink found for $TARGET_DISK — using raw device path."
-		DISK_BY_ID="$TARGET_DISK"
-	else
-		info "Disk ID: $DISK_BY_ID"
+		echo "$result"
+	}
+
+	info "Resolving disk IDs..."
+	SYSTEM_DISK_ID=$(resolve_disk_id "$SYSTEM_DISK")
+	info "System disk: $SYSTEM_DISK_ID"
+	if [[ "$SEPARATE_HOME" == true ]]; then
+		HOME_DISK_ID=$(resolve_disk_id "$HOME_DISK")
+		info "Home disk:   $HOME_DISK_ID"
 	fi
 
 	info "Writing hosts/$HOSTNAME/disko.nix..."
 
-	if [[ "$ENCRYPT" == "yes" ]]; then
+	# Helper: wrap content in a LUKS partition if ENCRYPT=yes, else use directly.
+	# $1 = LUKS name, $2 = encryption flag (yes/no), $3 = content block (indented 16 spaces)
+	# We build the disko.nix as a single heredoc, branching in bash.
+
+	if [[ "$SEPARATE_HOME" == false ]]; then
+		# ── Single disk layout ───────────────────────────────────────────────
+		# Partitions (in order):
+		#   1. ESP   1G    vfat    /boot
+		#   2. swap  RAM   [LUKS]  swap    ← laptop only
+		#   3. root  SIZE  [LUKS]  ext4    /
+		#   4. home  100%  [LUKS]  ext4    /home
+
 		if [[ "$PROFILE" == "laptop" ]]; then
-			# Encrypted: ESP + LUKS swap + LUKS root
-			cat >"$HOST_DIR/disko.nix" <<NIXEOF
-# Disk layout for ${HOSTNAME} — GPT, LUKS-encrypted swap + root.
+			if [[ "$ENCRYPT" == "yes" ]]; then
+				cat >"$HOST_DIR/disko.nix" <<NIXEOF
+# Single-disk layout — ESP + encrypted swap + encrypted root + encrypted home.
 # Generated by install.sh; do not edit manually.
 {...}: {
   disko.devices.disk.main = {
     type = "disk";
-    device = "${DISK_BY_ID}";
+    device = "${SYSTEM_DISK_ID}";
     content = {
       type = "gpt";
       partitions = {
         ESP = {
-          size = "512M";
+          size = "1G";
           type = "EF00";
           content = {
             type = "filesystem";
@@ -264,13 +349,11 @@ if [[ "$LIVE_ISO" == true ]]; then
             type = "luks";
             name = "cryptswap";
             settings.allowDiscards = true;
-            content = {
-              type = "swap";
-            };
+            content = {type = "swap";};
           };
         };
         root = {
-          size = "100%";
+          size = "${ROOT_SIZE}";
           content = {
             type = "luks";
             name = "cryptroot";
@@ -283,43 +366,16 @@ if [[ "$LIVE_ISO" == true ]]; then
             };
           };
         };
-      };
-    };
-  };
-}
-NIXEOF
-		else
-			# Encrypted: ESP + LUKS root (workstation / server)
-			cat >"$HOST_DIR/disko.nix" <<NIXEOF
-# Disk layout for ${HOSTNAME} — GPT, LUKS-encrypted root.
-# Generated by install.sh; do not edit manually.
-{...}: {
-  disko.devices.disk.main = {
-    type = "disk";
-    device = "${DISK_BY_ID}";
-    content = {
-      type = "gpt";
-      partitions = {
-        ESP = {
-          size = "512M";
-          type = "EF00";
-          content = {
-            type = "filesystem";
-            format = "vfat";
-            mountpoint = "/boot";
-            mountOptions = ["umask=0077"];
-          };
-        };
-        root = {
+        home = {
           size = "100%";
           content = {
             type = "luks";
-            name = "cryptroot";
+            name = "crypthome";
             settings.allowDiscards = true;
             content = {
               type = "filesystem";
               format = "ext4";
-              mountpoint = "/";
+              mountpoint = "/home";
               mountOptions = ["noatime"];
             };
           };
@@ -329,22 +385,19 @@ NIXEOF
   };
 }
 NIXEOF
-		fi
-	else
-		if [[ "$PROFILE" == "laptop" ]]; then
-			# Unencrypted: ESP + swap + root
-			cat >"$HOST_DIR/disko.nix" <<NIXEOF
-# Disk layout for ${HOSTNAME} — GPT, unencrypted swap + root.
+			else
+				cat >"$HOST_DIR/disko.nix" <<NIXEOF
+# Single-disk layout — ESP + swap + root + home (unencrypted).
 # Generated by install.sh; do not edit manually.
 {...}: {
   disko.devices.disk.main = {
     type = "disk";
-    device = "${DISK_BY_ID}";
+    device = "${SYSTEM_DISK_ID}";
     content = {
       type = "gpt";
       partitions = {
         ESP = {
-          size = "512M";
+          size = "1G";
           type = "EF00";
           content = {
             type = "filesystem";
@@ -355,16 +408,23 @@ NIXEOF
         };
         swap = {
           size = "${SWAP_SIZE}";
-          content = {
-            type = "swap";
-          };
+          content = {type = "swap";};
         };
         root = {
-          size = "100%";
+          size = "${ROOT_SIZE}";
           content = {
             type = "filesystem";
             format = "ext4";
             mountpoint = "/";
+            mountOptions = ["noatime"];
+          };
+        };
+        home = {
+          size = "100%";
+          content = {
+            type = "filesystem";
+            format = "ext4";
+            mountpoint = "/home";
             mountOptions = ["noatime"];
           };
         };
@@ -373,20 +433,22 @@ NIXEOF
   };
 }
 NIXEOF
+			fi
 		else
-			# Unencrypted: ESP + root (workstation / server)
-			cat >"$HOST_DIR/disko.nix" <<NIXEOF
-# Disk layout for ${HOSTNAME} — GPT, unencrypted root.
+			# workstation / server — no swap
+			if [[ "$ENCRYPT" == "yes" ]]; then
+				cat >"$HOST_DIR/disko.nix" <<NIXEOF
+# Single-disk layout — ESP + encrypted root + encrypted home.
 # Generated by install.sh; do not edit manually.
 {...}: {
   disko.devices.disk.main = {
     type = "disk";
-    device = "${DISK_BY_ID}";
+    device = "${SYSTEM_DISK_ID}";
     content = {
       type = "gpt";
       partitions = {
         ESP = {
-          size = "512M";
+          size = "1G";
           type = "EF00";
           content = {
             type = "filesystem";
@@ -396,11 +458,74 @@ NIXEOF
           };
         };
         root = {
+          size = "${ROOT_SIZE}";
+          content = {
+            type = "luks";
+            name = "cryptroot";
+            settings.allowDiscards = true;
+            content = {
+              type = "filesystem";
+              format = "ext4";
+              mountpoint = "/";
+              mountOptions = ["noatime"];
+            };
+          };
+        };
+        home = {
           size = "100%";
+          content = {
+            type = "luks";
+            name = "crypthome";
+            settings.allowDiscards = true;
+            content = {
+              type = "filesystem";
+              format = "ext4";
+              mountpoint = "/home";
+              mountOptions = ["noatime"];
+            };
+          };
+        };
+      };
+    };
+  };
+}
+NIXEOF
+			else
+				cat >"$HOST_DIR/disko.nix" <<NIXEOF
+# Single-disk layout — ESP + root + home (unencrypted).
+# Generated by install.sh; do not edit manually.
+{...}: {
+  disko.devices.disk.main = {
+    type = "disk";
+    device = "${SYSTEM_DISK_ID}";
+    content = {
+      type = "gpt";
+      partitions = {
+        ESP = {
+          size = "1G";
+          type = "EF00";
+          content = {
+            type = "filesystem";
+            format = "vfat";
+            mountpoint = "/boot";
+            mountOptions = ["umask=0077"];
+          };
+        };
+        root = {
+          size = "${ROOT_SIZE}";
           content = {
             type = "filesystem";
             format = "ext4";
             mountpoint = "/";
+            mountOptions = ["noatime"];
+          };
+        };
+        home = {
+          size = "100%";
+          content = {
+            type = "filesystem";
+            format = "ext4";
+            mountpoint = "/home";
             mountOptions = ["noatime"];
           };
         };
@@ -409,6 +534,266 @@ NIXEOF
   };
 }
 NIXEOF
+			fi
+		fi
+
+	else
+		# ── Two-disk layout ──────────────────────────────────────────────────
+		# System disk partitions:
+		#   1. ESP   1G    vfat    /boot
+		#   2. swap  RAM   [LUKS]  swap    ← laptop only
+		#   3. root  100%  [LUKS]  ext4    /
+		# Home disk:
+		#   1. home  100%  [HOME_LUKS] ext4  /home
+
+		# Build the home disk partition block depending on HOME_ENCRYPT.
+		if [[ "$HOME_ENCRYPT" == "yes" ]]; then
+			HOME_PART_BLOCK='home = {
+          size = "100%";
+          content = {
+            type = "luks";
+            name = "crypthome";
+            settings.allowDiscards = true;
+            content = {
+              type = "filesystem";
+              format = "ext4";
+              mountpoint = "/home";
+              mountOptions = ["noatime"];
+            };
+          };
+        };'
+		else
+			HOME_PART_BLOCK='home = {
+          size = "100%";
+          content = {
+            type = "filesystem";
+            format = "ext4";
+            mountpoint = "/home";
+            mountOptions = ["noatime"];
+          };
+        };'
+		fi
+
+		if [[ "$PROFILE" == "laptop" ]]; then
+			if [[ "$ENCRYPT" == "yes" ]]; then
+				cat >"$HOST_DIR/disko.nix" <<NIXEOF
+# Two-disk layout — system: ESP + encrypted swap + encrypted root;
+#                   home disk: ${HOME_ENCRYPT== "yes" && echo "encrypted" || echo "unencrypted"} /home.
+# Generated by install.sh; do not edit manually.
+{...}: {
+  disko.devices.disk = {
+    system = {
+      type = "disk";
+      device = "${SYSTEM_DISK_ID}";
+      content = {
+        type = "gpt";
+        partitions = {
+          ESP = {
+            size = "1G";
+            type = "EF00";
+            content = {
+              type = "filesystem";
+              format = "vfat";
+              mountpoint = "/boot";
+              mountOptions = ["umask=0077"];
+            };
+          };
+          swap = {
+            size = "${SWAP_SIZE}";
+            content = {
+              type = "luks";
+              name = "cryptswap";
+              settings.allowDiscards = true;
+              content = {type = "swap";};
+            };
+          };
+          root = {
+            size = "100%";
+            content = {
+              type = "luks";
+              name = "cryptroot";
+              settings.allowDiscards = true;
+              content = {
+                type = "filesystem";
+                format = "ext4";
+                mountpoint = "/";
+                mountOptions = ["noatime"];
+              };
+            };
+          };
+        };
+      };
+    };
+    home = {
+      type = "disk";
+      device = "${HOME_DISK_ID}";
+      content = {
+        type = "gpt";
+        partitions = {
+          ${HOME_PART_BLOCK}
+        };
+      };
+    };
+  };
+}
+NIXEOF
+			else
+				cat >"$HOST_DIR/disko.nix" <<NIXEOF
+# Two-disk layout — system: ESP + swap + root (unencrypted);
+#                   home disk: ${HOME_ENCRYPT== "yes" && echo "encrypted" || echo "unencrypted"} /home.
+# Generated by install.sh; do not edit manually.
+{...}: {
+  disko.devices.disk = {
+    system = {
+      type = "disk";
+      device = "${SYSTEM_DISK_ID}";
+      content = {
+        type = "gpt";
+        partitions = {
+          ESP = {
+            size = "1G";
+            type = "EF00";
+            content = {
+              type = "filesystem";
+              format = "vfat";
+              mountpoint = "/boot";
+              mountOptions = ["umask=0077"];
+            };
+          };
+          swap = {
+            size = "${SWAP_SIZE}";
+            content = {type = "swap";};
+          };
+          root = {
+            size = "100%";
+            content = {
+              type = "filesystem";
+              format = "ext4";
+              mountpoint = "/";
+              mountOptions = ["noatime"];
+            };
+          };
+        };
+      };
+    };
+    home = {
+      type = "disk";
+      device = "${HOME_DISK_ID}";
+      content = {
+        type = "gpt";
+        partitions = {
+          ${HOME_PART_BLOCK}
+        };
+      };
+    };
+  };
+}
+NIXEOF
+			fi
+		else
+			# workstation / server — no swap
+			if [[ "$ENCRYPT" == "yes" ]]; then
+				cat >"$HOST_DIR/disko.nix" <<NIXEOF
+# Two-disk layout — system: ESP + encrypted root;
+#                   home disk: ${HOME_ENCRYPT== "yes" && echo "encrypted" || echo "unencrypted"} /home.
+# Generated by install.sh; do not edit manually.
+{...}: {
+  disko.devices.disk = {
+    system = {
+      type = "disk";
+      device = "${SYSTEM_DISK_ID}";
+      content = {
+        type = "gpt";
+        partitions = {
+          ESP = {
+            size = "1G";
+            type = "EF00";
+            content = {
+              type = "filesystem";
+              format = "vfat";
+              mountpoint = "/boot";
+              mountOptions = ["umask=0077"];
+            };
+          };
+          root = {
+            size = "100%";
+            content = {
+              type = "luks";
+              name = "cryptroot";
+              settings.allowDiscards = true;
+              content = {
+                type = "filesystem";
+                format = "ext4";
+                mountpoint = "/";
+                mountOptions = ["noatime"];
+              };
+            };
+          };
+        };
+      };
+    };
+    home = {
+      type = "disk";
+      device = "${HOME_DISK_ID}";
+      content = {
+        type = "gpt";
+        partitions = {
+          ${HOME_PART_BLOCK}
+        };
+      };
+    };
+  };
+}
+NIXEOF
+			else
+				cat >"$HOST_DIR/disko.nix" <<NIXEOF
+# Two-disk layout — system: ESP + root (unencrypted);
+#                   home disk: ${HOME_ENCRYPT== "yes" && echo "encrypted" || echo "unencrypted"} /home.
+# Generated by install.sh; do not edit manually.
+{...}: {
+  disko.devices.disk = {
+    system = {
+      type = "disk";
+      device = "${SYSTEM_DISK_ID}";
+      content = {
+        type = "gpt";
+        partitions = {
+          ESP = {
+            size = "1G";
+            type = "EF00";
+            content = {
+              type = "filesystem";
+              format = "vfat";
+              mountpoint = "/boot";
+              mountOptions = ["umask=0077"];
+            };
+          };
+          root = {
+            size = "100%";
+            content = {
+              type = "filesystem";
+              format = "ext4";
+              mountpoint = "/";
+              mountOptions = ["noatime"];
+            };
+          };
+        };
+      };
+    };
+    home = {
+      type = "disk";
+      device = "${HOME_DISK_ID}";
+      content = {
+        type = "gpt";
+        partitions = {
+          ${HOME_PART_BLOCK}
+        };
+      };
+    };
+  };
+}
+NIXEOF
+			fi
 		fi
 	fi
 	ok "hosts/$HOSTNAME/disko.nix written."
@@ -419,8 +804,8 @@ fi
 # ---------------------------------------------------------------------------
 info "Writing hosts/$HOSTNAME/default.nix..."
 
-# disko.nix is included in the modules list for live ISO installs so that the
-# installed system picks up the filesystem declarations for future rebuilds.
+# disko modules are included only for live ISO installs so that the installed
+# system keeps its own filesystem/LUKS config across future rebuilds.
 DISKO_MODULE=""
 if [[ "$LIVE_ISO" == true ]]; then
 	DISKO_MODULE="
@@ -439,7 +824,14 @@ in {
 
   specialArgs = {
     inherit inputs dotfilesDir;
+    # Swap LUKS UUID — for the initrd LUKS entry (boot.nix).
+    # Empty string disables the LUKS entry (unencrypted or no swap).
     swapLuksUuid = "${SWAP_LUKS_UUID}";
+    # Resume device for hibernate (power.nix).
+    # Encrypted swap: "/dev/mapper/cryptswap"
+    # Unencrypted swap: "/dev/disk/by-uuid/<partUuid>"
+    # No hibernate: ""
+    swapDevice = "${SWAP_DEVICE}";
     kanataConfig = dotfilesDir + "/kanata.kbd";
     kanataDevice = "${KANATA_DEVICE}";
     videoAcceleration = "${VIDEO_ACCEL}";
@@ -557,7 +949,6 @@ NIXEOF
 
 elif [[ "$PROFILE" == "darwin" ]]; then
 
-	# Detect Apple Silicon vs Intel
 	DARWIN_SYSTEM="aarch64-darwin"
 	[[ "$(uname -m)" == "x86_64" ]] && DARWIN_SYSTEM="x86_64-darwin"
 
@@ -583,7 +974,6 @@ in {
         description = "ovg";
       };
 
-      # nix-darwin state version — do not change after first activation.
       system.stateVersion = 6;
 
       home-manager.users.ovg = {
@@ -613,13 +1003,9 @@ else
 	ENTRY="      ${HOSTNAME} = mkNixosHost \"${HOSTNAME}\";"
 fi
 
-# Only inject if not already present
 if grep -q "\"${HOSTNAME}\"" "$FLAKE_DIR/flake.nix"; then
 	warn "$HOSTNAME already in flake.nix — skipping injection."
 else
-	# Insert the new entry on the line before the marker.
-	# awk is used instead of sed -i because BSD sed (macOS) requires a different
-	# -i syntax and does not support \n in replacement strings.
 	awk -v entry="      ${ENTRY}" -v marker="${MARKER}" '
 		index($0, marker) > 0 { print entry }
 		{ print }
@@ -671,10 +1057,9 @@ if [[ "$LIVE_ISO" == true ]]; then
 	# ------------------------------------------------------------------
 	# Live ISO: partition → install → copy dotfiles
 	# ------------------------------------------------------------------
-	info "Partitioning $TARGET_DISK with disko..."
+	info "Partitioning disk(s) with disko..."
 	if [[ "$ENCRYPT" == "yes" ]]; then
-		# Supply the LUKS passphrase non-interactively via a key file so disko
-		# doesn't prompt once per LUKS partition.
+		# Supply the system disk passphrase non-interactively via a key file.
 		KEYFILE="$(mktemp)"
 		printf '%s' "$LUKS_PASSPHRASE" >"$KEYFILE"
 		sudo disko --mode disko \
@@ -687,35 +1072,51 @@ if [[ "$LIVE_ISO" == true ]]; then
 	else
 		sudo disko --mode disko "$HOST_DIR/disko.nix" || die "disko failed."
 	fi
-	ok "Disk partitioned and mounted at /mnt."
+	ok "Disk(s) partitioned and mounted at /mnt."
 
-	# Capture LUKS UUIDs after disko has created the partitions.
-	# Partition order: ESP=1, (swap=2 if laptop), root=last.
-	if [[ "$PROFILE" == "laptop" && "$ENCRYPT" == "yes" ]]; then
-		# Determine the swap partition: 2nd partition on the disk.
-		# Works for both /dev/sda2 and /dev/nvme0n1p2 naming conventions.
-		if [[ "$TARGET_DISK" == *nvme* ]]; then
-			SWAP_PART="${TARGET_DISK}p2"
+	# ------------------------------------------------------------------
+	# Capture swap LUKS/partition UUID for laptop hibernate support.
+	# ------------------------------------------------------------------
+	# Partition order on the system disk:
+	#   laptop: p1=ESP  p2=swap  p3=root  (single-disk also has p4=home)
+	#   other:  p1=ESP  p2=root  (single-disk also has p3=home)
+	if [[ "$PROFILE" == "laptop" ]]; then
+		SWAP_PART=$(part "$SYSTEM_DISK" 2)
+		if [[ "$ENCRYPT" == "yes" ]]; then
+			SWAP_LUKS_UUID="$(blkid -s UUID -o value "$SWAP_PART")" ||
+				warn "Could not read swap LUKS UUID — hibernate may not work."
+			SWAP_DEVICE="/dev/mapper/cryptswap"
 		else
-			SWAP_PART="${TARGET_DISK}2"
+			SWAP_PART_UUID="$(blkid -s UUID -o value "$SWAP_PART")" ||
+				warn "Could not read swap partition UUID — hibernate may not work."
+			SWAP_DEVICE="/dev/disk/by-uuid/${SWAP_PART_UUID}"
+			SWAP_LUKS_UUID=""
 		fi
-		SWAP_LUKS_UUID="$(blkid -s UUID -o value "$SWAP_PART")" ||
-			warn "Could not read swap LUKS UUID — hibernate may not work."
-		info "Swap LUKS UUID: $SWAP_LUKS_UUID"
-		# Patch the placeholder UUID in default.nix.
-		sed -i "s/swapLuksUuid = \"\";/swapLuksUuid = \"${SWAP_LUKS_UUID}\";/" \
-			"$HOST_DIR/default.nix" || true
+		info "Swap device for hibernate: $SWAP_DEVICE"
+
+		# Patch the placeholder values written into default.nix above.
+		sed -i \
+			-e "s|swapLuksUuid = \"\"|swapLuksUuid = \"${SWAP_LUKS_UUID}\"|" \
+			-e "s|swapDevice = \"\"|swapDevice = \"${SWAP_DEVICE}\"|" \
+			"$HOST_DIR/default.nix"
+		ok "default.nix patched with swap UUIDs."
 	fi
 
+	# ------------------------------------------------------------------
+	# Generate hardware configuration from the mounted /mnt.
+	# ------------------------------------------------------------------
 	info "Generating hardware configuration..."
 	sudo nixos-generate-config --root /mnt --show-hardware-config \
 		>"$HOST_DIR/hardware.nix" ||
 		die "nixos-generate-config failed."
 	ok "hardware.nix written."
 
-	# Re-format after hardware.nix was written.
+	# Re-format after hardware.nix and any sed patches.
 	alejandra "$HOST_DIR/" 2>/dev/null || true
 
+	# ------------------------------------------------------------------
+	# nixos-install
+	# ------------------------------------------------------------------
 	info "Running nixos-install for .#$HOSTNAME ..."
 	cd "$FLAKE_DIR"
 	sudo nixos-install \
@@ -725,7 +1126,9 @@ if [[ "$LIVE_ISO" == true ]]; then
 		die "nixos-install failed."
 	ok "NixOS installed."
 
+	# ------------------------------------------------------------------
 	# Copy dotfiles into the new system so they are available after reboot.
+	# ------------------------------------------------------------------
 	info "Copying dotfiles to /mnt/home/ovg/dotfiles/nix ..."
 	sudo mkdir -p /mnt/home/ovg/dotfiles
 	sudo cp -rT "$FLAKE_DIR" /mnt/home/ovg/dotfiles/nix

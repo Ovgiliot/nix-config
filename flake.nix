@@ -191,6 +191,8 @@
         # Placeholder UUID — only consumed by laptop/boot.nix and power.nix,
         # neither of which is imported by server or workstation profiles.
         swapLuksUuid = "00000000-0000-0000-0000-000000000000";
+        # Swap resume device — empty disables hibernate (laptop profile only).
+        swapDevice = "";
         # kanata.kbd must be a real file so builtins.readFile can evaluate.
         kanataConfig = ./home/ovg/kanata.kbd;
         # Placeholder device path — consumed by input.nix (workstation + laptop).
