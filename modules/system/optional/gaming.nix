@@ -43,4 +43,8 @@
       "vm.page-cluster" = 0;
     };
   };
+
+  # zram is required for the vm.swappiness = 100 tuning above to be meaningful.
+  # On a gaming workstation this also reduces latency spikes from slow-disk swap.
+  zramSwap.enable = true;
 }
