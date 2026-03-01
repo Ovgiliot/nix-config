@@ -95,6 +95,10 @@
         swapLuksUuid = "00000000-0000-0000-0000-000000000000";
         # kanata.kbd must be a real file so builtins.readFile can evaluate.
         kanataConfig = ./home/ovg/kanata.kbd;
+        # Placeholder device path — consumed by input.nix (workstation + laptop).
+        kanataDevice = "/dev/input/by-path/platform-i8042-serio-0-event-kbd";
+        # No Intel hardware in test environments; skip VA-API packages.
+        videoAcceleration = "none";
       };
 
       # Minimal NixOS host module shared by all profile tests.

@@ -3,6 +3,7 @@
   pkgs,
   lib,
   kanataConfig,
+  kanataDevice,
   ...
 }: {
   # Kernel modules for uinput (needed for Kanata)
@@ -23,7 +24,8 @@
       default = {
         # Path is passed from the host's specialArgs to avoid fragile ../../ navigation.
         configFile = kanataConfig;
-        devices = ["/dev/input/by-path/platform-i8042-serio-0-event-kbd"];
+        # Device path is host-specific; passed via kanataDevice specialArg.
+        devices = [kanataDevice];
       };
     };
   };

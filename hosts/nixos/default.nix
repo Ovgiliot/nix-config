@@ -12,6 +12,10 @@ in {
     swapLuksUuid = "9de9918d-99aa-4f0d-8a35-22af09cf8049";
     # Kanata config resolved from the flake root; avoids fragile relative paths inside modules.
     kanataConfig = dotfilesDir + "/kanata.kbd";
+    # PS/2 keyboard device path for Kanata on this ThinkPad.
+    kanataDevice = "/dev/input/by-path/platform-i8042-serio-0-event-kbd";
+    # Intel integrated graphics: enable VA-API acceleration packages.
+    videoAcceleration = "intel";
   };
 
   modules = [

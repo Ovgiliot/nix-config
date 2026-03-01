@@ -17,7 +17,6 @@
     ../modules/system/optional/gaming.nix
   ];
 
-  nixpkgs.overlays = [inputs.niri.overlays.niri];
   nixpkgs.config = {
     allowUnfree = true;
     chromium.enableWideVine = true;

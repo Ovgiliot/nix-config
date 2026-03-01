@@ -19,7 +19,6 @@
     ../modules/system/laptop/services.nix
   ];
 
-  nixpkgs.overlays = [inputs.niri.overlays.niri];
   nixpkgs.config = {
     allowUnfree = true;
     chromium.enableWideVine = true;

@@ -1,8 +1,14 @@
 {
   pkgs,
   lib,
+  inputs,
+  videoAcceleration,
   ...
 }: {
+  # Niri overlay applied here so pkgs.niri-unstable is available system-wide
+  # and in Home Manager (useGlobalPkgs = true).
+  nixpkgs.overlays = [inputs.niri.overlays.niri];
+
   # --- Display & Window Management ---
 
   # X11 windowing system
@@ -68,25 +74,27 @@
   # swaylock reads PAM to authenticate; without this entry it rejects every password.
   security.pam.services.swaylock = {};
 
-  # Hardware Acceleration (Intel)
+  # Hardware Acceleration
+  # extraPackages/extraPackages32 are only populated for Intel; other hosts get
+  # an empty list (driver packages are architecture-specific anyway).
   hardware.graphics = {
     enable = true;
     enable32Bit = true;
-    extraPackages = with pkgs; [
+    extraPackages = lib.optionals (videoAcceleration == "intel") (with pkgs; [
       intel-media-driver
       intel-vaapi-driver
       libvdpau-va-gl
       vpl-gpu-rt
-    ];
-    extraPackages32 = with pkgs.pkgsi686Linux; [
+    ]);
+    extraPackages32 = lib.optionals (videoAcceleration == "intel") (with pkgs.pkgsi686Linux; [
       intel-media-driver
       intel-vaapi-driver
       libvdpau-va-gl
-    ];
+    ]);
   };
 
   environment.sessionVariables = {
-    LIBVA_DRIVER_NAME = "iHD";
+    LIBVA_DRIVER_NAME = lib.mkIf (videoAcceleration == "intel") "iHD";
     # Force Firefox-based apps (Zen, etc.) onto native Wayland so they inherit
     # the compositor scale instead of auto-detecting physical display DPI.
     MOZ_ENABLE_WAYLAND = "1";
