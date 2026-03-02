@@ -32,26 +32,34 @@ Item {
         return "on"
     }
 
-    // Laptop batteries from UPower (filter by isLaptopBattery)
+    // Laptop batteries from UPower (filter by isLaptopBattery).
+    // Touch dev.percentage and dev.state inside the loop so QML tracks
+    // those property changes as reactive dependencies — otherwise the
+    // binding only re-evaluates when devices are added/removed.
     readonly property var laptopBatteries: {
         const all = UPower.devices.values
         const result = []
         for (var i = 0; i < all.length; i++) {
-            if (all[i].isLaptopBattery) result.push(all[i])
+            const dev = all[i]
+            void dev.percentage
+            void dev.state
+            if (dev.isLaptopBattery) result.push(dev)
         }
         return result
     }
 
     // Worst battery state across all laptop batteries — drives pill color.
     // Priority: critical > warning > normal/charging.
+    // FullyCharged is treated as charging so it never triggers a warning.
     readonly property string worstBatState: {
         var s = "normal"
         const bats = root.laptopBatteries
         for (var i = 0; i < bats.length; i++) {
             const b = bats[i]
-            const lvl = Math.round(b.percentage)
+            const lvl = Math.round(b.percentage * 100)
             const charging = b.state === UPowerDeviceState.Charging
                           || b.state === UPowerDeviceState.PendingCharge
+                          || b.state === UPowerDeviceState.FullyCharged
             if (!charging && lvl <= 15) return "critical"
             if (!charging && lvl <= 30) s = "warning"
         }
@@ -105,10 +113,11 @@ Item {
     // ── Scripts path registry ─────────────────────────────────────────────────
     Scripts { id: scripts }
 
-    // ── WiFi: long-running process ────────────────────────────────────────────
+    // ── WiFi: long-running process — restart on exit so monitor stays live ────
     Process {
         running: true
         command: [scripts.wifiMonitor]
+        onExited: running = true
         stdout: SplitParser {
             splitMarker: "\n"
             onRead: (line) => {
@@ -151,7 +160,10 @@ Item {
         id: powerRefreshTimer
         interval: 800
         repeat: false
-        onTriggered: powerStateProc.running = true
+        onTriggered: {
+            if (!powerStateProc.running)
+                powerStateProc.running = true
+        }
     }
 
     // ── Action processes ─────────────────────────────────────────────────────
@@ -202,7 +214,7 @@ Item {
             color:          "#fafafa"
             MouseArea {
                 anchors.fill: parent
-                onClicked: wifiMenuProc.running = true
+                onClicked: if (!wifiMenuProc.running) wifiMenuProc.running = true
             }
         }
 
@@ -217,7 +229,7 @@ Item {
             color:          root.btColor(root.btState)
             MouseArea {
                 anchors.fill: parent
-                onClicked: btMenuProc.running = true
+                onClicked: if (!btMenuProc.running) btMenuProc.running = true
             }
         }
 
@@ -233,7 +245,7 @@ Item {
             MouseArea {
                 anchors.fill: parent
                 onClicked: {
-                    cyclePowerProc.running = true
+                    if (!cyclePowerProc.running) cyclePowerProc.running = true
                     powerRefreshTimer.restart()
                 }
             }
@@ -245,10 +257,14 @@ Item {
             Text {
                 required property var modelData
 
+                // FullyCharged treated as charging so icon/color stay correct
                 readonly property bool charging: modelData.state === UPowerDeviceState.Charging
                                               || modelData.state === UPowerDeviceState.PendingCharge
-                readonly property int  level:    Math.round(modelData.percentage)
+                                              || modelData.state === UPowerDeviceState.FullyCharged
+                // percentage is 0.0–1.0; multiply by 100 for display
+                readonly property int  level:    Math.round(modelData.percentage * 100)
 
+                width: 48
                 horizontalAlignment: Text.AlignHCenter
                 anchors.verticalCenter: parent.verticalCenter
                 text:           root.batIcon(level, charging) + " " + level + "%"
