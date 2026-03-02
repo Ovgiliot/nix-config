@@ -14,7 +14,7 @@ Item {
     Rectangle {
         id: pillBg
         anchors.fill: parent
-        color: Qt.rgba(36/255, 41/255, 46/255, 0.7)
+        color: Qt.rgba(36/255, 41/255, 46/255, 0.8)
         bottomLeftRadius:  12
         bottomRightRadius: 12
         visible: false

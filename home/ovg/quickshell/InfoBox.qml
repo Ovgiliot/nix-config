@@ -1,12 +1,9 @@
 // Info-box widget.
-// Polls warnings.sh every 30 s for system warnings (temp, disk, RAM, CPU).
+// warningText and warningClass are bound from StatusPoller in shell.qml — no polling here.
 // Shows media info from Mpris when no warning is active (event-driven, no poll).
-// Click → play/pause via Mpris.
 // Width is set by anchors in shell.qml — do not set implicitWidth here.
 // Shadow: offset y=5, blur 0.7, #00000077 — matches Niri window shadow config.
 
-import Quickshell
-import Quickshell.Io
 import Quickshell.Services.Mpris
 import QtQuick
 import QtQuick.Effects
@@ -16,7 +13,7 @@ Item {
     // width is set by anchors in shell.qml — do not set implicitWidth here
     implicitHeight: 24
 
-    // Warning state from warnings.sh (30 s poll)
+    // Warning state bound from StatusPoller via shell.qml
     property string warningText:  ""
     property string warningClass: "none"
 
@@ -37,7 +34,7 @@ Item {
         return "none"
     }
 
-    readonly property color normalColor:  Qt.rgba(36/255, 41/255, 46/255, 0.55)
+    readonly property color normalColor:  Qt.rgba(36/255, 41/255, 46/255, 0.8)
     readonly property color warningColor: Qt.rgba(248/255, 81/255, 73/255, 0.8)
 
     // ── Pill background (hidden — MultiEffect renders it with shadow) ─────────
@@ -74,42 +71,5 @@ Item {
         font.family:    "JetBrainsMono Nerd Font"
         font.pixelSize: 14
         color: "#fafafa"
-    }
-
-    // Click → play/pause via Mpris (event-driven, no playerctl process)
-    MouseArea {
-        anchors.fill: parent
-        onClicked: {
-            const players = Mpris.players.values
-            if (players.length > 0 && players[0].canTogglePlaying)
-                players[0].togglePlaying()
-        }
-    }
-
-    // ── Warnings poller (30 s; system checks only) ────────────────────────────
-    Scripts { id: scripts }
-
-    Process {
-        id: warningsProc
-        command: [scripts.warnings]
-        stdout: StdioCollector {
-            onStreamFinished: {
-                try {
-                    const d = JSON.parse(text.trim())
-                    root.warningText  = d.text  || ""
-                    root.warningClass = d.class || "none"
-                } catch (_) {
-                    root.warningClass = "none"
-                }
-            }
-        }
-    }
-
-    Timer {
-        interval: 30000
-        running: true
-        repeat: true
-        triggeredOnStart: true
-        onTriggered: if (!warningsProc.running) warningsProc.running = true
     }
 }

@@ -1,7 +1,7 @@
 // Status icons widget: WiFi, Bluetooth, Power Profile, Battery.
 // WiFi:    long-running wifi-monitor process (event-driven via nmcli monitor).
 // BT:      Quickshell.Bluetooth service singleton (event-driven).
-// Power:   shell-based poll via powerprofilesctl (5 s interval + refresh after click).
+// Power:   shell-based poll via powerprofilesctl (5 s interval).
 // Battery: Quickshell.Services.UPower singleton (event-driven).
 // Pill background driven by worst laptop battery state.
 // Shadow: offset y=5, blur 0.7, #00000077 — matches Niri window shadow config.
@@ -66,8 +66,8 @@ Item {
         return s
     }
 
-    readonly property color normalColor:   Qt.rgba(36/255, 41/255, 46/255, 0.7)
-    readonly property color warningColor:  Qt.rgba(210/255, 153/255, 34/255, 0.7)
+    readonly property color normalColor:   Qt.rgba(36/255, 41/255, 46/255, 0.8)
+    readonly property color warningColor:  Qt.rgba(210/255, 153/255, 34/255, 0.8)
     readonly property color criticalColor: Qt.rgba(248/255, 81/255,  73/255, 1.0)
 
     function wifiIcon(state) {
@@ -149,27 +149,12 @@ Item {
         interval: 5000
         repeat: true
         running: true
+        triggeredOnStart: true
         onTriggered: {
             if (!powerStateProc.running)
                 powerStateProc.running = true
         }
     }
-
-    // Short delay after click before re-polling so the profile has time to change.
-    property var _powerRefreshTimer: Timer {
-        id: powerRefreshTimer
-        interval: 800
-        repeat: false
-        onTriggered: {
-            if (!powerStateProc.running)
-                powerStateProc.running = true
-        }
-    }
-
-    // ── Action processes ─────────────────────────────────────────────────────
-    Process { id: wifiMenuProc;   command: [scripts.wifiMenu] }
-    Process { id: btMenuProc;     command: [scripts.btMenu] }
-    Process { id: cyclePowerProc; command: [scripts.cyclePower] }
 
     // ── Pill background (hidden — MultiEffect renders it with shadow) ─────────
     Rectangle {
@@ -212,10 +197,6 @@ Item {
             font.family:    "JetBrainsMono Nerd Font"
             font.pixelSize: 16
             color:          "#fafafa"
-            MouseArea {
-                anchors.fill: parent
-                onClicked: if (!wifiMenuProc.running) wifiMenuProc.running = true
-            }
         }
 
         // Bluetooth
@@ -227,13 +208,9 @@ Item {
             font.family:    "JetBrainsMono Nerd Font"
             font.pixelSize: 16
             color:          root.btColor(root.btState)
-            MouseArea {
-                anchors.fill: parent
-                onClicked: if (!btMenuProc.running) btMenuProc.running = true
-            }
         }
 
-        // Power profile (click cycles performance → balanced → power-saver → …)
+        // Power profile
         Text {
             width: 24
             horizontalAlignment: Text.AlignHCenter
@@ -242,13 +219,6 @@ Item {
             font.family:    "JetBrainsMono Nerd Font"
             font.pixelSize: 16
             color:          root.powerColor(root.powerState)
-            MouseArea {
-                anchors.fill: parent
-                onClicked: {
-                    if (!cyclePowerProc.running) cyclePowerProc.running = true
-                    powerRefreshTimer.restart()
-                }
-            }
         }
 
         // Batteries — one entry per laptop battery; empty on desktop hosts

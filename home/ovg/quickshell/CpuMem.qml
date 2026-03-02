@@ -1,11 +1,9 @@
 // CPU + Memory widget.
-// Polls cpu-mem.sh every 5 s; parses JSON {cpu, mem}.
+// cpuPct and memPct are bound from StatusPoller in shell.qml — no polling here.
 // Pill background: standard dark. Bar tracks: opaque dark with 1px black border.
 // Bar fills: green/amber/red per bar, 80 px wide, animated.
-// Shadow: offset y=5, blur 0.7, #00000077 — matches Niri window shadow config.
+// Shadow: offset y=5, blur 0.8, #00000077 — matches Niri window shadow config.
 
-import Quickshell
-import Quickshell.Io
 import QtQuick
 import QtQuick.Effects
 
@@ -17,23 +15,17 @@ Item {
     property int cpuPct: 0
     property int memPct: 0
 
-    readonly property color cpuFillColor: cpuPct >= 75
-        ? Qt.rgba(248/255,  81/255,  73/255, 0.9)
-        : cpuPct >= 40
-            ? Qt.rgba(210/255, 153/255,  34/255, 0.9)
-            : Qt.rgba( 63/255, 185/255,  80/255, 0.9)
-
-    readonly property color memFillColor: memPct >= 75
-        ? Qt.rgba(248/255,  81/255,  73/255, 0.9)
-        : memPct >= 40
-            ? Qt.rgba(210/255, 153/255,  34/255, 0.9)
-            : Qt.rgba( 63/255, 185/255,  80/255, 0.9)
+    function barColor(pct) {
+        if (pct >= 75) return Qt.rgba(248/255,  81/255,  73/255, 0.9)
+        if (pct >= 40) return Qt.rgba(210/255, 153/255,  34/255, 0.9)
+        return             Qt.rgba( 63/255, 185/255,  80/255, 0.9)
+    }
 
     // ── Pill background (hidden — MultiEffect renders it with shadow) ─────────
     Rectangle {
         id: pillBg
         anchors.fill: parent
-        color: Qt.rgba(36/255, 41/255, 46/255, 0.7)
+        color: Qt.rgba(36/255, 41/255, 46/255, 0.8)
         bottomLeftRadius:  12
         bottomRightRadius: 12
         visible: false
@@ -79,7 +71,7 @@ Item {
                 height: parent.height - 2
                 x: 1; y: 1
                 radius: 2
-                color:  root.cpuFillColor
+                color:  root.barColor(root.cpuPct)
                 Behavior on color { ColorAnimation { duration: 400 } }
                 Behavior on width { NumberAnimation { duration: 300; easing.type: Easing.OutCubic } }
             }
@@ -109,35 +101,10 @@ Item {
                 height: parent.height - 2
                 x: 1; y: 1
                 radius: 2
-                color:  root.memFillColor
+                color:  root.barColor(root.memPct)
                 Behavior on color { ColorAnimation { duration: 400 } }
                 Behavior on width { NumberAnimation { duration: 300; easing.type: Easing.OutCubic } }
             }
         }
-    }
-
-    // ── Script poller ─────────────────────────────────────────────────────────
-    Scripts { id: scripts }
-
-    Process {
-        id: cpuMemProc
-        command: [scripts.cpuMem]
-        stdout: StdioCollector {
-            onStreamFinished: {
-                try {
-                    const d = JSON.parse(text.trim())
-                    root.cpuPct = Math.min(100, Math.max(0, d.cpu ?? 0))
-                    root.memPct = Math.min(100, Math.max(0, d.mem ?? 0))
-                } catch (_) {}
-            }
-        }
-    }
-
-    Timer {
-        interval: 5000
-        running: true
-        repeat: true
-        triggeredOnStart: true
-        onTriggered: if (!cpuMemProc.running) cpuMemProc.running = true
     }
 }

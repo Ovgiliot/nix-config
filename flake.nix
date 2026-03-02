@@ -266,21 +266,17 @@
           test -f ${./home/ovg/ghostty/config}                 || exit 1
           test -e ${./home/ovg/ghostty/shaders}                || exit 1
           test -f ${./home/ovg/mako/config}                    || exit 1
-          test -f ${./home/ovg/waybar/scripts/cpu-mem.sh}         || exit 1
-          test -f ${./home/ovg/waybar/scripts/info-box.sh}      || exit 1
-          test -f ${./home/ovg/waybar/scripts/language.sh}      || exit 1
-          test -f ${./home/ovg/waybar/scripts/status.sh}        || exit 1
-          test -f ${./home/ovg/waybar/scripts/cycle-power-profile.sh} || exit 1
-          test -f ${./home/ovg/quickshell/shell.qml}            || exit 1
-          test -f ${./home/ovg/quickshell/Clock.qml}            || exit 1
-          test -f ${./home/ovg/quickshell/Workspaces.qml}       || exit 1
-          test -f ${./home/ovg/quickshell/CpuMem.qml}           || exit 1
-          test -f ${./home/ovg/quickshell/InfoBox.qml}          || exit 1
-          test -f ${./home/ovg/quickshell/Language.qml}         || exit 1
-          test -f ${./home/ovg/quickshell/StatusIcons.qml}      || exit 1
-          test -f ${./home/ovg/quickshell/NiriIpc.qml}          || exit 1
-          test -f ${./home/ovg/waybar/scripts/warnings.sh}      || exit 1
-          test -f ${./home/ovg/waybar/scripts/wifi-monitor.sh}  || exit 1
+          test -f ${./home/ovg/quickshell/shell.qml}                  || exit 1
+          test -f ${./home/ovg/quickshell/Clock.qml}                 || exit 1
+          test -f ${./home/ovg/quickshell/Workspaces.qml}            || exit 1
+          test -f ${./home/ovg/quickshell/CpuMem.qml}                || exit 1
+          test -f ${./home/ovg/quickshell/InfoBox.qml}               || exit 1
+          test -f ${./home/ovg/quickshell/Language.qml}              || exit 1
+          test -f ${./home/ovg/quickshell/StatusIcons.qml}           || exit 1
+          test -f ${./home/ovg/quickshell/NiriIpc.qml}               || exit 1
+          test -f ${./home/ovg/quickshell/StatusPoller.qml}          || exit 1
+          test -f ${./home/ovg/quickshell/scripts/wifi-monitor.sh}   || exit 1
+          test -f ${./home/ovg/quickshell/scripts/system-stats.sh}   || exit 1
           test -f ${./home/ovg/wofi/config}                     || exit 1
           test -f ${./home/ovg/wofi/style.css}                 || exit 1
           test -f ${./home/ovg/wofi/scripts/wifi-menu.sh}      || exit 1

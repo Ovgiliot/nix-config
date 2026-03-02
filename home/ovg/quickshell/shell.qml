@@ -11,6 +11,10 @@ ShellRoot {
     // Workspaces and Language bind to its reactive properties.
     NiriIpc { id: niriIpc }
 
+    // Single system stats poller — owns the one polling process for the whole bar.
+    // CpuMem and InfoBox bind to its reactive properties.
+    StatusPoller { id: statusPoller }
+
     PanelWindow {
         id: bar
 
@@ -41,7 +45,10 @@ ShellRoot {
                 anchors.verticalCenter: parent.verticalCenter
                 spacing: 6
 
-                CpuMem {}
+                CpuMem {
+                    cpuPct: statusPoller.cpuPct
+                    memPct: statusPoller.memPct
+                }
                 Workspaces { workspaceModel: niriIpc.workspaces }
             }
 
@@ -62,6 +69,9 @@ ShellRoot {
                 anchors.rightMargin: 3
                 anchors.top:         parent.top
                 anchors.bottom:      parent.bottom
+
+                warningText:  statusPoller.warningText
+                warningClass: statusPoller.warningClass
             }
 
             // ── RIGHT: Language + StatusIcons ────────────────────────────────
