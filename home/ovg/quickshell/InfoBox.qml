@@ -1,10 +1,13 @@
-// Info-box widget. Polls info-box.sh every 2 s.
-// Width is determined by parent anchors (fills space between clock and right section).
-// Shows system warnings at highest priority, then media info, then hides itself.
+// Info-box widget.
+// Polls warnings.sh every 30 s for system warnings (temp, disk, RAM, CPU).
+// Shows media info from Mpris when no warning is active (event-driven, no poll).
+// Click → play/pause via Mpris.
+// Width is set by anchors in shell.qml — do not set implicitWidth here.
 // Shadow: offset y=5, blur 0.7, #00000077 — matches Niri window shadow config.
 
 import Quickshell
 import Quickshell.Io
+import Quickshell.Services.Mpris
 import QtQuick
 import QtQuick.Effects
 
@@ -13,8 +16,26 @@ Item {
     // width is set by anchors in shell.qml — do not set implicitWidth here
     implicitHeight: 24
 
-    property string infoText:  ""
-    property string infoClass: "none"
+    // Warning state from warnings.sh (30 s poll)
+    property string warningText:  ""
+    property string warningClass: "none"
+
+    // Computed display: warnings take priority over media
+    readonly property string infoText: {
+        if (warningClass === "warning") return warningText
+        const players = Mpris.players.values
+        if (players.length > 0) {
+            const p = players[0]
+            const icon = p.isPlaying ? "\uDB80\uDE08" : "\uDB82\uDDE4"   // 󰎈 / 󰏤
+            return icon + " " + (p.trackArtist || "Unknown") + " - " + (p.trackTitle || "Unknown")
+        }
+        return ""
+    }
+    readonly property string infoClass: {
+        if (warningClass === "warning") return "warning"
+        if (Mpris.players.values.length > 0) return "media"
+        return "none"
+    }
 
     readonly property color normalColor:  Qt.rgba(36/255, 41/255, 46/255, 0.55)
     readonly property color warningColor: Qt.rgba(248/255, 81/255, 73/255, 0.8)
@@ -55,36 +76,40 @@ Item {
         color: "#fafafa"
     }
 
-    // Click → play/pause
+    // Click → play/pause via Mpris (event-driven, no playerctl process)
     MouseArea {
         anchors.fill: parent
-        onClicked: Process.exec("playerctl", ["play-pause"])
+        onClicked: {
+            const players = Mpris.players.values
+            if (players.length > 0 && players[0].canTogglePlaying)
+                players[0].togglePlaying()
+        }
     }
 
-    // ── Script poller ─────────────────────────────────────────────────────────
+    // ── Warnings poller (30 s; system checks only) ────────────────────────────
     Scripts { id: scripts }
 
     Process {
-        id: infoProc
-        command: [scripts.infoBox]
+        id: warningsProc
+        command: [scripts.warnings]
         stdout: StdioCollector {
             onStreamFinished: {
                 try {
                     const d = JSON.parse(text.trim())
-                    root.infoText  = d.text  || ""
-                    root.infoClass = d.class || "none"
+                    root.warningText  = d.text  || ""
+                    root.warningClass = d.class || "none"
                 } catch (_) {
-                    root.infoClass = "none"
+                    root.warningClass = "none"
                 }
             }
         }
     }
 
     Timer {
-        interval: 2000
+        interval: 30000
         running: true
         repeat: true
         triggeredOnStart: true
-        onTriggered: if (!infoProc.running) infoProc.running = true
+        onTriggered: if (!warningsProc.running) warningsProc.running = true
     }
 }

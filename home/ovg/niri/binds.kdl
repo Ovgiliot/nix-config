@@ -23,6 +23,7 @@ binds {
     Mod+O hotkey-overlay-title="Open Notes" { spawn "sh" "-c" "mkdir -p ~/Documents/org && ghostty -e ranger ~/Documents/org"; }
     Mod+Ctrl+N hotkey-overlay-title="Wi-Fi Menu" { spawn "wifi-menu"; }
     Mod+Ctrl+B hotkey-overlay-title="Bluetooth Menu" { spawn "bluetooth-menu"; }
+    Mod+Ctrl+S hotkey-overlay-title="Audio Output Menu" { spawn "audio-menu"; }
     Mod+B hotkey-overlay-title="Zen Browser" { spawn "zen"; }
 
     // NixOS maintenance (run in ghostty and keep output visible)

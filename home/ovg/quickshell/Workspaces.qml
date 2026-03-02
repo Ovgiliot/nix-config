@@ -1,11 +1,9 @@
-// Workspaces widget driven by Niri IPC EventStream.
+// Workspaces widget driven by Niri IPC EventStream via NiriIpc in shell.qml.
+// workspaceModel is bound from the parent — no socket logic here.
 // Bullet style: ● focused = purple full opacity, unfocused = 28% opacity.
 // Scroll to switch workspace; click bullet to focus that workspace.
-// Socket path is read from $NIRI_SOCKET at startup via a shell process,
-// because Qt.environ() does not exist in QML.
 // Shadow: offset y=5, blur 0.7, #00000077 — matches Niri window shadow config.
 
-import Quickshell
 import Quickshell.Io
 import QtQuick
 import QtQuick.Effects
@@ -15,55 +13,7 @@ Item {
     implicitWidth: pillBg.width
     implicitHeight: 24
 
-    property var    workspaceModel: []
-    property string socketPath:     ""
-
-    // ── Read NIRI_SOCKET from the environment via shell ───────────────────────
-    Process {
-        id: getSocketPath
-        command: ["sh", "-c", "printf '%s' \"$NIRI_SOCKET\""]
-        stdout: StdioCollector {
-            onStreamFinished: {
-                const p = text.trim()
-                if (p) root.socketPath = p
-            }
-        }
-    }
-    Component.onCompleted: getSocketPath.running = true
-
-    // ── Niri IPC EventStream ─────────────────────────────────────────────────
-    Socket {
-        id: niriSocket
-        path:      root.socketPath
-        connected: root.socketPath !== ""
-
-        onConnectedChanged: {
-            if (connected)
-                niriSocket.write('{"EventStream":null}\n')
-        }
-
-        parser: SplitParser {
-            splitMarker: "\n"
-            onRead: (line) => {
-                if (!line.trim()) return
-                try {
-                    const msg = JSON.parse(line)
-                    if (msg.Ok !== undefined) return   // acknowledgement
-                    if (msg.WorkspacesChanged) {
-                        root.workspaceModel = msg.WorkspacesChanged.workspaces
-                    } else if (msg.WorkspaceActivated) {
-                        // WorkspaceActivated fires on focus change; only update when focused === true
-                        if (msg.WorkspaceActivated.focused) {
-                            const id = msg.WorkspaceActivated.id
-                            root.workspaceModel = root.workspaceModel.map(ws =>
-                                Object.assign({}, ws, { is_focused: ws.id === id })
-                            )
-                        }
-                    }
-                } catch (_) {}
-            }
-        }
-    }
+    property var workspaceModel: []
 
     // ── Action processes ─────────────────────────────────────────────────────
     Process { id: focusUpProc;   command: ["niri", "msg", "action", "focus-workspace-up"]   }

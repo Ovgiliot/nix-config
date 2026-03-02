@@ -278,6 +278,9 @@
           test -f ${./home/ovg/quickshell/InfoBox.qml}          || exit 1
           test -f ${./home/ovg/quickshell/Language.qml}         || exit 1
           test -f ${./home/ovg/quickshell/StatusIcons.qml}      || exit 1
+          test -f ${./home/ovg/quickshell/NiriIpc.qml}          || exit 1
+          test -f ${./home/ovg/waybar/scripts/warnings.sh}      || exit 1
+          test -f ${./home/ovg/waybar/scripts/wifi-monitor.sh}  || exit 1
           test -f ${./home/ovg/wofi/config}                     || exit 1
           test -f ${./home/ovg/wofi/style.css}                 || exit 1
           test -f ${./home/ovg/wofi/scripts/wifi-menu.sh}      || exit 1

@@ -1,11 +1,16 @@
 // Status icons widget: WiFi, Bluetooth, Power Profile, Battery.
-// Polls status.sh every 5 s. Pill background driven by worst battery state.
-// Icons mapped from named ASCII states; all glyphs live here in QML.
-// Per-battery display: each battery rendered individually via Repeater.
+// WiFi:    long-running wifi-monitor process (event-driven via nmcli monitor).
+// BT:      Quickshell.Bluetooth service singleton (event-driven).
+// Power:   Quickshell.Services.PowerProfiles singleton (event-driven, writable).
+// Battery: Quickshell.Services.UPower singleton (event-driven).
+// Pill background driven by worst laptop battery state.
 // Shadow: offset y=5, blur 0.7, #00000077 — matches Niri window shadow config.
 
 import Quickshell
 import Quickshell.Io
+import Quickshell.Bluetooth
+import Quickshell.Services.PowerProfiles
+import Quickshell.Services.UPower
 import QtQuick
 import QtQuick.Effects
 
@@ -14,20 +19,39 @@ Item {
     implicitWidth:  iconsRow.implicitWidth + 24
     implicitHeight: 24
 
-    // Named states from status.sh
-    property string wifiState:  "off"
-    property string btState:    "off"
-    property string powerState: "balanced"
-    property var    batteries:  []   // [{level: int, state: string}, ...]
+    // WiFi state from long-running wifi-monitor process
+    property string wifiState: "off"
 
-    // Worst battery state across all batteries — drives pill color.
+    // BT state computed from Bluetooth singleton (event-driven)
+    readonly property string btState: {
+        const adapter = Bluetooth.defaultAdapter
+        if (!adapter || !adapter.enabled) return "off"
+        if (Bluetooth.devices.values.length > 0) return "connected"
+        return "on"
+    }
+
+    // Laptop batteries from UPower (filter by isLaptopBattery)
+    readonly property var laptopBatteries: {
+        const all = UPower.devices.values
+        const result = []
+        for (var i = 0; i < all.length; i++) {
+            if (all[i].isLaptopBattery) result.push(all[i])
+        }
+        return result
+    }
+
+    // Worst battery state across all laptop batteries — drives pill color.
     // Priority: critical > warning > normal/charging.
     readonly property string worstBatState: {
         var s = "normal"
-        for (var i = 0; i < root.batteries.length; i++) {
-            var b = root.batteries[i]
-            if (b.state === "critical") return "critical"
-            if (b.state === "warning")  s = "warning"
+        const bats = root.laptopBatteries
+        for (var i = 0; i < bats.length; i++) {
+            const b = bats[i]
+            const lvl = Math.round(b.percentage)
+            const charging = b.state === UPowerDeviceState.Charging
+                          || b.state === UPowerDeviceState.PendingCharge
+            if (!charging && lvl <= 15) return "critical"
+            if (!charging && lvl <= 30) s = "warning"
         }
         return s
     }
@@ -49,31 +73,54 @@ Item {
     }
 
     function btColor(state) {
-        if (state === "connected") return "#58a6ff"   // blue — device active
+        if (state === "connected") return "#58a6ff"
         if (state === "on")        return Qt.rgba(250/255, 250/255, 250/255, 0.7)
         return Qt.rgba(250/255, 250/255, 250/255, 0.4)
     }
 
-    function powerIcon(state) {
-        if (state === "performance") return "\uDB85\uDC0B"   // U+F140B
-        if (state === "power-saver") return "\uDB81\uDCD8"   // U+F04D8
-        return "\uDB81\uDCD2"                                // U+F04D2  balanced
+    // profile is a PowerProfile enum value
+    function powerIcon(profile) {
+        if (profile === PowerProfile.Performance) return "\uDB85\uDC0B"   // U+F140B
+        if (profile === PowerProfile.PowerSaver)  return "\uDB81\uDCD8"   // U+F04D8
+        return "\uDB81\uDCD2"                                             // U+F04D2  balanced
     }
 
-    function powerColor(state) {
-        if (state === "performance") return "#ff7b72"
-        if (state === "power-saver") return "#3fb950"
+    function powerColor(profile) {
+        if (profile === PowerProfile.Performance) return "#ff7b72"
+        if (profile === PowerProfile.PowerSaver)  return "#3fb950"
         return "#bc8cff"
     }
 
-    function batIcon(level, state) {
-        if (state === "charging") return "\uf1e6"   // U+F1E6  FA plug
+    function batIcon(level, charging) {
+        if (charging)   return "\uf1e6"   // U+F1E6  FA plug
         if (level > 87) return "\uf240"
         if (level > 62) return "\uf241"
         if (level > 37) return "\uf242"
         if (level > 12) return "\uf243"
         return "\uf244"
     }
+
+    // ── WiFi: long-running process ────────────────────────────────────────────
+    Scripts { id: scripts }
+    Process {
+        running: true
+        command: [scripts.wifiMonitor]
+        stdout: SplitParser {
+            splitMarker: "\n"
+            onRead: (line) => {
+                const l = line.trim()
+                if (!l) return
+                try {
+                    const d = JSON.parse(l)
+                    root.wifiState = d.wifi || "off"
+                } catch (_) {}
+            }
+        }
+    }
+
+    // ── Action processes ─────────────────────────────────────────────────────
+    Process { id: wifiMenuProc; command: [scripts.wifiMenu] }
+    Process { id: btMenuProc;   command: [scripts.btMenu] }
 
     // ── Pill background (hidden — MultiEffect renders it with shadow) ─────────
     Rectangle {
@@ -99,15 +146,6 @@ Item {
         shadowBlur:           0.7
         shadowVerticalOffset: 5
         shadowHorizontalOffset: 0
-    }
-
-    // ── Action processes ─────────────────────────────────────────────────────
-    Scripts { id: scripts }
-    Process { id: wifiMenuProc;  command: [scripts.wifiMenu] }
-    Process { id: btMenuProc;    command: [scripts.btMenu] }
-    Process {
-        id: cyclePowerProc
-        command: [scripts.cyclePower]
     }
 
     // ── Icons row — 6px spacing for consistent visual separation ─────────────
@@ -146,68 +184,50 @@ Item {
             }
         }
 
-        // Power profile
+        // Power profile (click cycles Performance → Balanced → PowerSaver → …)
         Text {
             width: 24
             horizontalAlignment: Text.AlignHCenter
             anchors.verticalCenter: parent.verticalCenter
-            text:           root.powerIcon(root.powerState)
+            text:           root.powerIcon(PowerProfiles.profile)
             font.family:    "JetBrainsMono Nerd Font"
             font.pixelSize: 16
-            color:          root.powerColor(root.powerState)
+            color:          root.powerColor(PowerProfiles.profile)
             MouseArea {
                 anchors.fill: parent
                 onClicked: {
-                    cyclePowerProc.running = true
-                    refreshTimer.restart()
+                    const p = PowerProfiles.profile
+                    if (p === PowerProfile.Performance) {
+                        PowerProfiles.profile = PowerProfile.Balanced
+                    } else if (p === PowerProfile.Balanced) {
+                        PowerProfiles.profile = PowerProfile.PowerSaver
+                    } else {
+                        if (PowerProfiles.hasPerformanceProfile)
+                            PowerProfiles.profile = PowerProfile.Performance
+                        else
+                            PowerProfiles.profile = PowerProfile.Balanced
+                    }
                 }
             }
         }
 
-        // Batteries — one entry per battery; empty array = desktop host, renders nothing
+        // Batteries — one entry per laptop battery; empty on desktop hosts
         Repeater {
-            model: root.batteries
+            model: root.laptopBatteries
             Text {
+                required property var modelData
+
+                readonly property bool charging: modelData.state === UPowerDeviceState.Charging
+                                              || modelData.state === UPowerDeviceState.PendingCharge
+                readonly property int  level:    Math.round(modelData.percentage)
+
                 horizontalAlignment: Text.AlignHCenter
                 anchors.verticalCenter: parent.verticalCenter
-                text:           root.batIcon(modelData.level, modelData.state) + " " + modelData.level + "%"
+                text:           root.batIcon(level, charging) + " " + level + "%"
                 font.family:    "JetBrainsMono Nerd Font"
                 font.pixelSize: 16
                 color:          "#fafafa"
             }
         }
-    }
-
-    // ── Script poller ─────────────────────────────────────────────────────────
-    Process {
-        id: statusProc
-        command: [scripts.status]
-        stdout: StdioCollector {
-            onStreamFinished: {
-                try {
-                    const d = JSON.parse(text.trim())
-                    root.wifiState  = d.wifi      || "off"
-                    root.btState    = d.bt        || "off"
-                    root.powerState = d.power     || "balanced"
-                    root.batteries  = d.batteries ?? []
-                } catch (_) {}
-            }
-        }
-    }
-
-    Timer {
-        id: pollTimer
-        interval: 5000
-        running: true
-        repeat: true
-        triggeredOnStart: true
-        onTriggered: if (!statusProc.running) statusProc.running = true
-    }
-
-    Timer {
-        id: refreshTimer
-        interval: 800
-        repeat: false
-        onTriggered: if (!statusProc.running) statusProc.running = true
     }
 }

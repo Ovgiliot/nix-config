@@ -7,6 +7,10 @@ import Quickshell.Wayland
 import QtQuick
 
 ShellRoot {
+    // Single Niri IPC object — owns the one EventStream socket for the whole bar.
+    // Workspaces and Language bind to its reactive properties.
+    NiriIpc { id: niriIpc }
+
     PanelWindow {
         id: bar
 
@@ -38,7 +42,7 @@ ShellRoot {
                 spacing: 6
 
                 CpuMem {}
-                Workspaces {}
+                Workspaces { workspaceModel: niriIpc.workspaces }
             }
 
             // ── CENTER: Clock ────────────────────────────────────────────────
@@ -68,7 +72,10 @@ ShellRoot {
                 anchors.verticalCenter: parent.verticalCenter
                 spacing: 6
 
-                Language {}
+                Language {
+                    langText:  niriIpc.languageText
+                    langClass: niriIpc.languageClass
+                }
                 StatusIcons {}
             }
         }

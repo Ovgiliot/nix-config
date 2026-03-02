@@ -12,28 +12,16 @@
     text = stripShebang (builtins.readFile (dotfilesDir + "/waybar/scripts/cpu-mem.sh"));
   };
 
-  infoBox = pkgs.writeShellApplication {
-    name = "info-box";
-    runtimeInputs = [pkgs.coreutils pkgs.gawk pkgs.gnugrep pkgs.jq pkgs.procps pkgs.playerctl];
-    text = stripShebang (builtins.readFile (dotfilesDir + "/waybar/scripts/info-box.sh"));
+  warnings = pkgs.writeShellApplication {
+    name = "warnings";
+    runtimeInputs = [pkgs.coreutils pkgs.gawk pkgs.gnugrep pkgs.procps];
+    text = stripShebang (builtins.readFile (dotfilesDir + "/waybar/scripts/warnings.sh"));
   };
 
-  language = pkgs.writeShellApplication {
-    name = "language";
-    runtimeInputs = [pkgs.niri-unstable pkgs.jq];
-    text = stripShebang (builtins.readFile (dotfilesDir + "/waybar/scripts/language.sh"));
-  };
-
-  status = pkgs.writeShellApplication {
-    name = "status";
-    runtimeInputs = [pkgs.networkmanager pkgs.bluez pkgs.power-profiles-daemon pkgs.coreutils];
-    text = stripShebang (builtins.readFile (dotfilesDir + "/waybar/scripts/status.sh"));
-  };
-
-  cyclePower = pkgs.writeShellApplication {
-    name = "cycle-power-profile";
-    runtimeInputs = [pkgs.power-profiles-daemon];
-    text = stripShebang (builtins.readFile (dotfilesDir + "/waybar/scripts/cycle-power-profile.sh"));
+  wifiMonitor = pkgs.writeShellApplication {
+    name = "wifi-monitor";
+    runtimeInputs = [pkgs.networkmanager];
+    text = stripShebang (builtins.readFile (dotfilesDir + "/waybar/scripts/wifi-monitor.sh"));
   };
 
   wifiMenu = pkgs.writeShellApplication {
@@ -54,18 +42,22 @@
     text = stripShebang (builtins.readFile (dotfilesDir + "/wofi/scripts/power-menu.sh"));
   };
 
+  audioMenu = pkgs.writeShellApplication {
+    name = "audio-menu";
+    runtimeInputs = [pkgs.pulseaudio pkgs.wofi pkgs.gawk];
+    text = stripShebang (builtins.readFile (dotfilesDir + "/wofi/scripts/audio-switcher.sh"));
+  };
+
   scriptsQml = ''
     import QtQuick
 
     QtObject {
-        readonly property string cpuMem:     "${cpuMem}/bin/cpu-mem"
-        readonly property string infoBox:    "${infoBox}/bin/info-box"
-        readonly property string language:   "${language}/bin/language"
-        readonly property string status:     "${status}/bin/status"
-        readonly property string cyclePower: "${cyclePower}/bin/cycle-power-profile"
-        readonly property string wifiMenu:   "${wifiMenu}/bin/wifi-menu"
-        readonly property string btMenu:     "${btMenu}/bin/bluetooth-menu"
-        readonly property string powerMenu:  "${powerMenu}/bin/power-menu"
+        readonly property string cpuMem:      "${cpuMem}/bin/cpu-mem"
+        readonly property string warnings:    "${warnings}/bin/warnings"
+        readonly property string wifiMonitor: "${wifiMonitor}/bin/wifi-monitor"
+        readonly property string wifiMenu:    "${wifiMenu}/bin/wifi-menu"
+        readonly property string btMenu:      "${btMenu}/bin/bluetooth-menu"
+        readonly property string powerMenu:   "${powerMenu}/bin/power-menu"
     }
   '';
 
@@ -81,11 +73,12 @@
     cp ${dotfilesDir}/quickshell/InfoBox.qml     $out/InfoBox.qml
     cp ${dotfilesDir}/quickshell/Language.qml    $out/Language.qml
     cp ${dotfilesDir}/quickshell/StatusIcons.qml $out/StatusIcons.qml
+    cp ${dotfilesDir}/quickshell/NiriIpc.qml     $out/NiriIpc.qml
     cp ${pkgs.writeText "Scripts.qml" scriptsQml} $out/Scripts.qml
   '';
 in {
   # quickshell itself + menu scripts that niri key-binds invoke by name
-  home.packages = [pkgs.quickshell wifiMenu btMenu powerMenu];
+  home.packages = [pkgs.quickshell wifiMenu btMenu powerMenu audioMenu];
 
   # Single directory link — all QML files (including generated Scripts.qml) live
   # in one store path so QML module resolution finds siblings after symlink resolution.
@@ -96,11 +89,14 @@ in {
       Description = "Quickshell status bar";
       After = ["graphical-session.target"];
       PartOf = ["graphical-session.target"];
+      # Cap restarts: max 5 in 60 s to avoid storm-looping on compositor bugs.
+      StartLimitIntervalSec = 60;
+      StartLimitBurst = 5;
     };
     Service = {
       ExecStart = "${pkgs.quickshell}/bin/quickshell";
       Restart = "on-failure";
-      RestartSec = 2;
+      RestartSec = 3;
     };
     Install = {
       WantedBy = ["graphical-session.target"];

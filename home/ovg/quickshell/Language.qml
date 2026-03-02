@@ -1,10 +1,8 @@
-// Keyboard language widget. Polls language.sh every 1 s.
+// Keyboard language widget. Driven by NiriIpc in shell.qml — no polling here.
 // Background transitions between gray (EN) and blue (RU).
 // Text is bare "EN" / "RU" — no leading icon — ensuring clean centering.
 // Shadow: offset y=5, blur 0.7, #00000077 — matches Niri window shadow config.
 
-import Quickshell
-import Quickshell.Io
 import QtQuick
 import QtQuick.Effects
 
@@ -49,30 +47,5 @@ Item {
         font.pixelSize: 14
         font.bold:      true
         color:          "#fafafa"
-    }
-
-    // ── Script poller ─────────────────────────────────────────────────────────
-    Scripts { id: scripts }
-
-    Process {
-        id: langProc
-        command: [scripts.language]
-        stdout: StdioCollector {
-            onStreamFinished: {
-                try {
-                    const d = JSON.parse(text.trim())
-                    root.langText  = d.text  || "EN"
-                    root.langClass = d.class || "en"
-                } catch (_) {}
-            }
-        }
-    }
-
-    Timer {
-        interval: 1000
-        running: true
-        repeat: true
-        triggeredOnStart: true
-        onTriggered: if (!langProc.running) langProc.running = true
     }
 }

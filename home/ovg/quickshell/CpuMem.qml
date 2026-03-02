@@ -1,5 +1,5 @@
 // CPU + Memory widget.
-// Polls cpu-mem.sh every 2 s; parses JSON {cpu, mem}.
+// Polls cpu-mem.sh every 5 s; parses JSON {cpu, mem}.
 // Pill background: standard dark. Bar tracks: opaque dark with 1px black border.
 // Bar fills: green/amber/red per bar, 80 px wide, animated.
 // Shadow: offset y=5, blur 0.7, #00000077 — matches Niri window shadow config.
@@ -134,7 +134,7 @@ Item {
     }
 
     Timer {
-        interval: 2000
+        interval: 5000
         running: true
         repeat: true
         triggeredOnStart: true
