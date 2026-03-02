@@ -36,6 +36,18 @@
     text = stripShebang (builtins.readFile (dotfilesDir + "/wofi/scripts/bluetooth-menu.sh"));
   };
 
+  getPower = pkgs.writeShellApplication {
+    name = "get-power-profile";
+    runtimeInputs = [pkgs.power-profiles-daemon];
+    text = "powerprofilesctl get";
+  };
+
+  cyclePower = pkgs.writeShellApplication {
+    name = "cycle-power-profile";
+    runtimeInputs = [pkgs.power-profiles-daemon];
+    text = stripShebang (builtins.readFile (dotfilesDir + "/waybar/scripts/cycle-power-profile.sh"));
+  };
+
   powerMenu = pkgs.writeShellApplication {
     name = "power-menu";
     runtimeInputs = [pkgs.wofi pkgs.systemd pkgs.coreutils];
@@ -57,6 +69,8 @@
         readonly property string wifiMonitor: "${wifiMonitor}/bin/wifi-monitor"
         readonly property string wifiMenu:    "${wifiMenu}/bin/wifi-menu"
         readonly property string btMenu:      "${btMenu}/bin/bluetooth-menu"
+        readonly property string getPower:    "${getPower}/bin/get-power-profile"
+        readonly property string cyclePower:  "${cyclePower}/bin/cycle-power-profile"
         readonly property string powerMenu:   "${powerMenu}/bin/power-menu"
     }
   '';

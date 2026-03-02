@@ -1,7 +1,7 @@
 // Status icons widget: WiFi, Bluetooth, Power Profile, Battery.
 // WiFi:    long-running wifi-monitor process (event-driven via nmcli monitor).
 // BT:      Quickshell.Bluetooth service singleton (event-driven).
-// Power:   Quickshell.Services.PowerProfiles singleton (event-driven, writable).
+// Power:   shell-based poll via powerprofilesctl (5 s interval + refresh after click).
 // Battery: Quickshell.Services.UPower singleton (event-driven).
 // Pill background driven by worst laptop battery state.
 // Shadow: offset y=5, blur 0.7, #00000077 — matches Niri window shadow config.
@@ -9,7 +9,6 @@
 import Quickshell
 import Quickshell.Io
 import Quickshell.Bluetooth
-import Quickshell.Services.PowerProfiles
 import Quickshell.Services.UPower
 import QtQuick
 import QtQuick.Effects
@@ -21,6 +20,9 @@ Item {
 
     // WiFi state from long-running wifi-monitor process
     property string wifiState: "off"
+
+    // Power profile state from periodic powerprofilesctl poll
+    property string powerState: "balanced"
 
     // BT state computed from Bluetooth singleton (event-driven)
     readonly property string btState: {
@@ -78,16 +80,16 @@ Item {
         return Qt.rgba(250/255, 250/255, 250/255, 0.4)
     }
 
-    // profile is a PowerProfile enum value
-    function powerIcon(profile) {
-        if (profile === PowerProfile.Performance) return "\uDB85\uDC0B"   // U+F140B
-        if (profile === PowerProfile.PowerSaver)  return "\uDB81\uDCD8"   // U+F04D8
-        return "\uDB81\uDCD2"                                             // U+F04D2  balanced
+    // state is one of: "performance", "balanced", "power-saver"
+    function powerIcon(state) {
+        if (state === "performance") return "\uDB85\uDC0B"   // U+F140B
+        if (state === "power-saver") return "\uDB81\uDCD8"   // U+F04D8
+        return "\uDB81\uDCD2"                                // U+F04D2  balanced
     }
 
-    function powerColor(profile) {
-        if (profile === PowerProfile.Performance) return "#ff7b72"
-        if (profile === PowerProfile.PowerSaver)  return "#3fb950"
+    function powerColor(state) {
+        if (state === "performance") return "#ff7b72"
+        if (state === "power-saver") return "#3fb950"
         return "#bc8cff"
     }
 
@@ -100,8 +102,10 @@ Item {
         return "\uf244"
     }
 
-    // ── WiFi: long-running process ────────────────────────────────────────────
+    // ── Scripts path registry ─────────────────────────────────────────────────
     Scripts { id: scripts }
+
+    // ── WiFi: long-running process ────────────────────────────────────────────
     Process {
         running: true
         command: [scripts.wifiMonitor]
@@ -118,9 +122,42 @@ Item {
         }
     }
 
+    // ── Power profile: one-shot poll process ──────────────────────────────────
+    property var _powerStateProc: Process {
+        id: powerStateProc
+        command: [scripts.getPower]
+        stdout: SplitParser {
+            splitMarker: "\n"
+            onRead: (line) => {
+                const l = line.trim()
+                if (l) root.powerState = l
+            }
+        }
+    }
+
+    // Poll every 5 s; guard against overlapping runs.
+    property var _powerPollTimer: Timer {
+        interval: 5000
+        repeat: true
+        running: true
+        onTriggered: {
+            if (!powerStateProc.running)
+                powerStateProc.running = true
+        }
+    }
+
+    // Short delay after click before re-polling so the profile has time to change.
+    property var _powerRefreshTimer: Timer {
+        id: powerRefreshTimer
+        interval: 800
+        repeat: false
+        onTriggered: powerStateProc.running = true
+    }
+
     // ── Action processes ─────────────────────────────────────────────────────
-    Process { id: wifiMenuProc; command: [scripts.wifiMenu] }
-    Process { id: btMenuProc;   command: [scripts.btMenu] }
+    Process { id: wifiMenuProc;   command: [scripts.wifiMenu] }
+    Process { id: btMenuProc;     command: [scripts.btMenu] }
+    Process { id: cyclePowerProc; command: [scripts.cyclePower] }
 
     // ── Pill background (hidden — MultiEffect renders it with shadow) ─────────
     Rectangle {
@@ -184,29 +221,20 @@ Item {
             }
         }
 
-        // Power profile (click cycles Performance → Balanced → PowerSaver → …)
+        // Power profile (click cycles performance → balanced → power-saver → …)
         Text {
             width: 24
             horizontalAlignment: Text.AlignHCenter
             anchors.verticalCenter: parent.verticalCenter
-            text:           root.powerIcon(PowerProfiles.profile)
+            text:           root.powerIcon(root.powerState)
             font.family:    "JetBrainsMono Nerd Font"
             font.pixelSize: 16
-            color:          root.powerColor(PowerProfiles.profile)
+            color:          root.powerColor(root.powerState)
             MouseArea {
                 anchors.fill: parent
                 onClicked: {
-                    const p = PowerProfiles.profile
-                    if (p === PowerProfile.Performance) {
-                        PowerProfiles.profile = PowerProfile.Balanced
-                    } else if (p === PowerProfile.Balanced) {
-                        PowerProfiles.profile = PowerProfile.PowerSaver
-                    } else {
-                        if (PowerProfiles.hasPerformanceProfile)
-                            PowerProfiles.profile = PowerProfile.Performance
-                        else
-                            PowerProfiles.profile = PowerProfile.Balanced
-                    }
+                    cyclePowerProc.running = true
+                    powerRefreshTimer.restart()
                 }
             }
         }
