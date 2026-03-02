@@ -21,9 +21,9 @@ cd "$REPO_PATH" || {
 push_to_remote() {
 	local branch_to_push="$1"
 	echo "Attempting to push changes for branch '$branch_to_push'..."
-	if ! git rev-parse --abbrev-ref --symbolic-full-name "${branch_to_push}"@{u} >/dev/null 2>&1; then
+	if ! git rev-parse --abbrev-ref --symbolic-full-name "@{u}" >/dev/null 2>&1; then
 		echo "Local branch '$branch_to_push' has no upstream remote."
-		read -p 'Do you want to set upstream and push? (y/N): ' set_upstream_response
+		read -r -p 'Do you want to set upstream and push? (y/N): ' set_upstream_response
 		if [[ "$set_upstream_response" == "y" || "$set_upstream_response" == "Y" ]]; then
 			git push --set-upstream origin "$branch_to_push" || {
 				echo "Error: git push --set-upstream failed."
@@ -44,12 +44,11 @@ push_to_remote() {
 }
 
 # --- Phase 1: Git Staging & Committing ---
-commit_performed=false
 
 # Check for uncommitted changes
 if ! git diff --quiet HEAD --; then
 	echo "Uncommitted changes detected."
-	read -p 'Enter commit message (default: "Automated config update"): ' commit_msg
+	read -r -p 'Enter commit message (default: "Automated config update"): ' commit_msg
 	if [ -z "$commit_msg" ]; then
 		commit_msg="Automated config update"
 	fi
@@ -63,7 +62,6 @@ if ! git diff --quiet HEAD --; then
 		exit 1
 	}
 	echo "Changes committed: \"$commit_msg\""
-	commit_performed=true
 fi
 
 # Get current branch
@@ -75,12 +73,12 @@ if [[ "$current_branch" == "master" || "$current_branch" == "main" ]]; then
 	echo "Options:"
 	echo "  (C)ontinue on '$current_branch' and push changes."
 	echo "  (b)ranch off to a new branch and push changes."
-	read -p 'Choose an option (C/b, default: C): ' branch_choice
+	read -r -p 'Choose an option (C/b, default: C): ' branch_choice
 	branch_choice=${branch_choice:-C}
 
 	case "$branch_choice" in
 	[Bb]*) # Create new branch
-		read -p 'Enter new branch name: ' new_branch_name
+		read -r -p 'Enter new branch name: ' new_branch_name
 		if [ -z "$new_branch_name" ]; then
 			echo "Aborting: Branch name required."
 			exit 0

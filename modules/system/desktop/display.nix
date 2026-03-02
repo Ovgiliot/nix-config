@@ -57,7 +57,6 @@
   # --- System Utilities ---
 
   environment.systemPackages = with pkgs; [
-    git
     pciutils
     usbutils
   ];
@@ -111,6 +110,5 @@
     # this they go through xwayland-satellite, adding an extra buffer-copy
     # step that introduces timing jitter and contributes to missed vblanks.
     NIXOS_OZONE_WL = "1";
-    XDG_CONFIG_DIRS = lib.mkDefault "/etc/xdg";
   };
 }

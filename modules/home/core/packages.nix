@@ -10,6 +10,7 @@
 
       # CLI / TUI Essentials
       opencode
+      git
       jq
       ripgrep
       fd

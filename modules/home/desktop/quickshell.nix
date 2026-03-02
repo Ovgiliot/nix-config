@@ -24,30 +24,6 @@
     text = "powerprofilesctl get";
   };
 
-  wifiMenu = pkgs.writeShellApplication {
-    name = "wifi-menu";
-    runtimeInputs = [pkgs.networkmanager pkgs.wofi pkgs.gawk pkgs.gnused pkgs.gnugrep];
-    text = stripShebang (builtins.readFile (dotfilesDir + "/wofi/scripts/wifi-menu.sh"));
-  };
-
-  btMenu = pkgs.writeShellApplication {
-    name = "bluetooth-menu";
-    runtimeInputs = [pkgs.bluez pkgs.wofi pkgs.libnotify pkgs.coreutils pkgs.gnugrep pkgs.gnused];
-    text = stripShebang (builtins.readFile (dotfilesDir + "/wofi/scripts/bluetooth-menu.sh"));
-  };
-
-  powerMenu = pkgs.writeShellApplication {
-    name = "power-menu";
-    runtimeInputs = [pkgs.wofi pkgs.systemd pkgs.coreutils];
-    text = stripShebang (builtins.readFile (dotfilesDir + "/wofi/scripts/power-menu.sh"));
-  };
-
-  audioMenu = pkgs.writeShellApplication {
-    name = "audio-menu";
-    runtimeInputs = [pkgs.pulseaudio pkgs.wofi pkgs.gawk];
-    text = stripShebang (builtins.readFile (dotfilesDir + "/wofi/scripts/audio-switcher.sh"));
-  };
-
   scriptsQml = ''
     import QtQuick
 
@@ -75,8 +51,8 @@
     cp ${pkgs.writeText "Scripts.qml" scriptsQml}   $out/Scripts.qml
   '';
 in {
-  # quickshell itself + menu scripts that niri key-binds invoke by name
-  home.packages = [pkgs.quickshell wifiMenu btMenu powerMenu audioMenu];
+  # quickshell itself; menu scripts used by niri keybinds live in scripts.nix.
+  home.packages = [pkgs.quickshell];
 
   # Single directory link — all QML files (including generated Scripts.qml) live
   # in one store path so QML module resolution finds siblings after symlink resolution.
