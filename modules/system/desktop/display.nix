@@ -106,6 +106,11 @@
     # Force Firefox-based apps (Zen, etc.) onto native Wayland so they inherit
     # the compositor scale instead of auto-detecting physical display DPI.
     MOZ_ENABLE_WAYLAND = "1";
+    # Force Chromium, Electron, and all Ozone-aware apps to use the native
+    # Wayland rendering path instead of falling back to XWayland.  Without
+    # this they go through xwayland-satellite, adding an extra buffer-copy
+    # step that introduces timing jitter and contributes to missed vblanks.
+    NIXOS_OZONE_WL = "1";
     XDG_CONFIG_DIRS = lib.mkDefault "/etc/xdg";
   };
 }

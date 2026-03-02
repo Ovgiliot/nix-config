@@ -28,4 +28,13 @@
   # Enables: systemd-cryptenroll --tpm2-device=auto (post-install enrollment),
   # and automatic LUKS unlock via TPM2 token at every subsequent boot.
   security.tpm2.enable = true;
+
+  # Disable Intel PSR (Panel Self-Refresh) on Kaby Lake.
+  # PSR2 selective-fetch causes region-localised flicker: when one window updates
+  # while another is static, the PSR state machine transitions during the dirty-
+  # region commit produce a visible flash inside the updating window.
+  # Kaby Lake (HD 620, device 0x5917) has well-documented PSR2 errata on Linux.
+  # Power regression is negligible — the display is never fully static at runtime
+  # (linux-wallpaperengine keeps refreshing the background continuously).
+  boot.kernelParams = ["i915.enable_psr=0"];
 }

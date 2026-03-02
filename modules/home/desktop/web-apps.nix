@@ -41,7 +41,7 @@
       Type=Application
       Name=${app.name}
       Comment=Web app: ${app.url}
-      Exec=${webAppBrowser} --app=${app.url} --class=webapp-${className} --name=webapp-${className}
+      Exec=${webAppBrowser} --app=${app.url} --class=webapp-${className} --name=webapp-${className} --ozone-platform=wayland --enable-features=WaylandWindowDecorations
       Terminal=false
       Categories=Network;WebBrowser;
       Icon=${app.icon}
