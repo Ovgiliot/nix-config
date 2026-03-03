@@ -147,7 +147,11 @@
     # Flash helper: installs Ventoy on a USB drive and copies the installer ISO.
     # Usage: nix run .#flash -- /dev/sdX
     apps = let
-      pkgs = nixpkgs.legacyPackages.x86_64-linux;
+      pkgs = import nixpkgs {
+        system = "x86_64-linux";
+        # ventoy is unfree; allow it only for this flash-helper derivation.
+        config.allowUnfreePredicate = pkg: builtins.elem (nixpkgs.lib.getName pkg) ["ventoy"];
+      };
       x86_iso = self.nixosConfigurations.installer-x86_64.config.system.build.isoImage;
     in {
       x86_64-linux.flash = {
@@ -282,8 +286,11 @@
           test -f ${./home/ovg/wofi/scripts/wifi-menu.sh}      || exit 1
           test -f ${./home/ovg/wofi/scripts/bluetooth-menu.sh} || exit 1
           test -f ${./home/ovg/wofi/scripts/power-menu.sh}     || exit 1
+          test -f ${./home/ovg/wofi/scripts/audio-switcher.sh} || exit 1
           test -f ${./home/ovg/kanata.kbd}                     || exit 1
           test -f ${./home/ovg/scripts/power-monitor.sh}       || exit 1
+          test -f ${./home/ovg/scripts/nixos-rebuild-with-git.sh} || exit 1
+          test -f ${./home/ovg/scripts/update.sh}              || exit 1
           touch $out
         '';
 

@@ -194,7 +194,7 @@ Item {
             horizontalAlignment: Text.AlignHCenter
             anchors.verticalCenter: parent.verticalCenter
             text:           root.wifiIcon(root.wifiState)
-            font.family:    "JetBrainsMono Nerd Font"
+            font.family:    "FiraMono Nerd Font"
             font.pixelSize: 16
             color:          "#fafafa"
         }
@@ -205,7 +205,7 @@ Item {
             horizontalAlignment: Text.AlignHCenter
             anchors.verticalCenter: parent.verticalCenter
             text:           root.btIcon(root.btState)
-            font.family:    "JetBrainsMono Nerd Font"
+            font.family:    "FiraMono Nerd Font"
             font.pixelSize: 16
             color:          root.btColor(root.btState)
         }
@@ -216,7 +216,7 @@ Item {
             horizontalAlignment: Text.AlignHCenter
             anchors.verticalCenter: parent.verticalCenter
             text:           root.powerIcon(root.powerState)
-            font.family:    "JetBrainsMono Nerd Font"
+            font.family:    "FiraMono Nerd Font"
             font.pixelSize: 16
             color:          root.powerColor(root.powerState)
         }
@@ -238,7 +238,7 @@ Item {
                 horizontalAlignment: Text.AlignHCenter
                 anchors.verticalCenter: parent.verticalCenter
                 text:           root.batIcon(level, charging) + " " + level + "%"
-                font.family:    "JetBrainsMono Nerd Font"
+                font.family:    "FiraMono Nerd Font"
                 font.pixelSize: 16
                 color:          "#fafafa"
             }

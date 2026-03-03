@@ -84,22 +84,108 @@ A modular, multi-profile NixOS and macOS configuration using **Nix Flakes** and 
 
 ## Bootstrapping a New Machine
 
-`install.sh` handles the full setup interactively:
+`install.sh` is a single interactive script that handles the full setup. It detects its environment automatically and runs in one of three modes.
+
+---
+
+### Mode 1 — Live ISO (fresh NixOS install)
+
+Boot the [NixOS minimal ISO](https://nixos.org/download/), then:
 
 ```bash
+# Enable networking (WiFi example — skip on ethernet, it's automatic)
+sudo systemctl start wpa_supplicant
+wpa_cli
+> add_network 0
+> set_network 0 ssid "MyNetwork"
+> set_network 0 psk "MyPassphrase"
+> enable_network 0
+> quit
+
+# Clone the repo and run
+nix-shell -p git
+git clone https://github.com/YOUR/dotfiles ~/dotfiles/nix
+cd ~/dotfiles/nix
 sudo bash install.sh
 ```
 
-It will:
-1. Detect the platform (Linux or macOS).
-2. Prompt for profile (`laptop`, `workstation`, `server`, or auto-selects `darwin`).
-3. Prompt for hostname and — for the laptop profile — the swap LUKS UUID.
-4. Run `nixos-generate-config` to produce `hosts/<hostname>/hardware.nix`.
-5. Write `hosts/<hostname>/default.nix` from the chosen profile template.
-6. Inject the new host into `flake.nix` (replaces the `<<NIXOS_HOSTS>>` / `<<DARWIN_HOSTS>>` marker).
-7. Set the system hostname.
-8. Format the generated file with `alejandra`.
-9. Offer to run the initial `nixos-rebuild switch` / `darwin-rebuild switch`.
+The script detects it is running inside the ISO (root mounted as `tmpfs`) and enters **live ISO mode**. It will:
+
+1. **Select a profile** — `laptop`, `workstation`, or `server`.
+2. **Set the hostname.**
+3. **GPU vendor** — `intel`, `amd`, or `none` (laptop/workstation only; used for VA-API hardware video acceleration).
+4. **Keyboard device** for Kanata (defaults to the standard ThinkPad i8042 path).
+5. **Disk selection** — lists all block devices. With multiple disks you can optionally place `/home` on a separate disk.
+6. **Root partition size** — e.g. `60G`; `/home` gets the remainder of the disk.
+7. **LUKS passphrase** — entered twice. Every encrypted partition uses the same passphrase.
+
+Then without further prompts it will:
+
+- Write `hosts/<hostname>/disko.nix` using one of four partition layouts (see below).
+- Partition and format the disk(s) with `disko`. All data is destroyed.
+- Optionally enroll TPM2 for password-free unlock at boot (offered only if a TPM2 device is present).
+- Run `nixos-generate-config --root /mnt` to produce `hosts/<hostname>/hardware.nix`.
+- Inject the new host into `flake.nix`.
+- Run `nixos-install --flake .#<hostname>`.
+- Copy the dotfiles repo into `/mnt/home/ovg/dotfiles/nix`.
+
+Remove the USB and reboot. The dotfiles are available at `~/dotfiles/nix` after first login.
+
+#### Partition layouts
+
+| Profile | Single disk | Two disks |
+|---------|-------------|-----------|
+| **laptop** | ESP 1G · swap=RAM (LUKS) · root=*SIZE* (LUKS) · home=rest (LUKS) | System: ESP 1G · swap=RAM (LUKS) · root=100% (LUKS) — Home disk: home=100% (LUKS) |
+| **workstation / server** | ESP 1G · root=*SIZE* (LUKS) · home=rest (LUKS) | System: ESP 1G · root=100% (LUKS) — Home disk: home=100% (LUKS) |
+
+All LUKS containers use the same passphrase. The laptop swap partition is named `cryptswap` (used by the initrd for hibernate resume).
+
+#### TPM2 auto-unlock (optional)
+
+If the machine has a TPM2 chip, the script offers to bind each LUKS partition to it using `systemd-cryptenroll --tpm2-pcrs=""` (no PCR binding — survives firmware updates; protection is physical: the disk cannot be unlocked on a different machine). The passphrase remains a valid fallback.
+
+To enroll manually after first boot:
+
+```bash
+sudo systemd-cryptenroll --tpm2-device=auto --tpm2-pcrs="" /dev/disk/by-uuid/<luks-uuid>
+```
+
+---
+
+### Mode 2 — Installed system (add a new host config to an existing NixOS machine)
+
+Run on a booted NixOS system to register it in the flake and switch to the managed config:
+
+```bash
+cd ~/dotfiles/nix
+sudo bash install.sh
+```
+
+The script detects that root is not a `tmpfs` and enters **installed mode**. It will:
+
+1. Prompt for profile, hostname, GPU vendor, and keyboard device (same as above).
+2. For the **laptop** profile, prompt for the swap LUKS UUID (find it with `lsblk -o NAME,UUID | grep luks`) — needed for hibernate support. Leave empty to skip.
+3. Write `hosts/<hostname>/default.nix`.
+4. Inject the host into `flake.nix`.
+5. Run `sudo nixos-generate-config --show-hardware-config` to produce `hardware.nix`.
+6. Format with `alejandra` and offer to run `sudo nixos-rebuild switch --flake .#<hostname>`.
+
+---
+
+### Mode 3 — macOS (nix-darwin)
+
+```bash
+cd ~/dotfiles/nix
+bash install.sh
+```
+
+macOS is detected automatically; the `darwin` profile is selected. If `darwin-rebuild` is not yet present (first run), the script bootstraps it via `nix run nix-darwin`. After that, use `darwin-rebuild switch --flake .#<hostname>` for subsequent builds.
+
+**Note:** Kanata on macOS requires the [Karabiner-Elements virtual HID driver](https://github.com/jtroo/kanata/blob/main/docs/macos.md) and must be run as root:
+
+```bash
+sudo kanata --cfg ~/.config/kanata/kanata.kbd
+```
 
 ---
 

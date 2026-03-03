@@ -43,7 +43,7 @@ Item {
         id: langLabel
         anchors.centerIn: parent
         text:           root.langText
-        font.family:    "JetBrainsMono Nerd Font"
+        font.family:    "FiraMono Nerd Font"
         font.pixelSize: 14
         font.bold:      true
         color:          "#fafafa"

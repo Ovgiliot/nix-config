@@ -54,7 +54,7 @@ Item {
             height: 16
             verticalAlignment: Text.AlignVCenter
             text: "CPU"
-            font.family:    "JetBrainsMono Nerd Font"
+            font.family:    "FiraMono Nerd Font"
             font.pixelSize: 14
             color: "#fafafa"
         }
@@ -84,7 +84,7 @@ Item {
             height: 16
             verticalAlignment: Text.AlignVCenter
             text: "MEM"
-            font.family:    "JetBrainsMono Nerd Font"
+            font.family:    "FiraMono Nerd Font"
             font.pixelSize: 14
             color: "#fafafa"
         }

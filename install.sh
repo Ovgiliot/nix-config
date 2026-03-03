@@ -298,6 +298,14 @@ if [[ "$LIVE_ISO" == true ]]; then
 		info "Home disk:   $HOME_DISK_ID"
 	fi
 
+	# Write the LUKS passphrase to a fixed known path so each LUKS block in
+	# disko.nix can reference it non-interactively via passwordFile.
+	# The passwordFile lines are stripped from disko.nix after disko completes,
+	# so the installed system never sees the temp path.
+	KEYFILE="/tmp/luks-install.key"
+	printf '%s' "$LUKS_PASSPHRASE" >"$KEYFILE"
+	chmod 600 "$KEYFILE"
+
 	info "Writing hosts/$HOSTNAME/disko.nix..."
 
 	if [[ "$SEPARATE_HOME" == false ]]; then
@@ -334,6 +342,7 @@ if [[ "$LIVE_ISO" == true ]]; then
           content = {
             type = "luks";
             name = "cryptswap";
+            passwordFile = "/tmp/luks-install.key";
             settings.allowDiscards = true;
             content = {type = "swap";};
           };
@@ -343,6 +352,7 @@ if [[ "$LIVE_ISO" == true ]]; then
           content = {
             type = "luks";
             name = "cryptroot";
+            passwordFile = "/tmp/luks-install.key";
             settings.allowDiscards = true;
             content = {
               type = "filesystem";
@@ -357,6 +367,7 @@ if [[ "$LIVE_ISO" == true ]]; then
           content = {
             type = "luks";
             name = "crypthome";
+            passwordFile = "/tmp/luks-install.key";
             settings.allowDiscards = true;
             content = {
               type = "filesystem";
@@ -398,6 +409,7 @@ NIXEOF
           content = {
             type = "luks";
             name = "cryptroot";
+            passwordFile = "/tmp/luks-install.key";
             settings.allowDiscards = true;
             content = {
               type = "filesystem";
@@ -412,6 +424,7 @@ NIXEOF
           content = {
             type = "luks";
             name = "crypthome";
+            passwordFile = "/tmp/luks-install.key";
             settings.allowDiscards = true;
             content = {
               type = "filesystem";
@@ -465,6 +478,7 @@ NIXEOF
             content = {
               type = "luks";
               name = "cryptswap";
+              passwordFile = "/tmp/luks-install.key";
               settings.allowDiscards = true;
               content = {type = "swap";};
             };
@@ -474,6 +488,7 @@ NIXEOF
             content = {
               type = "luks";
               name = "cryptroot";
+              passwordFile = "/tmp/luks-install.key";
               settings.allowDiscards = true;
               content = {
                 type = "filesystem";
@@ -497,6 +512,7 @@ NIXEOF
             content = {
               type = "luks";
               name = "crypthome";
+              passwordFile = "/tmp/luks-install.key";
               settings.allowDiscards = true;
               content = {
                 type = "filesystem";
@@ -541,6 +557,7 @@ NIXEOF
             content = {
               type = "luks";
               name = "cryptroot";
+              passwordFile = "/tmp/luks-install.key";
               settings.allowDiscards = true;
               content = {
                 type = "filesystem";
@@ -564,6 +581,7 @@ NIXEOF
             content = {
               type = "luks";
               name = "crypthome";
+              passwordFile = "/tmp/luks-install.key";
               settings.allowDiscards = true;
               content = {
                 type = "filesystem";
@@ -721,7 +739,7 @@ in {
         isNormalUser = true;
         shell = pkgs.fish;
         description = "ovg";
-        extraGroups = ["networkmanager" "wheel" "sudo"];
+        extraGroups = ["networkmanager" "wheel"];
       };
 
       system.stateVersion = "25.11";
@@ -795,7 +813,7 @@ fi
 if grep -q "\"${HOSTNAME}\"" "$FLAKE_DIR/flake.nix"; then
 	warn "$HOSTNAME already in flake.nix — skipping injection."
 else
-	awk -v entry="      ${ENTRY}" -v marker="${MARKER}" '
+	awk -v entry="${ENTRY}" -v marker="${MARKER}" '
 		index($0, marker) > 0 { print entry }
 		{ print }
 	' "$FLAKE_DIR/flake.nix" >"$FLAKE_DIR/flake.nix.tmp" &&
@@ -847,15 +865,14 @@ if [[ "$LIVE_ISO" == true ]]; then
 	# Live ISO: partition → install → copy dotfiles
 	# ------------------------------------------------------------------
 	info "Partitioning disk(s) with disko..."
-	# Supply the LUKS passphrase non-interactively via a key file.
-	KEYFILE="$(mktemp)"
-	printf '%s' "$LUKS_PASSPHRASE" >"$KEYFILE"
-	sudo disko --mode disko \
-		--arg passwordFile "\"$KEYFILE\"" \
-		"$HOST_DIR/disko.nix" || {
+	# $KEYFILE was written at line 305; disko.nix references it via passwordFile.
+	sudo disko --mode disko "$HOST_DIR/disko.nix" || {
 		rm -f "$KEYFILE"
 		die "disko failed."
 	}
+	# Strip the passwordFile lines from disko.nix so the installed system
+	# never references the ephemeral /tmp path.
+	sed -i '/passwordFile/d' "$HOST_DIR/disko.nix"
 	rm -f "$KEYFILE"
 	ok "Disk(s) partitioned and mounted at /mnt."
 
@@ -872,12 +889,12 @@ if [[ "$LIVE_ISO" == true ]]; then
 		SWAP_DEVICE="/dev/mapper/cryptswap"
 		info "Swap device for hibernate: $SWAP_DEVICE"
 
-		# Patch the placeholder values written into default.nix above.
+		# Patch only swapDevice; swapLuksUuid is left empty so boot.nix skips
+		# adding a redundant LUKS entry (hardware.nix already has cryptswap).
 		sed -i \
-			-e "s|swapLuksUuid = \"\"|swapLuksUuid = \"${SWAP_LUKS_UUID}\"|" \
 			-e "s|swapDevice = \"\"|swapDevice = \"${SWAP_DEVICE}\"|" \
 			"$HOST_DIR/default.nix"
-		ok "default.nix patched with swap UUIDs."
+		ok "default.nix patched with swap device."
 	fi
 
 	# ------------------------------------------------------------------
@@ -886,7 +903,7 @@ if [[ "$LIVE_ISO" == true ]]; then
 	# No PCR binding (--tpm2-pcrs="") — unlock always works, never breaks
 	# on BIOS updates. Protection: disk removed to another machine = locked.
 	# ------------------------------------------------------------------
-	if systemd-cryptenroll --tpm2-device=list &>/dev/null 2>&1; then
+	if systemd-cryptenroll --tpm2-device=list 2>/dev/null | grep -q .; then
 		choose ENROLL_TPM "Enroll TPM2 for password-free disk unlock at boot?" "yes" "no"
 		if [[ "$ENROLL_TPM" == "yes" ]]; then
 			info "Enrolling LUKS partitions with TPM2..."
@@ -968,7 +985,7 @@ elif [[ "$PLATFORM" == "linux" ]]; then
 	# Installed system: generate hardware config + rebuild
 	# ------------------------------------------------------------------
 	info "Generating hardware configuration..."
-	nixos-generate-config --show-hardware-config 2>/dev/null \
+	sudo nixos-generate-config --show-hardware-config 2>/dev/null \
 		>"$HOST_DIR/hardware.nix" ||
 		die "nixos-generate-config failed. Run this script as root or with sudo."
 	ok "hardware.nix written."

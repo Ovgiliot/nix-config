@@ -6,7 +6,7 @@
   home.packages = with pkgs;
     [
       # Fonts
-      nerd-fonts.jetbrains-mono
+      nerd-fonts.fira-mono
 
       # CLI / TUI Essentials
       opencode

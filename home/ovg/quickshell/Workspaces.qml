@@ -64,7 +64,7 @@ Item {
 
                 text:           "●"
                 font.pixelSize: 14
-                font.family:    "JetBrainsMono Nerd Font"
+                font.family:    "FiraMono Nerd Font"
                 color:          "#a12fff"
                 opacity:        modelData.is_focused ? 1.0 : 0.28
             }

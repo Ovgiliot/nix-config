@@ -44,7 +44,7 @@ Item {
             const m = clock.minutes.toString().padStart(2, "0")
             return h + ":" + m
         }
-        font.family:    "JetBrainsMono Nerd Font"
+        font.family:    "FiraMono Nerd Font"
         font.pixelSize: 16
         font.bold:      true
         color:          "#fafafa"

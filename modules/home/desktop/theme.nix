@@ -22,7 +22,7 @@ in {
   gtk = {
     enable = true;
     font = {
-      name = "JetBrainsMono Nerd Font";
+      name = "FiraMono Nerd Font";
       size = 11;
     };
     theme = {
@@ -58,9 +58,8 @@ in {
   programs.swaylock = {
     enable = true;
     settings = {
-      image = "/home/ovg/Pictures/Wallpapers/wallhaven_qdgmr5.jpg";
       color = "131314";
-      font = "JetBrainsMono Nerd Font";
+      font = "FiraMono Nerd Font";
       font-size = 16;
       indicator-radius = 80;
       indicator-thickness = 8;

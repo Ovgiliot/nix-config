@@ -68,7 +68,7 @@ Item {
         text:  root.infoText
         elide: Text.ElideRight
         horizontalAlignment: Text.AlignHCenter
-        font.family:    "JetBrainsMono Nerd Font"
+        font.family:    "FiraMono Nerd Font"
         font.pixelSize: 14
         color: "#fafafa"
     }
