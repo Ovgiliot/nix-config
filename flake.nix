@@ -71,8 +71,9 @@
       };
 
     # Build a headless NixOS installer ISO for a given system architecture.
-    # Includes NetworkManager (nmtui), git, alejandra, and a bootstrap script
-    # that clones the dotfiles repo and runs install.sh.
+    # Includes NetworkManager (nmtui), disko, alejandra, a full diagnostic
+    # toolset, and a bootstrap script that clones the dotfiles repo and runs
+    # install.sh.
     # Usage: nix build .#installMedia-x86_64
     mkInstaller = system:
       nixpkgs.lib.nixosSystem {
@@ -89,17 +90,61 @@
             # without extra flags. The minimal installer image does not set this.
             nix.settings.experimental-features = ["nix-command" "flakes"];
 
-            # NetworkManager (includes nmtui). Disable the installer's default
-            # wpa_supplicant so the two wifi stacks don't conflict.
-            networking.networkmanager.enable = true;
+            # The base installer profile (installation-device.nix) already
+            # enables NetworkManager. We keep the mkForce false on the legacy
+            # wireless stack so the standalone wpa_supplicant service does not
+            # start alongside NM's own per-interface wpa_supplicant management.
             networking.wireless.enable = lib.mkForce false;
 
-            environment.systemPackages = [
-              pkgs.alejandra
-              pkgs.git
+            environment.systemPackages = with pkgs; [
+              # ── installer essentials ──────────────────────────────────────
+              alejandra
               inputs.disko.packages.${system}.default
-              # One-shot helper: clone dotfiles from GitHub, then run install.sh.
-              (pkgs.writeShellScriptBin "bootstrap" ''
+
+              # ── WiFi ─────────────────────────────────────────────────────
+              # wpa_supplicant is NM's default WiFi backend; it spawns a
+              # per-interface wpa_supplicant process for every wireless NIC.
+              # Listed explicitly to guarantee the binary is present even
+              # though the standalone wireless service is disabled above.
+              wpa_supplicant
+              iw # show / configure wireless interfaces
+              wirelesstools # iwconfig, iwlist, iwpriv
+
+              # ── network diagnostics ───────────────────────────────────────
+              ethtool # NIC statistics and low-level settings
+              nmap # network scanner + host discovery
+              wget
+              curl
+              lsof # open files / sockets per process
+
+              # ── disk / partitioning ───────────────────────────────────────
+              lvm2 # LVM volume management
+              e2fsprogs # mkfs.ext4, e2fsck, tune2fs
+              btrfs-progs # mkfs.btrfs, btrfs subvolume …
+              dosfstools # mkfs.fat, fsck.fat
+              xfsprogs # mkfs.xfs, xfs_repair
+              f2fs-tools # mkfs.f2fs
+
+              # ── hardware info ─────────────────────────────────────────────
+              dmidecode # SMBIOS / DMI (board, memory, BIOS)
+              lshw # comprehensive hardware lister
+              lm_sensors # CPU / board temps and voltages
+              inxi # system info summary
+
+              # ── UEFI ──────────────────────────────────────────────────────
+              efitools # inspect and sign EFI binaries
+
+              # ── system / debug ────────────────────────────────────────────
+              htop
+              btop
+              strace # syscall tracer
+              file # identify file types by magic bytes
+              tree # directory listing
+              nano # second editor alongside vim (already in base)
+
+              # ── one-shot install helper ───────────────────────────────────
+              # Clone dotfiles from GitHub then hand off to install.sh.
+              (writeShellScriptBin "bootstrap" ''
                 set -euo pipefail
                 DEST="/home/ovg/dotfiles/nix"
                 if [ ! -d "$DEST" ]; then
