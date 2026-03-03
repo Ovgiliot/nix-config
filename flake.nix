@@ -45,11 +45,16 @@
     ...
   } @ inputs: let
     # Instantiate nixpkgs for a given system with allowUnfree enabled globally.
+    # ventoy is also marked insecure (binary blobs); trusted explicitly here.
     # Used for all imperative pkgs references (formatter, checks, apps, installer).
     mkPkgs = system:
       import nixpkgs {
         inherit system;
-        config.allowUnfree = true;
+        config = {
+          allowUnfree = true;
+          # ventoy carries binary blobs; trusted intentionally.
+          allowInsecurePredicate = pkg: builtins.elem (nixpkgs.lib.getName pkg) ["ventoy"];
+        };
       };
 
     # Build a NixOS system from hosts/<hostname>/default.nix.
