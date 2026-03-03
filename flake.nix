@@ -91,10 +91,10 @@
             nix.settings.experimental-features = ["nix-command" "flakes"];
 
             # The base installer profile (installation-device.nix) already
-            # enables NetworkManager. We keep the mkForce false on the legacy
-            # wireless stack so the standalone wpa_supplicant service does not
-            # start alongside NM's own per-interface wpa_supplicant management.
-            networking.wireless.enable = lib.mkForce false;
+            # enables NetworkManager. The NM module itself sets
+            # networking.wireless.enable = true with dbusControlled = true,
+            # which is how it registers and manages its own wpa_supplicant
+            # backend. Do NOT override wireless.enable — doing so breaks WiFi.
 
             environment.systemPackages = with pkgs; [
               # ── installer essentials ──────────────────────────────────────
@@ -102,10 +102,9 @@
               inputs.disko.packages.${system}.default
 
               # ── WiFi ─────────────────────────────────────────────────────
-              # wpa_supplicant is NM's default WiFi backend; it spawns a
-              # per-interface wpa_supplicant process for every wireless NIC.
-              # Listed explicitly to guarantee the binary is present even
-              # though the standalone wireless service is disabled above.
+              # wpa_supplicant is NM's WiFi backend (default). NM's module
+              # enables it via networking.wireless with dbusControlled = true.
+              # Listed here explicitly for clarity; NM adds it automatically.
               wpa_supplicant
               iw # show / configure wireless interfaces
               wirelesstools # iwconfig, iwlist, iwpriv
