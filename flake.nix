@@ -44,6 +44,14 @@
     nix-darwin,
     ...
   } @ inputs: let
+    # Instantiate nixpkgs for a given system with allowUnfree enabled globally.
+    # Used for all imperative pkgs references (formatter, checks, apps, installer).
+    mkPkgs = system:
+      import nixpkgs {
+        inherit system;
+        config.allowUnfree = true;
+      };
+
     # Build a NixOS system from hosts/<hostname>/default.nix.
     # The host file is a function { inputs }: { system, specialArgs, modules }.
     mkNixosHost = hostname: let
@@ -71,6 +79,7 @@
         inherit system;
         modules = [
           "${nixpkgs}/nixos/modules/installer/cd-dvd/installation-cd-minimal.nix"
+          {nixpkgs.config.allowUnfree = true;}
           ({
             pkgs,
             lib,
@@ -114,9 +123,9 @@
   in {
     # `nix fmt` support for all platforms in use.
     formatter = {
-      x86_64-linux = nixpkgs.legacyPackages.x86_64-linux.alejandra;
-      aarch64-darwin = nixpkgs.legacyPackages.aarch64-darwin.alejandra;
-      x86_64-darwin = nixpkgs.legacyPackages.x86_64-darwin.alejandra;
+      x86_64-linux = (mkPkgs "x86_64-linux").alejandra;
+      aarch64-darwin = (mkPkgs "aarch64-darwin").alejandra;
+      x86_64-darwin = (mkPkgs "x86_64-darwin").alejandra;
     };
 
     # NixOS hosts
@@ -147,11 +156,7 @@
     # Flash helper: installs Ventoy on a USB drive and copies the installer ISO.
     # Usage: nix run .#flash -- /dev/sdX
     apps = let
-      pkgs = import nixpkgs {
-        system = "x86_64-linux";
-        # ventoy is unfree; allow it only for this flash-helper derivation.
-        config.allowUnfreePredicate = pkg: builtins.elem (nixpkgs.lib.getName pkg) ["ventoy"];
-      };
+      pkgs = mkPkgs "x86_64-linux";
       x86_iso = self.nixosConfigurations.installer-x86_64.config.system.build.isoImage;
     in {
       x86_64-linux.flash = {
@@ -185,7 +190,7 @@
     # Quick  (seconds): *-eval, dotfiles-integrity, fmt
     # Full   (minutes): nixos-build, *-build, server-vm-test
     checks = let
-      pkgs = nixpkgs.legacyPackages.x86_64-linux;
+      pkgs = mkPkgs "x86_64-linux";
 
       # Stub specialArgs used for profile eval/build tests.
       # Real values are host-specific; these are sufficient for evaluation.
