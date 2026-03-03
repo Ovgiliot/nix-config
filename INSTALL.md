@@ -29,12 +29,10 @@ nix run .#flash -- /dev/sdX
 >
 > **Warning:** the USB drive will be completely erased.
 
-The flash command installs [Ventoy](https://ventoy.net) on the drive and copies the ISO onto it. When it finishes you will see:
+The flash command writes the ISO directly to the drive with `dd`. When it finishes you will see:
 
 ```
-==> Done. Boot from USB on any x86_64 UEFI machine.
-    Select the NixOS ISO from the Ventoy menu.
-    Then: nmtui  ->  bootstrap
+==> Done. Boot from /dev/sdX on any x86_64 UEFI machine.
 ```
 
 ---
@@ -42,8 +40,6 @@ The flash command installs [Ventoy](https://ventoy.net) on the drive and copies 
 ## Step 2 — Boot the USB on the target machine
 
 Plug the USB into the target machine and boot from it. You may need to press `F12`, `F10`, or `Del` to open the boot menu and select the USB drive.
-
-You will land on the **Ventoy menu** — select the NixOS ISO and press Enter.
 
 After a short boot sequence you will reach a shell prompt, already logged in as `root`. The screen will show:
 

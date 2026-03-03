@@ -45,16 +45,11 @@
     ...
   } @ inputs: let
     # Instantiate nixpkgs for a given system with allowUnfree enabled globally.
-    # ventoy is also marked insecure (binary blobs); trusted explicitly here.
     # Used for all imperative pkgs references (formatter, checks, apps, installer).
     mkPkgs = system:
       import nixpkgs {
         inherit system;
-        config = {
-          allowUnfree = true;
-          # ventoy carries binary blobs; trusted intentionally.
-          allowInsecurePredicate = pkg: builtins.elem (nixpkgs.lib.getName pkg) ["ventoy"];
-        };
+        config.allowUnfree = true;
       };
 
     # Build a NixOS system from hosts/<hostname>/default.nix.
@@ -158,7 +153,7 @@
       };
     };
 
-    # Flash helper: installs Ventoy on a USB drive and copies the installer ISO.
+    # Flash helper: writes the installer ISO directly to a USB drive with dd.
     # Usage: nix run .#flash -- /dev/sdX
     apps = let
       pkgs = mkPkgs "x86_64-linux";
@@ -172,19 +167,10 @@
           echo "==> This will ERASE $DEVICE. Continue? [y/N]"
           read -r yn
           [[ "$yn" =~ ^[Yy]$ ]] || exit 1
-          echo "==> Installing Ventoy on $DEVICE..."
-          sudo ${pkgs.ventoy}/bin/ventoy -I "$DEVICE"
-          sudo udevadm settle
-          MNT=$(mktemp -d)
-          # Ventoy puts the ISO data partition first (/dev/sdX1).
-          sudo mount "''${DEVICE}1" "$MNT"
-          echo "==> Copying NixOS installer ISO..."
-          sudo cp ${x86_iso}/iso/*.iso "$MNT/"
-          sudo umount "$MNT"
-          rmdir "$MNT"
-          echo "==> Done. Boot from USB on any x86_64 UEFI machine."
-          echo "    Select the NixOS ISO from the Ventoy menu."
-          echo "    Then: nmtui  ->  bootstrap"
+          ISO=$(echo ${x86_iso}/iso/*.iso)
+          echo "==> Writing $(basename "$ISO") to $DEVICE..."
+          sudo dd if="$ISO" of="$DEVICE" bs=4M status=progress conv=fsync
+          echo "==> Done. Boot from $DEVICE on any x86_64 UEFI machine."
         '');
       };
     };
