@@ -66,9 +66,9 @@ Item {
         return s
     }
 
-    readonly property color normalColor:   Qt.rgba(36/255, 41/255, 46/255, 0.8)
-    readonly property color warningColor:  Qt.rgba(210/255, 153/255, 34/255, 0.8)
-    readonly property color criticalColor: Qt.rgba(248/255, 81/255,  73/255, 1.0)
+    readonly property color normalColor:   Colors.pillBg
+    readonly property color warningColor:  Colors.warningBg
+    readonly property color criticalColor: Colors.criticalBg
 
     function wifiIcon(state) {
         if (state === "ethernet") return "\uDB80\uDE00"   // U+F0200
@@ -83,7 +83,7 @@ Item {
     }
 
     function btColor(state) {
-        if (state === "connected") return "#58a6ff"
+        if (state === "connected") return Colors.btConnected
         if (state === "on")        return Qt.rgba(250/255, 250/255, 250/255, 0.7)
         return Qt.rgba(250/255, 250/255, 250/255, 0.4)
     }
@@ -96,9 +96,9 @@ Item {
     }
 
     function powerColor(state) {
-        if (state === "performance") return "#ff7b72"
-        if (state === "power-saver") return "#3fb950"
-        return "#bc8cff"
+        if (state === "performance") return Colors.powerPerf
+        if (state === "power-saver") return Colors.powerSaver
+        return Colors.powerBalanced
     }
 
     function batIcon(level, charging) {

@@ -24,7 +24,7 @@ Item {
         id: pillBg
         width:  wsRow.implicitWidth + 16
         height: 24
-        color:  Qt.rgba(36/255, 41/255, 46/255, 0.8)
+        color:  Colors.pillBg
         bottomLeftRadius:  12
         bottomRightRadius: 12
         visible: false
@@ -65,7 +65,7 @@ Item {
                 text:           "●"
                 font.pixelSize: 14
                 font.family:    "FiraMono Nerd Font"
-                color:          "#a12fff"
+                color:          Colors.accent
                 opacity:        modelData.is_focused ? 1.0 : 0.28
             }
         }

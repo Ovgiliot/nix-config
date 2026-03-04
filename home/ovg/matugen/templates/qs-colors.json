@@ -1,0 +1,14 @@
+{
+  "pillBg":        "{{colors.secondary_container.default.hex}}",
+  "accent":        "{{colors.primary.default.hex}}",
+  "barRed":        "{{colors.error.default.hex}}",
+  "barAmber":      "{{colors.tertiary_container.default.hex}}",
+  "barGreen":      "{{colors.primary_container.default.hex}}",
+  "warningBg":     "{{colors.tertiary_container.default.hex}}",
+  "criticalBg":    "{{colors.error.default.hex}}",
+  "btConnected":   "{{colors.primary.default.hex}}",
+  "powerPerf":     "{{colors.error.default.hex}}",
+  "powerSaver":    "{{colors.secondary.default.hex}}",
+  "powerBalanced": "{{colors.primary.default.hex}}",
+  "langRu":        "{{colors.primary_container.default.hex}}"
+}

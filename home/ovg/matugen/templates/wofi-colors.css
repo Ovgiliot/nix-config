@@ -1,0 +1,45 @@
+window {
+    margin: 0px;
+    border: 1px solid {{colors.surface_variant.default.hex}};
+    background-color: {{colors.background.default.hex}};
+    font-family: "FiraMono Nerd Font", "Symbols Nerd Font", sans-serif;
+    font-size: 13px;
+}
+
+#outer-box {
+    margin: 5px;
+    border: none;
+    background-color: transparent;
+}
+
+#input {
+    margin: 5px;
+    border: none;
+    color: {{colors.on_background.default.hex}};
+    background-color: {{colors.surface_variant.default.hex}};
+}
+
+#inner-box {
+    margin: 5px;
+    border: none;
+    background-color: transparent;
+}
+
+#scroll {
+    margin: 0px;
+    border: none;
+}
+
+#text {
+    margin: 5px;
+    border: none;
+    color: {{colors.on_background.default.hex}};
+}
+
+#entry:selected {
+    background-color: {{colors.surface_variant.default.hex}};
+}
+
+#text:selected {
+    color: {{colors.primary.default.hex}};
+}

@@ -16,11 +16,8 @@ layout {
 
     default-column-width { proportion 0.5; }
 
-    focus-ring {
-        width 1
-        active-color "#a12fff"
-        inactive-color "#505050"
-    }
+    // Colors (focus-ring) are live-updated by update-colors (matugen).
+    include "~/.cache/matugen/niri-colors.kdl"
 
     // Remove 'off' to activate; colors configured here for quick re-enable.
     border {

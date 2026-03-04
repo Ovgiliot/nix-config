@@ -1,4 +1,5 @@
 {dotfilesDir, ...}: {
   xdg.configFile."wofi/config".source = dotfilesDir + "/wofi/config";
-  xdg.configFile."wofi/style.css".source = dotfilesDir + "/wofi/style.css";
+  # wofi/style.css is managed by matugen (update-colors writes it directly).
+  # Bootstrap seed is provided by matugen.nix activation.
 }

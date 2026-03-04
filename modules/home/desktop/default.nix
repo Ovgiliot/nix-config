@@ -21,6 +21,7 @@ in {
     ./ghostty.nix
     ./notifications.nix
     ./launcher.nix
+    ./matugen.nix
     ./apps.nix
     ./qutebrowser.nix
   ];

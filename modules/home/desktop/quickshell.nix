@@ -48,6 +48,8 @@
     cp ${dotfilesDir}/quickshell/StatusIcons.qml    $out/StatusIcons.qml
     cp ${dotfilesDir}/quickshell/NiriIpc.qml        $out/NiriIpc.qml
     cp ${dotfilesDir}/quickshell/StatusPoller.qml   $out/StatusPoller.qml
+    cp ${dotfilesDir}/quickshell/Colors.qml         $out/Colors.qml
+    cp ${dotfilesDir}/quickshell/qmldir             $out/qmldir
     cp ${pkgs.writeText "Scripts.qml" scriptsQml}   $out/Scripts.qml
   '';
 in {

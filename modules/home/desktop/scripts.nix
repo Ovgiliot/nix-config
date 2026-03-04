@@ -109,6 +109,38 @@
     runtimeInputs = with pkgs; [pulseaudio wofi gawk];
     text = stripShebang (builtins.readFile (dotfilesDir + "/wofi/scripts/audio-switcher.sh"));
   };
+
+  # ---------------------------------------------------------------------------
+  # Color Theming
+  # Runs matugen against the active wallpaper and reloads all apps.
+  # Workstation: WPE Space Cat preview.jpg. Laptop / fallback: static image.
+  # ---------------------------------------------------------------------------
+
+  updateColors = pkgs.writeShellApplication {
+    name = "update-colors";
+    runtimeInputs = with pkgs; [matugen procps mako];
+    text = ''
+      WPE_PREVIEW="$HOME/.steam/steam/steamapps/workshop/content/431960/2994243715/preview.jpg"
+      STATIC_FALLBACK="$HOME/.config/wallpaper.jpg"
+
+      if [ -f "$WPE_PREVIEW" ]; then
+        WALLPAPER="$WPE_PREVIEW"
+      elif [ -f "$STATIC_FALLBACK" ]; then
+        WALLPAPER="$STATIC_FALLBACK"
+      else
+        echo "update-colors: no wallpaper found at $WPE_PREVIEW or $STATIC_FALLBACK" >&2
+        exit 1
+      fi
+
+      matugen image "$WALLPAPER" --mode dark --type scheme-content
+
+      # Reload apps in parallel; ignore errors for apps not currently running.
+      pkill -SIGUSR1 ghostty 2>/dev/null || true &
+      makoctl reload 2>/dev/null || true &
+      niri msg action reload-config 2>/dev/null || true &
+      wait
+    '';
+  };
 in {
   home.packages = [
     nixosRebuild
@@ -120,5 +152,6 @@ in {
     btMenu
     powerMenu
     audioMenu
+    updateColors
   ];
 }

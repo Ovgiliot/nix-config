@@ -14,14 +14,11 @@ Item {
     property string langText:  "EN"
     property string langClass: "en"
 
-    readonly property color enColor: Qt.rgba(36/255, 41/255, 46/255, 0.8)
-    readonly property color ruColor: Qt.rgba(30/255, 100/255, 200/255, 0.8)
-
     // ── Pill background (hidden — MultiEffect renders it with shadow) ─────────
     Rectangle {
         id: pillBg
         anchors.fill: parent
-        color: root.langClass === "ru" ? root.ruColor : root.enColor
+        color: root.langClass === "ru" ? Colors.langRu : Colors.pillBg
         bottomLeftRadius:  12
         bottomRightRadius: 12
         visible: false

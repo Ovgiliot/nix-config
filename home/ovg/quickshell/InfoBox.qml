@@ -34,14 +34,11 @@ Item {
         return "none"
     }
 
-    readonly property color normalColor:  Qt.rgba(36/255, 41/255, 46/255, 0.8)
-    readonly property color warningColor: Qt.rgba(248/255, 81/255, 73/255, 0.8)
-
     // ── Pill background (hidden — MultiEffect renders it with shadow) ─────────
     Rectangle {
         id: pillBg
         anchors.fill: parent
-        color: root.infoClass === "warning" ? root.warningColor : root.normalColor
+        color: root.infoClass === "warning" ? Colors.warningBg : Colors.pillBg
         bottomLeftRadius:  12
         bottomRightRadius: 12
         visible: false
