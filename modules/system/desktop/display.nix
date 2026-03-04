@@ -102,9 +102,6 @@
 
   environment.sessionVariables = {
     LIBVA_DRIVER_NAME = lib.mkIf (videoAcceleration == "intel") "iHD";
-    # Force Firefox-based apps (Zen, etc.) onto native Wayland so they inherit
-    # the compositor scale instead of auto-detecting physical display DPI.
-    MOZ_ENABLE_WAYLAND = "1";
     # Force Chromium, Electron, and all Ozone-aware apps to use the native
     # Wayland rendering path instead of falling back to XWayland.  Without
     # this they go through xwayland-satellite, adding an extra buffer-copy

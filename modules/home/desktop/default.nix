@@ -8,5 +8,6 @@
     ./notifications.nix
     ./launcher.nix
     ./apps.nix
+    ./qutebrowser.nix
   ];
 }

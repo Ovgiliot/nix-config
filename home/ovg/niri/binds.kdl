@@ -23,7 +23,7 @@ binds {
     Mod+Ctrl+N hotkey-overlay-title="Wi-Fi Menu" { spawn "wifi-menu"; }
     Mod+Ctrl+B hotkey-overlay-title="Bluetooth Menu" { spawn "bluetooth-menu"; }
     Mod+Ctrl+S hotkey-overlay-title="Audio Output Menu" { spawn "audio-menu"; }
-    Mod+B hotkey-overlay-title="Zen Browser" { spawn "zen"; }
+    Mod+B hotkey-overlay-title="qutebrowser" { spawn "qutebrowser"; }
 
     // NixOS maintenance — scripts are Nix-built derivations (scripts.nix) in PATH.
     Mod+Shift+R hotkey-overlay-title="NixOS Rebuild" { spawn "ghostty" "--class=nixos-rebuild" "-e" "nixos-rebuild-dotfiles"; }

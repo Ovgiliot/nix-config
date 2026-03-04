@@ -170,8 +170,7 @@
         "home-manager": "home-manager",
         "niri": "niri",
         "nix-darwin": "nix-darwin",
-        "nixpkgs": "nixpkgs_2",
-        "zen-browser": "zen-browser"
+        "nixpkgs": "nixpkgs_2"
       }
     },
     "xwayland-satellite-stable": {
@@ -204,29 +203,6 @@
       "original": {
         "owner": "Supreeeme",
         "repo": "xwayland-satellite",
-        "type": "github"
-      }
-    },
-    "zen-browser": {
-      "inputs": {
-        "home-manager": [
-          "home-manager"
-        ],
-        "nixpkgs": [
-          "nixpkgs"
-        ]
-      },
-      "locked": {
-        "lastModified": 1771972438,
-        "narHash": "sha256-IehXl5NDbgg1XUv3u20gScu1f0Y8JwK7xO409ZWYatc=",
-        "owner": "0xc000022070",
-        "repo": "zen-browser-flake",
-        "rev": "e646c6acedbb3a57e4ec883e0caaa963578875d5",
-        "type": "github"
-      },
-      "original": {
-        "owner": "0xc000022070",
-        "repo": "zen-browser-flake",
         "type": "github"
       }
     }

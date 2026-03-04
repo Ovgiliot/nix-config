@@ -22,15 +22,6 @@
     # Niri Window Manager (Wayland; Linux only)
     niri.url = "github:sodiboo/niri-flake";
 
-    # Zen Browser (Linux only)
-    zen-browser = {
-      url = "github:0xc000022070/zen-browser-flake";
-      inputs = {
-        nixpkgs.follows = "nixpkgs";
-        home-manager.follows = "home-manager";
-      };
-    };
-
     # Declarative disk partitioning — used by install.sh on fresh installs.
     disko = {
       url = "github:nix-community/disko";

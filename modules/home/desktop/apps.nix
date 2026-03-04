@@ -1,14 +1,9 @@
-{
-  pkgs,
-  inputs,
-  ...
-}: {
+{pkgs, ...}: {
   imports = [./web-apps.nix];
 
   home.packages = with pkgs; [
     # Wayland / Desktop Utilities
     xwayland-satellite # X11 app support in Niri
-    inputs.zen-browser.packages.${pkgs.stdenv.hostPlatform.system}.default
     wofi
     mako
     wl-clipboard
