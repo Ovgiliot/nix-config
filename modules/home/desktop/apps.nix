@@ -12,6 +12,7 @@
     kanata # Keyboard remapping (homerow mods)
     brightnessctl
     swayidle
+    swaylock
     playerctl # Media control (for niri)
     pulsemixer # Audio control
     linux-wallpaperengine # Live wallpapers

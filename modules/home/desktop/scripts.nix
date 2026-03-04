@@ -118,7 +118,7 @@
 
   updateColors = pkgs.writeShellApplication {
     name = "update-colors";
-    runtimeInputs = with pkgs; [matugen procps mako];
+    runtimeInputs = with pkgs; [matugen procps mako glib neovim];
     text = ''
       WPE_PREVIEW="$HOME/.steam/steam/steamapps/workshop/content/431960/2994243715/preview.jpg"
       STATIC_FALLBACK="$HOME/.config/wallpaper.jpg"
@@ -138,6 +138,24 @@
       pkill -SIGUSR1 ghostty 2>/dev/null || true &
       makoctl reload 2>/dev/null || true &
       niri msg action reload-config 2>/dev/null || true &
+
+      # GTK — toggle theme name to force running GTK apps to re-read CSS.
+      gsettings set org.gnome.desktop.interface gtk-theme Adwaita
+      sleep 0.1
+      gsettings set org.gnome.desktop.interface gtk-theme adw-gtk3-dark &
+
+      # Qutebrowser — re-source config if an instance is running.
+      qutebrowser ':config-source' 2>/dev/null || true &
+
+      # Neovim — reload highlight colours in all running instances.
+      UID_VAL=$(id -u)
+      for sock in /run/user/"$UID_VAL"/nvim.*.0; do
+        [ -S "$sock" ] && \
+          nvim --server "$sock" \
+            --remote-expr 'execute("luafile ~/.cache/matugen/nvim-hl-colors.lua")' \
+          2>/dev/null || true &
+      done
+
       wait
     '';
   };

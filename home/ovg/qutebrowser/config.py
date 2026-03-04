@@ -1,0 +1,46 @@
+import os
+
+config.load_autoconfig(False)
+
+# --- Behavior ---
+c.auto_save.session = False
+c.downloads.location.directory = "~/Downloads"
+c.downloads.location.prompt = False
+c.editor.command = ["ghostty", "-e", "nvim", "{file}"]
+c.spellcheck.languages = ["en-US"]
+c.tabs.last_close = "close"
+c.url.default_page = "about:blank"
+c.url.start_pages = "about:blank"
+
+# Search engines — DEFAULT is DuckDuckGo; prefix shortcuts for everything else.
+c.url.searchengines = {
+    "DEFAULT": "https://duckduckgo.com/?q={}",
+    "g": "https://www.google.com/search?q={}",
+    "gh": "https://github.com/search?q={}",
+    "nix": "https://search.nixos.org/packages?query={}",
+    "yt": "https://www.youtube.com/results?search_query={}",
+    "w": "https://en.wikipedia.org/wiki/{}",
+}
+
+# --- Privacy ---
+c.content.cookies.accept = "no-3rdparty"
+c.content.geolocation = False
+c.content.notifications.enabled = False
+
+# --- Appearance ---
+c.fonts.default_family = "FiraMono Nerd Font"
+c.fonts.default_size = "11pt"
+
+# Dark mode for web pages.
+c.colors.webpage.preferred_color_scheme = "dark"
+c.colors.webpage.darkmode.enabled = True
+
+# --- Keybinds ---
+config.bind(",e", "edit-url")
+config.bind(";t", "hint links tab")
+config.bind(",d", "config-cycle colors.webpage.darkmode.enabled True False")
+
+# --- Colours (matugen-generated, live-reloaded by update-colors) ---
+colors_file = os.path.expanduser("~/.cache/matugen/qutebrowser-colors.py")
+if os.path.isfile(colors_file):
+    config.source(colors_file)

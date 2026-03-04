@@ -306,6 +306,12 @@
           test -f ${./home/ovg/matugen/templates/wofi-colors.css}          || exit 1
           test -f ${./home/ovg/matugen/templates/niri-colors.kdl}          || exit 1
           test -f ${./home/ovg/matugen/templates/qs-colors.json}           || exit 1
+          test -f ${./home/ovg/matugen/templates/gtk3.css}                 || exit 1
+          test -f ${./home/ovg/matugen/templates/gtk4.css}                 || exit 1
+          test -f ${./home/ovg/matugen/templates/swaylock.conf}            || exit 1
+          test -f ${./home/ovg/matugen/templates/qutebrowser-colors.py}    || exit 1
+          test -f ${./home/ovg/matugen/templates/nvim-hl-colors.lua}       || exit 1
+          test -f ${./home/ovg/qutebrowser/config.py}                      || exit 1
           test -f ${./home/ovg/quickshell/shell.qml}                  || exit 1
           test -f ${./home/ovg/quickshell/Clock.qml}                 || exit 1
           test -f ${./home/ovg/quickshell/Workspaces.qml}            || exit 1
