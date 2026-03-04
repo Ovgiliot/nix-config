@@ -90,4 +90,6 @@ ShellRoot {
             }
         }
     }
+
+    WallpaperPicker {}
 }
