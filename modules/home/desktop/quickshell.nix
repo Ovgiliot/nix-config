@@ -73,14 +73,9 @@
     '';
   };
 
-  # ---------------------------------------------------------------------------
-  # Wallpaper management
-  # set-wallpaper lists updateColors as a runtimeInputs entry so the Nix
-  # wrapper prepends its store bin/ to PATH — no hardcoded profile paths.
-  # swww img is guarded with || true so it is a graceful no-op on workstation
-  # where swww-daemon is not running.
-  # ---------------------------------------------------------------------------
-
+  # set-wallpaper: standalone CLI — lists updateColors as runtimeInputs so the
+  # Nix wrapper prepends its store bin/ to PATH without hardcoded profile paths.
+  # swww img is guarded with || true (no-op when swww-daemon is absent).
   setWallpaper = pkgs.writeShellApplication {
     name = "set-wallpaper";
     runtimeInputs = with pkgs; [swww coreutils imagemagick updateColors];
@@ -97,48 +92,11 @@
       # Convert to a real JPEG regardless of source format so matugen can
       # always decode it (matugen infers the codec from the file extension).
       convert "$SRC" "$HOME/.config/wallpaper.jpg"
-      # Record source path so WallpaperPicker can pre-select on next open.
-      printf '%s' "$SRC" > "$HOME/.cache/qs-current-wallpaper"
-      # Apply via swww using the converted JPEG so the displayed wallpaper matches
-      # the file matugen reads for color extraction (no-op when swww-daemon is absent).
+      # Apply via swww (no-op when swww-daemon is absent).
       swww img "$HOME/.config/wallpaper.jpg" --transition-type random || true
       # Regenerate colour scheme to match the new wallpaper.
       update-colors
     '';
-  };
-
-  listWallpapers = pkgs.writeShellApplication {
-    name = "list-wallpapers";
-    runtimeInputs = with pkgs; [findutils coreutils];
-    text = ''
-      DIR="$HOME/Pictures/Wallpapers"
-      [ -d "$DIR" ] || exit 0
-      find "$DIR" -maxdepth 1 -type f \( \
-        -name "*.jpg" -o -name "*.jpeg" -o \
-        -name "*.png" -o \
-        -name "*.gif" -o \
-        -name "*.webp" \) | sort
-    '';
-  };
-
-  # Toggles visibility flag file read by WallpaperPicker's FileView.
-  toggleWallpaperPicker = pkgs.writeShellApplication {
-    name = "toggle-wallpaper-picker";
-    runtimeInputs = with pkgs; [gnugrep];
-    text = ''
-      FLAG="$HOME/.cache/qs-wallpaper-open"
-      if [ -f "$FLAG" ] && grep -q '"show":true' "$FLAG" 2>/dev/null; then
-        printf '{"show":false}' > "$FLAG"
-      else
-        printf '{"show":true}' > "$FLAG"
-      fi
-    '';
-  };
-
-  hideWallpaperPicker = pkgs.writeShellApplication {
-    name = "hide-wallpaper-picker";
-    runtimeInputs = [];
-    text = ''printf '{"show":false}' > "$HOME/.cache/qs-wallpaper-open"'';
   };
 
   scriptsQml = ''
@@ -147,13 +105,9 @@
     // Singleton so there is one instance shared across all components.
     // All paths are absolute Nix store paths — no PATH dependency at runtime.
     Singleton {
-        readonly property string wifiMonitor:           "${wifiMonitor}/bin/wifi-monitor"
-        readonly property string status:                "${status}/bin/status"
-        readonly property string getPower:              "${getPower}/bin/get-power-profile"
-        readonly property string setWallpaper:          "${setWallpaper}/bin/set-wallpaper"
-        readonly property string listWallpapers:        "${listWallpapers}/bin/list-wallpapers"
-        readonly property string toggleWallpaperPicker: "${toggleWallpaperPicker}/bin/toggle-wallpaper-picker"
-        readonly property string hideWallpaperPicker:   "${hideWallpaperPicker}/bin/hide-wallpaper-picker"
+        readonly property string wifiMonitor: "${wifiMonitor}/bin/wifi-monitor"
+        readonly property string status:      "${status}/bin/status"
+        readonly property string getPower:    "${getPower}/bin/get-power-profile"
         // Absolute store path avoids relying on PATH in the systemd user service
         // environment — used by Workspaces to dispatch focus-workspace actions.
         readonly property string niri:                  "${pkgs.niri}/bin/niri"
@@ -176,19 +130,15 @@
     cp ${dotfilesDir}/quickshell/StatusPoller.qml       $out/StatusPoller.qml
     cp ${dotfilesDir}/quickshell/WifiMonitor.qml        $out/WifiMonitor.qml
     cp ${dotfilesDir}/quickshell/Colors.qml             $out/Colors.qml
-    cp ${dotfilesDir}/quickshell/WallpaperPicker.qml    $out/WallpaperPicker.qml
     cp ${pkgs.writeText "Scripts.qml" scriptsQml}       $out/Scripts.qml
   '';
 in {
-  # quickshell itself + color theming + wallpaper management scripts (available on all
-  # desktops; swww img call in set-wallpaper is a graceful no-op when swww-daemon is absent).
+  # quickshell + color theming + set-wallpaper CLI (available on all desktops;
+  # swww img in set-wallpaper is a graceful no-op when swww-daemon is absent).
   home.packages = [
     pkgs.quickshell
     updateColors
     setWallpaper
-    listWallpapers
-    toggleWallpaperPicker
-    hideWallpaperPicker
   ];
 
   # Single directory link — all QML files (including generated Scripts.qml) live
