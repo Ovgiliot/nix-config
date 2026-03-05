@@ -118,7 +118,9 @@
 
   updateColors = pkgs.writeShellApplication {
     name = "update-colors";
-    runtimeInputs = with pkgs; [matugen procps mako glib neovim ghostty];
+    # ghostty/mako/niri reloads are handled by per-template post_hooks in
+    # matugen's config.toml. Only tools that need special orchestration stay here.
+    runtimeInputs = with pkgs; [matugen procps glib neovim];
     text = ''
       WALLPAPER="$HOME/.config/wallpaper.jpg"
       if [ ! -f "$WALLPAPER" ]; then
@@ -126,34 +128,21 @@
         exit 1
       fi
 
+      # Generate all templates. Per-template post_hooks (ghostty, mako, niri)
+      # run automatically after each file is written.
       matugen image "$WALLPAPER" --mode dark --type scheme-content
 
-      # Rewrite qs-colors.json in-place so Qt's QFileSystemWatcher sees
-      # IN_CLOSE_WRITE on the current inode (matugen uses atomic rename which
-      # replaces the inode, losing the existing watch).
-      qs="$HOME/.cache/matugen/qs-colors.json"
-      if [ -f "$qs" ]; then
-        tmp=$(<"$qs")
-        printf '%s' "$tmp" > "$qs"
-      fi
-
-      # Reload apps in parallel; ignore errors for apps not currently running.
-      # ghostty +reload-config is the correct programmatic reload; SIGUSR1 has
-      # the default POSIX action of terminating the process.
-      ghostty +reload-config 2>/dev/null || true &
-      makoctl reload 2>/dev/null || true &
-      niri msg action reload-config 2>/dev/null || true &
-
       # GTK — toggle theme name to force running GTK apps to re-read CSS.
+      # Needs sleep between the two calls so the theme switch is detected.
       gsettings set org.gnome.desktop.interface gtk-theme Adwaita
       sleep 0.1
-      gsettings set org.gnome.desktop.interface gtk-theme adw-gtk3-dark &
+      gsettings set org.gnome.desktop.interface gtk-theme adw-gtk3-dark
 
       # Qutebrowser — re-source config only if an instance is already running.
-      # Without the guard, qutebrowser ':config-source' launches a new window
-      # when no instance exists, then 'wait' below blocks until it is closed.
+      # Without the guard, ':config-source' launches a new window when no
+      # instance exists.
       if pgrep -x qutebrowser > /dev/null 2>&1; then
-        qutebrowser ':config-source' 2>/dev/null || true &
+        qutebrowser ':config-source' 2>/dev/null || true
       fi
 
       # Neovim — reload highlight colours in all running instances.

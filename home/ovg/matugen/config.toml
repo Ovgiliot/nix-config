@@ -5,35 +5,44 @@ set_wallpaper = false
 [templates.ghostty-colors]
 input_path  = "~/.config/matugen/templates/ghostty-colors.conf"
 output_path = "~/.cache/matugen/ghostty-colors.conf"
+post_hook   = "ghostty +reload-config 2>/dev/null || true"
 
 [templates.mako]
 input_path  = "~/.config/matugen/templates/mako.conf"
 output_path = "~/.config/mako/config"
+post_hook   = "makoctl reload 2>/dev/null || true"
 
 [templates.wofi-colors]
 input_path  = "~/.config/matugen/templates/wofi-colors.css"
 output_path = "~/.config/wofi/style.css"
+# no post_hook: wofi reads CSS fresh on each launch
 
 [templates.niri-colors]
 input_path  = "~/.config/matugen/templates/niri-colors.kdl"
 output_path = "~/.cache/matugen/niri-colors.kdl"
+post_hook   = "niri msg action reload-config 2>/dev/null || true"
 
 [templates.qs-colors]
 input_path  = "~/.config/matugen/templates/qs-colors.json"
 output_path = "~/.cache/matugen/qs-colors.json"
+# no post_hook: Colors.qml polls the file every second (avoids inotify/atomic-rename issues)
 
 [templates.gtk3]
 input_path  = "~/.config/matugen/templates/gtk3.css"
 output_path = "~/.config/gtk-3.0/gtk.css"
+# no post_hook: GTK reload needs sleep between two gsettings calls — handled in script
 
 [templates.swaylock]
 input_path  = "~/.config/matugen/templates/swaylock.conf"
 output_path = "~/.config/swaylock/config"
+# no post_hook: swaylock reads config on each launch
 
 [templates.qutebrowser-colors]
 input_path  = "~/.config/matugen/templates/qutebrowser-colors.py"
 output_path = "~/.cache/matugen/qutebrowser-colors.py"
+# no post_hook: reload needs pgrep guard to avoid opening a new window — handled in script
 
 [templates.nvim-hl-colors]
 input_path  = "~/.config/matugen/templates/nvim-hl-colors.lua"
 output_path = "~/.cache/matugen/nvim-hl-colors.lua"
+# no post_hook: reload needs a loop over multiple nvim sockets — handled in script

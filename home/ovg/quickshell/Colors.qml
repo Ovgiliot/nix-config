@@ -1,6 +1,7 @@
 // Dynamic color singleton driven by ~/.cache/matugen/qs-colors.json.
-// FileView watchChanges reloads automatically when update-colors runs.
-// Alpha is applied here; JSON stores plain #rrggbb strings.
+// Colors are polled every second: simpler and immune to the inotify watch
+// loss caused by matugen's atomic rename (temp-file + rename replaces the
+// inode, which silently drops QFileSystemWatcher's existing watch).
 
 import Quickshell
 import Quickshell.Io
@@ -22,8 +23,6 @@ Singleton {
     FileView {
         id: colorFile
         path: StandardPaths.writableLocation(StandardPaths.GenericCacheLocation) + "/matugen/qs-colors.json"
-        watchChanges: true
-        onFileChanged: reload()
 
         JsonAdapter {
             id: colors
@@ -41,6 +40,15 @@ Singleton {
             property string powerBalanced: "#c0c5e4"
             property string langRu:        "#656a86"
         }
+    }
+
+    // Poll every second. This avoids relying on inotify watches which break
+    // when matugen atomically replaces the file via rename().
+    Timer {
+        interval: 1000
+        running: true
+        repeat: true
+        onTriggered: colorFile.reload()
     }
 
     // Pill backgrounds: 80% opacity
