@@ -32,10 +32,12 @@
   '';
 
   seedNiriColors = pkgs.writeText "niri-colors-seed.kdl" ''
-    focus-ring {
-        width 1
-        active-color "#c0c5e4"
-        inactive-color "#909098"
+    layout {
+        focus-ring {
+            width 1
+            active-color "#c0c5e4"
+            inactive-color "#909098"
+        }
     }
   '';
 
