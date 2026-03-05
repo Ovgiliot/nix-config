@@ -36,7 +36,7 @@
 
   setWallpaper = pkgs.writeShellApplication {
     name = "set-wallpaper";
-    runtimeInputs = with pkgs; [swww coreutils];
+    runtimeInputs = with pkgs; [swww coreutils imagemagick];
     text = ''
       if [ -z "''${1-}" ]; then
         echo "Usage: set-wallpaper <path>" >&2
@@ -47,8 +47,9 @@
         echo "set-wallpaper: not found: $SRC" >&2
         exit 1
       fi
-      # Stable copy for matugen colour extraction.
-      cp "$SRC" "$HOME/.config/wallpaper.jpg"
+      # Convert to a real JPEG regardless of source format so matugen can
+      # always decode it (matugen infers the codec from the file extension).
+      convert "$SRC" "$HOME/.config/wallpaper.jpg"
       # Record source path so WallpaperPicker can pre-select on next open.
       printf '%s' "$SRC" > "$HOME/.cache/qs-current-wallpaper"
       # Apply via swww (no-op on workstation where swww-daemon is not running).
