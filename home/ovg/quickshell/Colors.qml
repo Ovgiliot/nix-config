@@ -47,9 +47,11 @@ Singleton {
               + "/matugen/qs-colors.json"
 
         onTextChanged: {
-            if (!text) return
+            // FileView.text is a function in Quickshell 0.2.x — call it via id.
+            const t = colorFile.text()
+            if (!t) return
             try {
-                const d = JSON.parse(text)
+                const d = JSON.parse(t)
                 if (d.pillBg)        _pillBg        = d.pillBg
                 if (d.accent)        _accent        = d.accent
                 if (d.barRed)        _barRed        = d.barRed

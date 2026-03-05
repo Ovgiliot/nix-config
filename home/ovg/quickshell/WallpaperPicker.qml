@@ -39,10 +39,18 @@ PanelWindow {
     WlrLayershell.layer:         WlrLayer.Overlay
     WlrLayershell.exclusiveZone: -1
     WlrLayershell.namespace:     "wallpaper-picker"
-    // Exclusive: steal all keyboard input while visible so j/k work immediately.
-    WlrLayershell.keyboardFocus: WlrKeyboardFocus.Exclusive
+    // Steal keyboard input only while visible — prevents grabbing all input when
+    // the picker is hidden (including on startup before the flag file is read).
+    WlrLayershell.keyboardFocus: visible ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
 
     visible: false   // driven by flag file below
+
+    // On every startup, unconditionally reset the flag file to {"show":false}.
+    // This clears any stale {"show":true} left by a crashed previous session,
+    // which would otherwise cause the picker to grab all keyboard input on boot.
+    Component.onCompleted: {
+        if (!hideProc.running) hideProc.running = true
+    }
 
     // ── Flag file: {"show": true/false} ─────────────────────────────────────
     FileView {
@@ -81,8 +89,8 @@ PanelWindow {
         path: StandardPaths.writableLocation(StandardPaths.GenericCacheLocation)
               + "/qs-current-wallpaper"
         onTextChanged: {
-            root.currentWallpaper = (text || "").trim()
-            if (!listProc.running) listProc.running = true
+            // FileView.text is a function in Quickshell 0.2.x — call it via id.
+            root.currentWallpaper = (currentWallpaperFile.text() || "").trim()
         }
     }
 
@@ -128,6 +136,9 @@ PanelWindow {
     // ── Helpers ───────────────────────────────────────────────────────────────
     function refresh() {
         currentWallpaperFile.reload()
+        // Always start listProc directly — don't gate it on currentWallpaperFile
+        // loading, since that file may not exist (no wallpaper set yet).
+        if (!listProc.running) listProc.running = true
     }
 
     function applySelected() {
