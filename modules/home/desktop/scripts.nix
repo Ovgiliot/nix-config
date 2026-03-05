@@ -113,22 +113,16 @@
   # ---------------------------------------------------------------------------
   # Color Theming
   # Runs matugen against the active wallpaper and reloads all apps.
-  # Workstation: WPE Space Cat preview.jpg. Laptop / fallback: static image.
+  # Wallpaper source: ~/.config/wallpaper.jpg — written by set-wallpaper.
   # ---------------------------------------------------------------------------
 
   updateColors = pkgs.writeShellApplication {
     name = "update-colors";
     runtimeInputs = with pkgs; [matugen procps mako glib neovim];
     text = ''
-      WPE_PREVIEW="$HOME/.steam/steam/steamapps/workshop/content/431960/2994243715/preview.jpg"
-      STATIC_FALLBACK="$HOME/.config/wallpaper.jpg"
-
-      if [ -f "$WPE_PREVIEW" ]; then
-        WALLPAPER="$WPE_PREVIEW"
-      elif [ -f "$STATIC_FALLBACK" ]; then
-        WALLPAPER="$STATIC_FALLBACK"
-      else
-        echo "update-colors: no wallpaper found at $WPE_PREVIEW or $STATIC_FALLBACK" >&2
+      WALLPAPER="$HOME/.config/wallpaper.jpg"
+      if [ ! -f "$WALLPAPER" ]; then
+        echo "update-colors: no wallpaper at $WALLPAPER — run set-wallpaper first" >&2
         exit 1
       fi
 
