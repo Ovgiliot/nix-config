@@ -3,7 +3,6 @@
 // Power:   driven by StatusPoller singleton in shell.qml (5 s poll).
 // BT:      Quickshell.Bluetooth service singleton (event-driven).
 // Battery: Quickshell.Services.UPower singleton (event-driven).
-// Pill background driven by worst laptop battery state.
 // Shadow: offset y=5, blur 0.7, #00000077 — matches Niri window shadow config.
 
 import Quickshell
@@ -45,28 +44,6 @@ Item {
         return result
     }
 
-    // Worst battery state across all laptop batteries — drives pill color.
-    // Priority: critical > warning > normal/charging.
-    // FullyCharged is treated as charging so it never triggers a warning.
-    readonly property string worstBatState: {
-        var s = "normal"
-        const bats = root.laptopBatteries
-        for (var i = 0; i < bats.length; i++) {
-            const b = bats[i]
-            const lvl = Math.round(b.percentage * 100)
-            const charging = b.state === UPowerDeviceState.Charging
-                          || b.state === UPowerDeviceState.PendingCharge
-                          || b.state === UPowerDeviceState.FullyCharged
-            if (!charging && lvl <= 15) return "critical"
-            if (!charging && lvl <= 30) s = "warning"
-        }
-        return s
-    }
-
-    readonly property color normalColor:   Colors.pillBg
-    readonly property color warningColor:  Colors.warningBg
-    readonly property color criticalColor: Colors.criticalBg
-
     function wifiIcon(state) {
         if (state === "ethernet") return "\uDB80\uDE00"   // U+F0200
         if (state === "on")       return "\uDB81\uDDA9"   // U+F05A9
@@ -79,23 +56,11 @@ Item {
         return "\uDB80\uDCB2"                              // U+F00B2  off
     }
 
-    function btColor(state) {
-        if (state === "connected") return Colors.btConnected
-        if (state === "on")        return Qt.rgba(250/255, 250/255, 250/255, 0.7)
-        return Qt.rgba(250/255, 250/255, 250/255, 0.4)
-    }
-
     // state is one of: "performance", "balanced", "power-saver"
     function powerIcon(state) {
         if (state === "performance") return "\uDB85\uDC0B"   // U+F140B
         if (state === "power-saver") return "\uDB81\uDCD8"   // U+F04D8
         return "\uDB81\uDCD2"                                // U+F04D2  balanced
-    }
-
-    function powerColor(state) {
-        if (state === "performance") return Colors.powerPerf
-        if (state === "power-saver") return Colors.powerSaver
-        return Colors.powerBalanced
     }
 
     function batIcon(level, charging) {
@@ -111,15 +76,10 @@ Item {
     Rectangle {
         id: pillBg
         anchors.fill: parent
-        color: {
-            if (root.worstBatState === "critical") return root.criticalColor
-            if (root.worstBatState === "warning")  return root.warningColor
-            return root.normalColor
-        }
+        color: Colors.pillBg
         bottomLeftRadius:  12
         bottomRightRadius: 12
         visible: false
-        Behavior on color { ColorAnimation { duration: 400 } }
     }
 
     MultiEffect {
@@ -158,7 +118,7 @@ Item {
             text:           root.btIcon(root.btState)
             font.family:    "FiraMono Nerd Font"
             font.pixelSize: 16
-            color:          root.btColor(root.btState)
+            color:          "#fafafa"
         }
 
         // Power profile
@@ -169,7 +129,7 @@ Item {
             text:           root.powerIcon(root.powerState)
             font.family:    "FiraMono Nerd Font"
             font.pixelSize: 16
-            color:          root.powerColor(root.powerState)
+            color:          "#fafafa"
         }
 
         // Batteries — one entry per laptop battery; empty on desktop hosts

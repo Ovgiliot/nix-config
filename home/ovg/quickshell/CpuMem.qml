@@ -65,12 +65,7 @@ Item {
                 height: parent.height - 2
                 x: 1; y: 1
                 radius: 2
-                // Inline ternary so QML tracks Colors.bar* as direct binding
-                // dependencies — avoids function-internal dependency tracking
-                // failure that left barGreen permanently undefined every second.
-                color: root.cpuPct >= 75 ? Colors.barRed :
-                       root.cpuPct >= 40 ? Colors.barAmber :
-                                           Colors.barGreen
+                color: Colors.barFill
                 Behavior on width { NumberAnimation { duration: 300; easing.type: Easing.OutCubic } }
             }
         }
@@ -99,9 +94,7 @@ Item {
                 height: parent.height - 2
                 x: 1; y: 1
                 radius: 2
-                color: root.memPct >= 75 ? Colors.barRed :
-                       root.memPct >= 40 ? Colors.barAmber :
-                                           Colors.barGreen
+                color: Colors.barFill
                 Behavior on width { NumberAnimation { duration: 300; easing.type: Easing.OutCubic } }
             }
         }

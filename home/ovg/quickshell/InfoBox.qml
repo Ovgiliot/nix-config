@@ -18,8 +18,6 @@ Item {
     property string warningClass: "none"
 
     // Computed display: warnings take priority over media.
-    // "critical" and "warning" both show warningText; "critical" gets a
-    // distinct background colour (Colors.criticalBg vs Colors.warningBg).
     readonly property string infoText: {
         if (warningClass === "critical" || warningClass === "warning") return warningText
         const players = Mpris.players.values
@@ -41,13 +39,10 @@ Item {
     Rectangle {
         id: pillBg
         anchors.fill: parent
-        color: root.infoClass === "critical" ? Colors.criticalBg :
-               root.infoClass === "warning"  ? Colors.warningBg  :
-                                               Colors.pillBg
+        color: Colors.pillBg
         bottomLeftRadius:  12
         bottomRightRadius: 12
         visible: false
-        Behavior on color { ColorAnimation { duration: 300 } }
     }
 
     // Shadow + pill only shown when there is content to display

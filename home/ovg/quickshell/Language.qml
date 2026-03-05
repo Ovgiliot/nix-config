@@ -1,6 +1,4 @@
 // Keyboard language widget. Driven by NiriIpc in shell.qml — no polling here.
-// Background transitions between gray (EN) and blue (RU).
-// Text is bare "EN" / "RU" — no leading icon — ensuring clean centering.
 // Shadow: offset y=5, blur 0.7, #00000077 — matches Niri window shadow config.
 
 import QtQuick
@@ -18,11 +16,10 @@ Item {
     Rectangle {
         id: pillBg
         anchors.fill: parent
-        color: root.langClass === "ru" ? Colors.langRu : Colors.pillBg
+        color: Colors.pillBg
         bottomLeftRadius:  12
         bottomRightRadius: 12
         visible: false
-        Behavior on color { ColorAnimation { duration: 300 } }
     }
 
     MultiEffect {
