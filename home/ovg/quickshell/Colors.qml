@@ -4,6 +4,7 @@
 pragma Singleton
 
 import Quickshell
+import QtQuick
 
 Singleton {
     readonly property color pillBg:   "#404040"
