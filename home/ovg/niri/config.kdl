@@ -13,11 +13,6 @@ include "/home/ovg/.cache/matugen/niri-colors.kdl"
 // Start XWayland satellite
 spawn-at-startup "xwayland-satellite"
 
-// Start Linux Wallpaper Engine
-// Wallpaper: "Space Cat" (Steam Workshop ID 2994243715)
-// --fps 15: cap at 15fps to halve compositor recomposite frequency.
-spawn-at-startup "linux-wallpaperengine" "--silent" "--fps" "15" "--screen-root" "eDP-1" "2994243715"
-
 // Idle management (timeouts, screen-dim, lock, hibernate).
 // Logic lives in scripts.nix as a writeShellApplication with declared deps.
 spawn-at-startup "niri-idle"

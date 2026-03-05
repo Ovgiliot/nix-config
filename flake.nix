@@ -322,7 +322,6 @@
           test -f ${./home/ovg/quickshell/NiriIpc.qml}               || exit 1
           test -f ${./home/ovg/quickshell/StatusPoller.qml}          || exit 1
           test -f ${./home/ovg/quickshell/Colors.qml}                || exit 1
-          test -f ${./home/ovg/quickshell/qmldir}                    || exit 1
           test -f ${./home/ovg/quickshell/scripts/wifi-monitor.sh}   || exit 1
           test -f ${./home/ovg/quickshell/scripts/system-stats.sh}   || exit 1
           test -f ${./home/ovg/wofi/config}                     || exit 1
