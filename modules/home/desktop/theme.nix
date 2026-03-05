@@ -1,4 +1,8 @@
-{pkgs, ...}: {
+{
+  pkgs,
+  config,
+  ...
+}: {
   gtk = {
     enable = true;
     font = {
@@ -17,7 +21,7 @@
     # (because HM owns ~/.config/gtk-4.0/gtk.css as a read-only Nix store symlink).
     # This import makes HM's generated gtk.css pull in the matugen output at runtime.
     gtk4.extraCss = ''
-      @import url("/home/ovg/.cache/matugen/gtk4-colors.css");
+      @import url("${config.home.homeDirectory}/.cache/matugen/gtk4-colors.css");
     '';
   };
 

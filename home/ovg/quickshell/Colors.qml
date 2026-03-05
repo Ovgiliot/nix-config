@@ -35,19 +35,20 @@ Singleton {
 
         JsonAdapter {
             id: colors
-            // Defaults: Space Cat wallpaper (--mode dark --type scheme-content)
-            property string pillBg:        "#474854"
-            property string accent:        "#c0c5e4"
-            property string barRed:        "#ffb4ab"
-            property string barAmber:      "#816278"
-            property string barGreen:      "#656a86"
-            property string warningBg:     "#816278"
-            property string criticalBg:    "#ffb4ab"
-            property string btConnected:   "#c0c5e4"
-            property string powerPerf:     "#ffb4ab"
-            property string powerSaver:    "#c5c5d3"
-            property string powerBalanced: "#c0c5e4"
-            property string langRu:        "#656a86"
+            // Neutral gray placeholders — visible for ~1 s on first boot until
+            // the JSON file is polled. Replaced immediately by matugen output.
+            property string pillBg:        "#404040"
+            property string accent:        "#808080"
+            property string barRed:        "#808080"
+            property string barAmber:      "#606060"
+            property string barGreen:      "#606060"
+            property string warningBg:     "#505050"
+            property string criticalBg:    "#707070"
+            property string btConnected:   "#808080"
+            property string powerPerf:     "#808080"
+            property string powerSaver:    "#808080"
+            property string powerBalanced: "#808080"
+            property string langRu:        "#505050"
         }
     }
 
