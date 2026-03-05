@@ -100,6 +100,8 @@
   };
 
   scriptsQml = ''
+    pragma Singleton
+
     import Quickshell
 
     // Singleton so there is one instance shared across all components.

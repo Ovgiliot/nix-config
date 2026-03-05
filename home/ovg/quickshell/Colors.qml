@@ -1,6 +1,8 @@
 // Static color palette. No dynamic loading — colors are hardcoded.
 // To update colors, edit this file directly and rebuild.
 
+pragma Singleton
+
 import Quickshell
 
 Singleton {
