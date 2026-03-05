@@ -13,15 +13,17 @@ import QtCore
 import QtQuick
 
 Singleton {
-    // Helper: apply alpha to a hex color string.
-    // Guard against empty/invalid hex during a partial JSON reload so that
-    // property bindings don't propagate undefined and break downstream QColor
-    // assignments (observed as "Unable to assign [undefined] to QColor").
+    // Apply alpha to a 6-digit hex color string.
+    // Returns an "#aarrggbb" string — pure JS string ops, no Qt.color() call.
+    // Qt.color() was a Qt 5 convenience that does not exist in Qt 6; calling it
+    // throws TypeError which permanently breaks the readonly property color
+    // binding (QML disconnects bindings that throw). Pure string manipulation
+    // cannot throw and always returns a valid QML color literal.
     function withAlpha(hex, alpha) {
-        if (!hex || hex.charAt(0) !== "#") return Qt.rgba(0, 0, 0, alpha)
-        const c = Qt.color(hex)
-        if (!c || !c.valid) return Qt.rgba(0, 0, 0, alpha)
-        return Qt.rgba(c.r, c.g, c.b, alpha)
+        const aa = Math.round(alpha * 255).toString(16).padStart(2, "0")
+        if (!hex || hex.length !== 7 || hex.charAt(0) !== "#")
+            return "#" + aa + "000000"
+        return "#" + aa + hex.substr(1)
     }
 
     FileView {
@@ -48,28 +50,29 @@ Singleton {
 
     // Raw-text watcher for change detection. No JsonAdapter child, so reload()
     // here does not disturb the parsed color properties.
+    // onTextChanged fires AFTER the async read completes — the comparison is
+    // done here so we never read .text synchronously right after reload()
+    // (which would return stale/undefined content and defeat the comparison).
     FileView {
         id: colorFileCheck
         path: colorFile.path
+        onTextChanged: {
+            if (text !== _lastColorText) {
+                _lastColorText = text
+                colorFile.reload()
+            }
+        }
     }
 
     property string _lastColorText: ""
 
-    // Poll every second. Only forward to the JsonAdapter (via colorFile.reload())
-    // when the file text has actually changed. This prevents the 1-second
-    // property-reset churn that caused transient undefined QColor errors.
+    // Poll every second. colorFileCheck.onTextChanged handles the actual
+    // comparison and only calls colorFile.reload() when content has changed.
     Timer {
         interval: 1000
         running: true
         repeat: true
-        onTriggered: {
-            colorFileCheck.reload()
-            const t = colorFileCheck.text
-            if (t !== _lastColorText) {
-                _lastColorText = t
-                colorFile.reload()
-            }
-        }
+        onTriggered: colorFileCheck.reload()
     }
 
     // Pill backgrounds: 80% opacity
