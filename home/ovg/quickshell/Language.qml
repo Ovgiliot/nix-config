@@ -27,7 +27,7 @@ Item {
         anchors.fill:         pillBg
         autoPaddingEnabled:   true
         shadowEnabled:        true
-        shadowColor:          "#77000000"
+        shadowColor:          Colors.shadowColor
         shadowBlur:           0.7
         shadowVerticalOffset: 5
         shadowHorizontalOffset: 0
@@ -40,6 +40,6 @@ Item {
         font.family:    "FiraMono Nerd Font"
         font.pixelSize: 14
         font.bold:      true
-        color:          "#fafafa"
+        color:          Colors.textColor
     }
 }

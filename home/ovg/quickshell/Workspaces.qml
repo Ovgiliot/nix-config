@@ -35,7 +35,7 @@ Item {
         anchors.fill:         pillBg
         autoPaddingEnabled:   true
         shadowEnabled:        true
-        shadowColor:          "#77000000"
+        shadowColor:          Colors.shadowColor
         shadowBlur:           0.7
         shadowVerticalOffset: 5
         shadowHorizontalOffset: 0

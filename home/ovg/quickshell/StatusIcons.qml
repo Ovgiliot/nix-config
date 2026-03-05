@@ -87,7 +87,7 @@ Item {
         anchors.fill:         pillBg
         autoPaddingEnabled:   true
         shadowEnabled:        true
-        shadowColor:          "#77000000"
+        shadowColor:          Colors.shadowColor
         shadowBlur:           0.7
         shadowVerticalOffset: 5
         shadowHorizontalOffset: 0
@@ -107,7 +107,7 @@ Item {
             text:           root.wifiIcon(root.wifiState)
             font.family:    "FiraMono Nerd Font"
             font.pixelSize: 16
-            color:          "#fafafa"
+            color:          Colors.textColor
         }
 
         // Bluetooth
@@ -118,7 +118,7 @@ Item {
             text:           root.btIcon(root.btState)
             font.family:    "FiraMono Nerd Font"
             font.pixelSize: 16
-            color:          "#fafafa"
+            color:          Colors.textColor
         }
 
         // Power profile
@@ -129,7 +129,7 @@ Item {
             text:           root.powerIcon(root.powerState)
             font.family:    "FiraMono Nerd Font"
             font.pixelSize: 16
-            color:          "#fafafa"
+            color:          Colors.textColor
         }
 
         // Batteries — one entry per laptop battery; empty on desktop hosts
@@ -151,7 +151,7 @@ Item {
                 text:           root.batIcon(level, charging) + " " + level + "%"
                 font.family:    "FiraMono Nerd Font"
                 font.pixelSize: 16
-                color:          "#fafafa"
+                color:          Colors.textColor
             }
         }
     }

@@ -276,7 +276,7 @@ PanelWindow {
             text:             "Loading…"
             font.family:      "FiraMono Nerd Font"
             font.pixelSize:   14
-            color:            "#fafafa"
+            color:            Colors.textColor
         }
     }
 }

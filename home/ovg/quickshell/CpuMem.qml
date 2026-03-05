@@ -30,7 +30,7 @@ Item {
         anchors.fill:         pillBg
         autoPaddingEnabled:   true
         shadowEnabled:        true
-        shadowColor:          "#77000000"
+        shadowColor:          Colors.shadowColor
         shadowBlur:           0.7
         shadowVerticalOffset: 5
         shadowHorizontalOffset: 0
@@ -50,14 +50,14 @@ Item {
             text: "CPU"
             font.family:    "FiraMono Nerd Font"
             font.pixelSize: 14
-            color: "#fafafa"
+            color: Colors.textColor
         }
         Item { width: 6; height: 16 }
         Rectangle {
             width: 80; height: 16; radius: 2
             color: Colors.barTrack
             border.width: 1
-            border.color: "#000000"
+            border.color: Colors.outline
 
             Rectangle {
                 id: cpuFill
@@ -79,14 +79,14 @@ Item {
             text: "MEM"
             font.family:    "FiraMono Nerd Font"
             font.pixelSize: 14
-            color: "#fafafa"
+            color: Colors.textColor
         }
         Item { width: 6; height: 16 }
         Rectangle {
             width: 80; height: 16; radius: 2
             color: Colors.barTrack
             border.width: 1
-            border.color: "#000000"
+            border.color: Colors.outline
 
             Rectangle {
                 id: memFill
