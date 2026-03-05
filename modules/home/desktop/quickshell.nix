@@ -113,6 +113,7 @@
         // Absolute store path avoids relying on PATH in the systemd user service
         // environment — used by Workspaces to dispatch focus-workspace actions.
         readonly property string niri:                  "${pkgs.niri}/bin/niri"
+        readonly property string qsColors:              "file:///home/ovg/.cache/matugen/qs-colors.json"
     }
   '';
 
