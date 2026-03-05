@@ -13,13 +13,10 @@ QtObject {
     // Public — bound into StatusIcons by shell.qml
     property string wifiState: "off"
 
-    // ── Scripts path registry ─────────────────────────────────────────────────
-    property var _scripts: Scripts { id: scripts }
-
     // ── WiFi monitor: long-running process, emits JSON lines ─────────────────
     property var _proc: Process {
         running: true
-        command: [scripts.wifiMonitor]
+        command: [Scripts.wifiMonitor]
         stdout: SplitParser {
             splitMarker: "\n"
             onRead: (line) => {

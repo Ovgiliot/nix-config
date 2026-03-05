@@ -15,14 +15,9 @@ Item {
 
     property var workspaceModel: []
 
-    // ── Scripts path registry ─────────────────────────────────────────────────
-    // niri is referenced via the absolute store path to avoid relying on PATH
-    // being set correctly in the systemd user service environment.
-    Scripts { id: scripts }
-
     // ── Action processes ─────────────────────────────────────────────────────
-    Process { id: focusUpProc;   command: [scripts.niri, "msg", "action", "focus-workspace-up"]   }
-    Process { id: focusDownProc; command: [scripts.niri, "msg", "action", "focus-workspace-down"] }
+    Process { id: focusUpProc;   command: [Scripts.niri, "msg", "action", "focus-workspace-up"]   }
+    Process { id: focusDownProc; command: [Scripts.niri, "msg", "action", "focus-workspace-down"] }
 
     // ── Pill background (hidden — MultiEffect renders it with shadow) ─────────
     Rectangle {
@@ -50,8 +45,11 @@ Item {
     MouseArea {
         anchors.fill: parent
         onWheel: (wheel) => {
-            if (wheel.angleDelta.y > 0) focusUpProc.running = true
-            else                        focusDownProc.running = true
+            if (wheel.angleDelta.y > 0) {
+                if (!focusUpProc.running) focusUpProc.running = true
+            } else {
+                if (!focusDownProc.running) focusDownProc.running = true
+            }
         }
     }
 

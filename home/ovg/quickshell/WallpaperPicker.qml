@@ -17,7 +17,6 @@ import Quickshell.Wayland
 import Quickshell.Io
 import QtCore
 import QtQuick
-import QtQuick.Effects
 
 PanelWindow {
     id: root
@@ -76,20 +75,12 @@ PanelWindow {
     property string currentWallpaper: ""   // path from qs-current-wallpaper
     property string wallpaperToApply: ""
 
-    // ── Script paths ─────────────────────────────────────────────────────────
-    Scripts { id: scripts }
-
     // ── Read active wallpaper path via FileView ───────────────────────────────
-    // Using FileView instead of a sh+cat Process avoids a PATH dependency and
-    // is purely in-process. onTextChanged chains to listProc once the read
-    // completes, preserving the sequential current→list→pre-select flow.
     FileView {
         id: currentWallpaperFile
         path: StandardPaths.writableLocation(StandardPaths.GenericCacheLocation)
               + "/qs-current-wallpaper"
         onTextChanged: {
-            // text is null/undefined before the async read completes; empty
-            // means the file is absent — proceed with no pre-selection.
             root.currentWallpaper = (text || "").trim()
             if (!listProc.running) listProc.running = true
         }
@@ -98,7 +89,7 @@ PanelWindow {
     // ── List wallpapers ───────────────────────────────────────────────────────
     Process {
         id: listProc
-        command: [scripts.listWallpapers]
+        command: [Scripts.listWallpapers]
         stdout: StdioCollector {
             onStreamFinished: {
                 const lines = text.trim().split("\n").filter(l => l.length > 0)
@@ -119,15 +110,10 @@ PanelWindow {
     // ── Apply wallpaper ───────────────────────────────────────────────────────
     Process {
         id: applyProc
-        // command is rebuilt whenever wallpaperToApply changes; only runs when
-        // applySelected() explicitly sets running = true.
         command: root.wallpaperToApply.length > 0
-                 ? [scripts.setWallpaper, root.wallpaperToApply]
+                 ? [Scripts.setWallpaper, root.wallpaperToApply]
                  : ["sh", "-c", "true"]
         onExited: (code) => {
-            // Only record the new active wallpaper if set-wallpaper succeeded.
-            // An optimistic update ignoring the exit code would show the wrong
-            // pre-selection on next open if the script failed.
             if (code === 0 && root.wallpaperToApply.length > 0)
                 root.currentWallpaper = root.wallpaperToApply
         }
@@ -136,7 +122,7 @@ PanelWindow {
     // ── Hide picker ───────────────────────────────────────────────────────────
     Process {
         id: hideProc
-        command: [scripts.hideWallpaperPicker]
+        command: [Scripts.hideWallpaperPicker]
     }
 
     // ── Helpers ───────────────────────────────────────────────────────────────
@@ -154,24 +140,14 @@ PanelWindow {
         if (!hideProc.running) hideProc.running = true
     }
 
-    // ── Background (rendered via MultiEffect for shadow) ─────────────────────
+    // ── Background ────────────────────────────────────────────────────────────
+    // Plain Rectangle — no MultiEffect shadow. The picker is a prominent overlay
+    // and doesn't need a shadow. Using MultiEffect on a window that starts as
+    // visible:false caused a zero-geometry source → white-box artifact on Qt 6.
     Rectangle {
-        id: bg
         anchors.fill: parent
-        color:        Colors.barTrack   // fully opaque pillBg — solid backdrop
+        color:        Colors.barTrack
         radius:       8
-        visible:      false
-    }
-
-    MultiEffect {
-        source:               bg
-        anchors.fill:         bg
-        autoPaddingEnabled:   true
-        shadowEnabled:        true
-        shadowColor:          "#77000000"
-        shadowBlur:           0.7
-        shadowVerticalOffset: 5
-        shadowHorizontalOffset: 0
     }
 
     // ── Content ───────────────────────────────────────────────────────────────
@@ -244,7 +220,6 @@ PanelWindow {
                     anchors.leftMargin:     6
                     anchors.right:          parent.right
                     anchors.rightMargin:    6
-                    // Bullet marks the selected item; two spaces keep others aligned.
                     text:           (index === root.selectedIndex ? "● " : "  ")
                                     + modelData.name
                     font.family:    "FiraMono Nerd Font"

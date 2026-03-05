@@ -22,12 +22,9 @@ QtObject {
     property string warningClass: "none"
     property string powerState:   "balanced"
 
-    // ── Scripts path registry ─────────────────────────────────────────────────
-    property var _scripts: Scripts { id: scripts }
-
     // ── Combined stats process ────────────────────────────────────────────────
     property var _proc: Process {
-        command: [scripts.status]
+        command: [Scripts.status]
         stdout: StdioCollector {
             onStreamFinished: {
                 try {
@@ -51,7 +48,7 @@ QtObject {
 
     // ── Power profile: one-shot poll every 5 s ────────────────────────────────
     property var _powerProc: Process {
-        command: [scripts.getPower]
+        command: [Scripts.getPower]
         stdout: SplitParser {
             splitMarker: "\n"
             onRead: (line) => {

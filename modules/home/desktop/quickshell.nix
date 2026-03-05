@@ -142,9 +142,11 @@
   };
 
   scriptsQml = ''
-    import QtQuick
+    import Quickshell
 
-    QtObject {
+    // Singleton so there is one instance shared across all components.
+    // All paths are absolute Nix store paths — no PATH dependency at runtime.
+    Singleton {
         readonly property string wifiMonitor:           "${wifiMonitor}/bin/wifi-monitor"
         readonly property string status:                "${status}/bin/status"
         readonly property string getPower:              "${getPower}/bin/get-power-profile"
@@ -198,9 +200,10 @@ in {
       Description = "Quickshell status bar";
       After = ["graphical-session.target"];
       PartOf = ["graphical-session.target"];
-      # Cap restarts: max 5 in 60 s to avoid storm-looping on compositor bugs.
-      StartLimitIntervalSec = 60;
-      StartLimitBurst = 5;
+      # Cap restarts: max 10 in 120 s to avoid permanently dying after a
+      # transient compositor hiccup, while still preventing tight crash loops.
+      StartLimitIntervalSec = 120;
+      StartLimitBurst = 10;
     };
     Service = {
       ExecStart = "${pkgs.quickshell}/bin/quickshell";
