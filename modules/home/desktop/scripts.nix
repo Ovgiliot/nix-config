@@ -149,8 +149,12 @@
       sleep 0.1
       gsettings set org.gnome.desktop.interface gtk-theme adw-gtk3-dark &
 
-      # Qutebrowser — re-source config if an instance is running.
-      qutebrowser ':config-source' 2>/dev/null || true &
+      # Qutebrowser — re-source config only if an instance is already running.
+      # Without the guard, qutebrowser ':config-source' launches a new window
+      # when no instance exists, then 'wait' below blocks until it is closed.
+      if pgrep -x qutebrowser > /dev/null 2>&1; then
+        qutebrowser ':config-source' 2>/dev/null || true &
+      fi
 
       # Neovim — reload highlight colours in all running instances.
       UID_VAL=$(id -u)
