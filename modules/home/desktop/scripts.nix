@@ -118,7 +118,7 @@
 
   updateColors = pkgs.writeShellApplication {
     name = "update-colors";
-    runtimeInputs = with pkgs; [matugen procps mako glib neovim];
+    runtimeInputs = with pkgs; [matugen procps mako glib neovim ghostty];
     text = ''
       WALLPAPER="$HOME/.config/wallpaper.jpg"
       if [ ! -f "$WALLPAPER" ]; then
@@ -128,8 +128,19 @@
 
       matugen image "$WALLPAPER" --mode dark --type scheme-content
 
+      # Rewrite qs-colors.json in-place so Qt's QFileSystemWatcher sees
+      # IN_CLOSE_WRITE on the current inode (matugen uses atomic rename which
+      # replaces the inode, losing the existing watch).
+      qs="$HOME/.cache/matugen/qs-colors.json"
+      if [ -f "$qs" ]; then
+        tmp=$(<"$qs")
+        printf '%s' "$tmp" > "$qs"
+      fi
+
       # Reload apps in parallel; ignore errors for apps not currently running.
-      pkill -SIGUSR1 ghostty 2>/dev/null || true &
+      # ghostty +reload-config is the correct programmatic reload; SIGUSR1 has
+      # the default POSIX action of terminating the process.
+      ghostty +reload-config 2>/dev/null || true &
       makoctl reload 2>/dev/null || true &
       niri msg action reload-config 2>/dev/null || true &
 

@@ -9,8 +9,13 @@ import QtQuick
 
 Singleton {
     // Helper: apply alpha to a hex color string.
+    // Guard against empty/invalid hex during a partial JSON reload so that
+    // property bindings don't propagate undefined and break downstream QColor
+    // assignments (observed as "Unable to assign [undefined] to QColor").
     function withAlpha(hex, alpha) {
+        if (!hex || hex.charAt(0) !== "#") return Qt.rgba(0, 0, 0, alpha)
         const c = Qt.color(hex)
+        if (!c || !c.valid) return Qt.rgba(0, 0, 0, alpha)
         return Qt.rgba(c.r, c.g, c.b, alpha)
     }
 
