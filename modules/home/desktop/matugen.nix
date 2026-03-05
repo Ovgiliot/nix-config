@@ -131,8 +131,6 @@
     @define-color accent_fg_color    #2a2f48;
   '';
 
-  seedGtk4Css = seedGtk3Css;
-
   seedSwaylockConfig = pkgs.writeText "swaylock-config-seed" ''
     color=131315
     font=FiraMono Nerd Font
@@ -314,12 +312,6 @@ in {
     if [ ! -f "$cfg/gtk-3.0/gtk.css" ]; then
       $DRY_RUN_CMD mkdir -p "$cfg/gtk-3.0"
       $DRY_RUN_CMD cp ${seedGtk3Css} "$cfg/gtk-3.0/gtk.css"
-    fi
-
-    # gtk-4.0/gtk.css — no longer managed by HM; seed if not present.
-    if [ ! -f "$cfg/gtk-4.0/gtk.css" ]; then
-      $DRY_RUN_CMD mkdir -p "$cfg/gtk-4.0"
-      $DRY_RUN_CMD cp ${seedGtk4Css} "$cfg/gtk-4.0/gtk.css"
     fi
 
     # swaylock/config — no longer managed by HM; seed if not present.

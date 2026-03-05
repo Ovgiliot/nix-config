@@ -2,42 +2,38 @@
 reload_apps = false
 set_wallpaper = false
 
-[config.templates.ghostty-colors]
+[templates.ghostty-colors]
 input_path  = "~/.config/matugen/templates/ghostty-colors.conf"
 output_path = "~/.cache/matugen/ghostty-colors.conf"
 
-[config.templates.mako]
+[templates.mako]
 input_path  = "~/.config/matugen/templates/mako.conf"
 output_path = "~/.config/mako/config"
 
-[config.templates.wofi-colors]
+[templates.wofi-colors]
 input_path  = "~/.config/matugen/templates/wofi-colors.css"
 output_path = "~/.config/wofi/style.css"
 
-[config.templates.niri-colors]
+[templates.niri-colors]
 input_path  = "~/.config/matugen/templates/niri-colors.kdl"
 output_path = "~/.cache/matugen/niri-colors.kdl"
 
-[config.templates.qs-colors]
+[templates.qs-colors]
 input_path  = "~/.config/matugen/templates/qs-colors.json"
 output_path = "~/.cache/matugen/qs-colors.json"
 
-[config.templates.gtk3]
+[templates.gtk3]
 input_path  = "~/.config/matugen/templates/gtk3.css"
 output_path = "~/.config/gtk-3.0/gtk.css"
 
-[config.templates.gtk4]
-input_path  = "~/.config/matugen/templates/gtk4.css"
-output_path = "~/.config/gtk-4.0/gtk.css"
-
-[config.templates.swaylock]
+[templates.swaylock]
 input_path  = "~/.config/matugen/templates/swaylock.conf"
 output_path = "~/.config/swaylock/config"
 
-[config.templates.qutebrowser-colors]
+[templates.qutebrowser-colors]
 input_path  = "~/.config/matugen/templates/qutebrowser-colors.py"
 output_path = "~/.cache/matugen/qutebrowser-colors.py"
 
-[config.templates.nvim-hl-colors]
+[templates.nvim-hl-colors]
 input_path  = "~/.config/matugen/templates/nvim-hl-colors.lua"
 output_path = "~/.cache/matugen/nvim-hl-colors.lua"
