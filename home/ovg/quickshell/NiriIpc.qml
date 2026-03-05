@@ -2,6 +2,7 @@
 // Owns the single EventStream socket for the whole bar.
 // Exposes workspaces and keyboard layout as reactive properties.
 // Reconnects automatically after 3 s if the socket drops.
+// Retries socket path resolution every 2 s if NIRI_SOCKET is empty at startup.
 
 import Quickshell.Io
 import QtQuick
@@ -24,9 +25,22 @@ QtObject {
         stdout: StdioCollector {
             onStreamFinished: {
                 const p = text.trim()
-                if (p) root._socketPath = p
+                if (p) {
+                    root._socketPath = p
+                } else {
+                    // NIRI_SOCKET not yet in environment (bar started before
+                    // niri fully initialised) — retry after 2 s.
+                    _socketRetryTimer.start()
+                }
             }
         }
+    }
+
+    // ── Retry timer for initial socket path resolution ────────────────────────
+    property var _socketRetryTimer: Timer {
+        interval: 2000
+        repeat:   false
+        onTriggered: root._getSocketPath.running = true
     }
 
     Component.onCompleted: _getSocketPath.running = true
@@ -67,7 +81,7 @@ QtObject {
                     } else if (msg.KeyboardLayoutsChanged) {
                         const kl = msg.KeyboardLayoutsChanged.keyboard_layouts
                         root._layoutNames = kl.names || []
-                        root._applyLayout(kl.current_idx || 0)
+                        root._applyLayout(kl.current_idx ?? 0)
 
                     } else if (msg.KeyboardLayoutSwitched) {
                         root._applyLayout(msg.KeyboardLayoutSwitched.idx)

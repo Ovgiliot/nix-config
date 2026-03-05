@@ -152,6 +152,9 @@
         readonly property string listWallpapers:        "${listWallpapers}/bin/list-wallpapers"
         readonly property string toggleWallpaperPicker: "${toggleWallpaperPicker}/bin/toggle-wallpaper-picker"
         readonly property string hideWallpaperPicker:   "${hideWallpaperPicker}/bin/hide-wallpaper-picker"
+        // Absolute store path avoids relying on PATH in the systemd user service
+        // environment — used by Workspaces to dispatch focus-workspace actions.
+        readonly property string niri:                  "${pkgs.niri}/bin/niri"
     }
   '';
 
@@ -169,6 +172,7 @@
     cp ${dotfilesDir}/quickshell/StatusIcons.qml        $out/StatusIcons.qml
     cp ${dotfilesDir}/quickshell/NiriIpc.qml            $out/NiriIpc.qml
     cp ${dotfilesDir}/quickshell/StatusPoller.qml       $out/StatusPoller.qml
+    cp ${dotfilesDir}/quickshell/WifiMonitor.qml        $out/WifiMonitor.qml
     cp ${dotfilesDir}/quickshell/Colors.qml             $out/Colors.qml
     cp ${dotfilesDir}/quickshell/WallpaperPicker.qml    $out/WallpaperPicker.qml
     cp ${pkgs.writeText "Scripts.qml" scriptsQml}       $out/Scripts.qml

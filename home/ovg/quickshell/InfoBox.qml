@@ -17,9 +17,11 @@ Item {
     property string warningText:  ""
     property string warningClass: "none"
 
-    // Computed display: warnings take priority over media
+    // Computed display: warnings take priority over media.
+    // "critical" and "warning" both show warningText; "critical" gets a
+    // distinct background colour (Colors.criticalBg vs Colors.warningBg).
     readonly property string infoText: {
-        if (warningClass === "warning") return warningText
+        if (warningClass === "critical" || warningClass === "warning") return warningText
         const players = Mpris.players.values
         if (players.length > 0) {
             const p = players[0]
@@ -29,7 +31,8 @@ Item {
         return ""
     }
     readonly property string infoClass: {
-        if (warningClass === "warning") return "warning"
+        if (warningClass === "critical") return "critical"
+        if (warningClass === "warning")  return "warning"
         if (Mpris.players.values.length > 0) return "media"
         return "none"
     }
@@ -38,7 +41,9 @@ Item {
     Rectangle {
         id: pillBg
         anchors.fill: parent
-        color: root.infoClass === "warning" ? Colors.warningBg : Colors.pillBg
+        color: root.infoClass === "critical" ? Colors.criticalBg :
+               root.infoClass === "warning"  ? Colors.warningBg  :
+                                               Colors.pillBg
         bottomLeftRadius:  12
         bottomRightRadius: 12
         visible: false

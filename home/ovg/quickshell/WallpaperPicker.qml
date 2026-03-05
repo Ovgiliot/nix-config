@@ -79,17 +79,19 @@ PanelWindow {
     // ── Script paths ─────────────────────────────────────────────────────────
     Scripts { id: scripts }
 
-    // ── Read active wallpaper path ────────────────────────────────────────────
-    // Sequential: read current → list wallpapers → pre-select.
-    Process {
-        id: readCurrentProc
-        command: ["sh", "-c",
-                  "cat \"$HOME/.cache/qs-current-wallpaper\" 2>/dev/null || true"]
-        stdout: StdioCollector {
-            onStreamFinished: {
-                root.currentWallpaper = text.trim()
-                if (!listProc.running) listProc.running = true
-            }
+    // ── Read active wallpaper path via FileView ───────────────────────────────
+    // Using FileView instead of a sh+cat Process avoids a PATH dependency and
+    // is purely in-process. onTextChanged chains to listProc once the read
+    // completes, preserving the sequential current→list→pre-select flow.
+    FileView {
+        id: currentWallpaperFile
+        path: StandardPaths.writableLocation(StandardPaths.GenericCacheLocation)
+              + "/qs-current-wallpaper"
+        onTextChanged: {
+            // text is null/undefined before the async read completes; empty
+            // means the file is absent — proceed with no pre-selection.
+            root.currentWallpaper = (text || "").trim()
+            if (!listProc.running) listProc.running = true
         }
     }
 
@@ -122,9 +124,11 @@ PanelWindow {
         command: root.wallpaperToApply.length > 0
                  ? [scripts.setWallpaper, root.wallpaperToApply]
                  : ["sh", "-c", "true"]
-        onRunningChanged: {
-            // Optimistic: once the process exits, record the new active wallpaper.
-            if (!running && root.wallpaperToApply.length > 0)
+        onExited: (code) => {
+            // Only record the new active wallpaper if set-wallpaper succeeded.
+            // An optimistic update ignoring the exit code would show the wrong
+            // pre-selection on next open if the script failed.
+            if (code === 0 && root.wallpaperToApply.length > 0)
                 root.currentWallpaper = root.wallpaperToApply
         }
     }
@@ -137,7 +141,7 @@ PanelWindow {
 
     // ── Helpers ───────────────────────────────────────────────────────────────
     function refresh() {
-        if (!readCurrentProc.running) readCurrentProc.running = true
+        currentWallpaperFile.reload()
     }
 
     function applySelected() {

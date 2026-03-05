@@ -11,9 +11,13 @@ ShellRoot {
     // Workspaces and Language bind to its reactive properties.
     NiriIpc { id: niriIpc }
 
-    // Single system stats poller — owns the one polling process for the whole bar.
-    // CpuMem and InfoBox bind to its reactive properties.
+    // Single system stats + power-profile poller — owns both poll processes.
+    // CpuMem, InfoBox, and StatusIcons bind to its reactive properties.
     StatusPoller { id: statusPoller }
+
+    // Single WiFi monitor — owns the long-running wifi-monitor process.
+    // StatusIcons binds to its reactive wifiState property.
+    WifiMonitor { id: wifiMonitor }
 
     PanelWindow {
         id: bar
@@ -86,7 +90,10 @@ ShellRoot {
                     langText:  niriIpc.languageText
                     langClass: niriIpc.languageClass
                 }
-                StatusIcons {}
+                StatusIcons {
+                    wifiState:  wifiMonitor.wifiState
+                    powerState: statusPoller.powerState
+                }
             }
         }
     }

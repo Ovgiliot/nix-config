@@ -1,13 +1,12 @@
 // Status icons widget: WiFi, Bluetooth, Power Profile, Battery.
-// WiFi:    long-running wifi-monitor process (event-driven via nmcli monitor).
+// WiFi:    driven by WifiMonitor singleton in shell.qml (event-driven).
+// Power:   driven by StatusPoller singleton in shell.qml (5 s poll).
 // BT:      Quickshell.Bluetooth service singleton (event-driven).
-// Power:   shell-based poll via powerprofilesctl (5 s interval).
 // Battery: Quickshell.Services.UPower singleton (event-driven).
 // Pill background driven by worst laptop battery state.
 // Shadow: offset y=5, blur 0.7, #00000077 — matches Niri window shadow config.
 
 import Quickshell
-import Quickshell.Io
 import Quickshell.Bluetooth
 import Quickshell.Services.UPower
 import QtQuick
@@ -18,10 +17,8 @@ Item {
     implicitWidth:  iconsRow.implicitWidth + 24
     implicitHeight: 24
 
-    // WiFi state from long-running wifi-monitor process
-    property string wifiState: "off"
-
-    // Power profile state from periodic powerprofilesctl poll
+    // WiFi and power state bound from singletons via shell.qml
+    property string wifiState:  "off"
     property string powerState: "balanced"
 
     // BT state computed from Bluetooth singleton (event-driven)
@@ -108,52 +105,6 @@ Item {
         if (level > 37) return "\uf242"
         if (level > 12) return "\uf243"
         return "\uf244"
-    }
-
-    // ── Scripts path registry ─────────────────────────────────────────────────
-    Scripts { id: scripts }
-
-    // ── WiFi: long-running process — restart on exit so monitor stays live ────
-    Process {
-        running: true
-        command: [scripts.wifiMonitor]
-        onExited: running = true
-        stdout: SplitParser {
-            splitMarker: "\n"
-            onRead: (line) => {
-                const l = line.trim()
-                if (!l) return
-                try {
-                    const d = JSON.parse(l)
-                    root.wifiState = d.wifi || "off"
-                } catch (_) {}
-            }
-        }
-    }
-
-    // ── Power profile: one-shot poll process ──────────────────────────────────
-    property var _powerStateProc: Process {
-        id: powerStateProc
-        command: [scripts.getPower]
-        stdout: SplitParser {
-            splitMarker: "\n"
-            onRead: (line) => {
-                const l = line.trim()
-                if (l) root.powerState = l
-            }
-        }
-    }
-
-    // Poll every 5 s; guard against overlapping runs.
-    property var _powerPollTimer: Timer {
-        interval: 5000
-        repeat: true
-        running: true
-        triggeredOnStart: true
-        onTriggered: {
-            if (!powerStateProc.running)
-                powerStateProc.running = true
-        }
     }
 
     // ── Pill background (hidden — MultiEffect renders it with shadow) ─────────
