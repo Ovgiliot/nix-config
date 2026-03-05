@@ -122,7 +122,6 @@
     cp ${dotfilesDir}/quickshell/StatusPoller.qml       $out/StatusPoller.qml
     cp ${dotfilesDir}/quickshell/Colors.qml             $out/Colors.qml
     cp ${dotfilesDir}/quickshell/WallpaperPicker.qml    $out/WallpaperPicker.qml
-    cp ${dotfilesDir}/quickshell/qmldir                 $out/qmldir
     cp ${pkgs.writeText "Scripts.qml" scriptsQml}       $out/Scripts.qml
   '';
 in {
