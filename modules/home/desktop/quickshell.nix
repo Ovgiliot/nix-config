@@ -25,18 +25,65 @@
   };
 
   # ---------------------------------------------------------------------------
+  # Color Theming
+  # Defined here (not in scripts.nix) so setWallpaper can reference it as a
+  # runtimeInputs entry, which embeds the correct store path in the wrapper's
+  # PATH prefix — avoiding the fragile ~/.nix-profile/bin/ hardcode.
+  # ---------------------------------------------------------------------------
+
+  updateColors = pkgs.writeShellApplication {
+    name = "update-colors";
+    # ghostty/mako/niri reloads are handled by per-template post_hooks in
+    # matugen's config.toml. Only tools that need special orchestration stay here.
+    runtimeInputs = with pkgs; [matugen procps glib neovim];
+    text = ''
+      WALLPAPER="$HOME/.config/wallpaper.jpg"
+      if [ ! -f "$WALLPAPER" ]; then
+        echo "update-colors: no wallpaper at $WALLPAPER — run set-wallpaper first" >&2
+        exit 1
+      fi
+
+      # Generate all templates. Per-template post_hooks (ghostty, mako, niri)
+      # run automatically after each file is written.
+      matugen image "$WALLPAPER" --mode dark --type scheme-content
+
+      # GTK — toggle theme name to force running GTK apps to re-read CSS.
+      # Needs sleep between the two calls so the theme switch is detected.
+      gsettings set org.gnome.desktop.interface gtk-theme Adwaita
+      sleep 0.1
+      gsettings set org.gnome.desktop.interface gtk-theme adw-gtk3-dark
+
+      # Qutebrowser — re-source config only if an instance is already running.
+      # Without the guard, ':config-source' launches a new window when no
+      # instance exists.
+      if pgrep -x qutebrowser > /dev/null 2>&1; then
+        qutebrowser ':config-source' 2>/dev/null || true
+      fi
+
+      # Neovim — reload highlight colours in all running instances.
+      UID_VAL=$(id -u)
+      for sock in /run/user/"$UID_VAL"/nvim.*.0; do
+        [ -S "$sock" ] && \
+          nvim --server "$sock" \
+            --remote-expr 'execute("luafile ~/.cache/matugen/nvim-hl-colors.lua")' \
+          2>/dev/null || true &
+      done
+
+      wait
+    '';
+  };
+
+  # ---------------------------------------------------------------------------
   # Wallpaper management
-  # set-wallpaper is defined here (not in laptop/wallpaper.nix) so its Nix
-  # store path can be injected into Scripts.qml for use by WallpaperPicker.qml.
+  # set-wallpaper lists updateColors as a runtimeInputs entry so the Nix
+  # wrapper prepends its store bin/ to PATH — no hardcoded profile paths.
   # swww img is guarded with || true so it is a graceful no-op on workstation
   # where swww-daemon is not running.
-  # update-colors is called via ~/.nix-profile/bin — a stable path for any
-  # home-manager user — because Scripts.qml only knows store paths, not PATH.
   # ---------------------------------------------------------------------------
 
   setWallpaper = pkgs.writeShellApplication {
     name = "set-wallpaper";
-    runtimeInputs = with pkgs; [swww coreutils imagemagick];
+    runtimeInputs = with pkgs; [swww coreutils imagemagick updateColors];
     text = ''
       if [ -z "''${1-}" ]; then
         echo "Usage: set-wallpaper <path>" >&2
@@ -52,10 +99,11 @@
       convert "$SRC" "$HOME/.config/wallpaper.jpg"
       # Record source path so WallpaperPicker can pre-select on next open.
       printf '%s' "$SRC" > "$HOME/.cache/qs-current-wallpaper"
-      # Apply via swww (no-op on workstation where swww-daemon is not running).
-      swww img "$SRC" --transition-type random || true
+      # Apply via swww using the converted JPEG so the displayed wallpaper matches
+      # the file matugen reads for color extraction (no-op when swww-daemon is absent).
+      swww img "$HOME/.config/wallpaper.jpg" --transition-type random || true
       # Regenerate colour scheme to match the new wallpaper.
-      "$HOME/.nix-profile/bin/update-colors"
+      update-colors
     '';
   };
 
@@ -126,10 +174,11 @@
     cp ${pkgs.writeText "Scripts.qml" scriptsQml}       $out/Scripts.qml
   '';
 in {
-  # quickshell itself + wallpaper management scripts (available on all desktops;
-  # swww img call in set-wallpaper is a graceful no-op when swww-daemon is absent).
+  # quickshell itself + color theming + wallpaper management scripts (available on all
+  # desktops; swww img call in set-wallpaper is a graceful no-op when swww-daemon is absent).
   home.packages = [
     pkgs.quickshell
+    updateColors
     setWallpaper
     listWallpapers
     toggleWallpaperPicker

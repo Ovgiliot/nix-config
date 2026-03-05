@@ -32,6 +32,11 @@ input_path  = "~/.config/matugen/templates/gtk3.css"
 output_path = "~/.config/gtk-3.0/gtk.css"
 # no post_hook: GTK reload needs sleep between two gsettings calls — handled in script
 
+[templates.gtk4]
+input_path  = "~/.config/matugen/templates/gtk4.css"
+output_path = "~/.config/gtk-4.0/gtk.css"
+# no post_hook: GTK reload needs sleep between two gsettings calls — handled in script
+
 [templates.swaylock]
 input_path  = "~/.config/matugen/templates/swaylock.conf"
 output_path = "~/.config/swaylock/config"

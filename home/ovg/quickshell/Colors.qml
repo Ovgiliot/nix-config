@@ -56,19 +56,19 @@ Singleton {
     // Bar track: same hue as pill, fully opaque
     readonly property color barTrack:      withAlpha(colors.pillBg, 1.0)
     // Accent: workspace dot, fully opaque
-    readonly property color accent:        Qt.color(colors.accent)
+    readonly property color accent:        withAlpha(colors.accent, 1.0)
     // Bar fills: 90% opacity
     readonly property color barRed:        withAlpha(colors.barRed, 0.9)
     readonly property color barAmber:      withAlpha(colors.barAmber, 0.9)
     readonly property color barGreen:      withAlpha(colors.barGreen, 0.9)
     // Status pill warning/critical
     readonly property color warningBg:     withAlpha(colors.warningBg, 0.8)
-    readonly property color criticalBg:    Qt.color(colors.criticalBg)
+    readonly property color criticalBg:    withAlpha(colors.criticalBg, 1.0)
     // Icon tints
-    readonly property color btConnected:   Qt.color(colors.btConnected)
-    readonly property color powerPerf:     Qt.color(colors.powerPerf)
-    readonly property color powerSaver:    Qt.color(colors.powerSaver)
-    readonly property color powerBalanced: Qt.color(colors.powerBalanced)
+    readonly property color btConnected:   withAlpha(colors.btConnected, 1.0)
+    readonly property color powerPerf:     withAlpha(colors.powerPerf, 1.0)
+    readonly property color powerSaver:    withAlpha(colors.powerSaver, 1.0)
+    readonly property color powerBalanced: withAlpha(colors.powerBalanced, 1.0)
     // Language pill RU: 80% opacity
     readonly property color langRu:        withAlpha(colors.langRu, 0.8)
 }

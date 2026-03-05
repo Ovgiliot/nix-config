@@ -109,54 +109,6 @@
     runtimeInputs = with pkgs; [pulseaudio wofi gawk];
     text = stripShebang (builtins.readFile (dotfilesDir + "/wofi/scripts/audio-switcher.sh"));
   };
-
-  # ---------------------------------------------------------------------------
-  # Color Theming
-  # Runs matugen against the active wallpaper and reloads all apps.
-  # Wallpaper source: ~/.config/wallpaper.jpg — written by set-wallpaper.
-  # ---------------------------------------------------------------------------
-
-  updateColors = pkgs.writeShellApplication {
-    name = "update-colors";
-    # ghostty/mako/niri reloads are handled by per-template post_hooks in
-    # matugen's config.toml. Only tools that need special orchestration stay here.
-    runtimeInputs = with pkgs; [matugen procps glib neovim];
-    text = ''
-      WALLPAPER="$HOME/.config/wallpaper.jpg"
-      if [ ! -f "$WALLPAPER" ]; then
-        echo "update-colors: no wallpaper at $WALLPAPER — run set-wallpaper first" >&2
-        exit 1
-      fi
-
-      # Generate all templates. Per-template post_hooks (ghostty, mako, niri)
-      # run automatically after each file is written.
-      matugen image "$WALLPAPER" --mode dark --type scheme-content
-
-      # GTK — toggle theme name to force running GTK apps to re-read CSS.
-      # Needs sleep between the two calls so the theme switch is detected.
-      gsettings set org.gnome.desktop.interface gtk-theme Adwaita
-      sleep 0.1
-      gsettings set org.gnome.desktop.interface gtk-theme adw-gtk3-dark
-
-      # Qutebrowser — re-source config only if an instance is already running.
-      # Without the guard, ':config-source' launches a new window when no
-      # instance exists.
-      if pgrep -x qutebrowser > /dev/null 2>&1; then
-        qutebrowser ':config-source' 2>/dev/null || true
-      fi
-
-      # Neovim — reload highlight colours in all running instances.
-      UID_VAL=$(id -u)
-      for sock in /run/user/"$UID_VAL"/nvim.*.0; do
-        [ -S "$sock" ] && \
-          nvim --server "$sock" \
-            --remote-expr 'execute("luafile ~/.cache/matugen/nvim-hl-colors.lua")' \
-          2>/dev/null || true &
-      done
-
-      wait
-    '';
-  };
 in {
   home.packages = [
     nixosRebuild
@@ -168,6 +120,5 @@ in {
     btMenu
     powerMenu
     audioMenu
-    updateColors
   ];
 }

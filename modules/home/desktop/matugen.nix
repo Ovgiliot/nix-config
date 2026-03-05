@@ -131,6 +131,17 @@
     @define-color accent_fg_color    #2a2f48;
   '';
 
+  # gtk4.css seed — same color roles as gtk3, targets gtk-4.0/gtk.css.
+  seedGtk4Css = pkgs.writeText "gtk4-css-seed.css" ''
+    @define-color window_bg_color    #131315;
+    @define-color window_fg_color    #e5e1e4;
+    @define-color headerbar_bg_color #474854;
+    @define-color headerbar_fg_color #c7c5ce;
+    @define-color card_bg_color      #2a2f48;
+    @define-color accent_bg_color    #c0c5e4;
+    @define-color accent_fg_color    #2a2f48;
+  '';
+
   seedSwaylockConfig = pkgs.writeText "swaylock-config-seed" ''
     color=131315
     font=FiraMono Nerd Font
@@ -283,51 +294,57 @@ in {
 
     # ghostty-colors.conf — ghostty shows a black terminal without it.
     if [ ! -f "$cache/ghostty-colors.conf" ]; then
-      $DRY_RUN_CMD cp ${seedGhosttyColors} "$cache/ghostty-colors.conf"
+      $DRY_RUN_CMD install -m 644 ${seedGhosttyColors} "$cache/ghostty-colors.conf"
     fi
 
     # niri-colors.kdl — niri fails to start if the include target is missing.
     if [ ! -f "$cache/niri-colors.kdl" ]; then
-      $DRY_RUN_CMD cp ${seedNiriColors} "$cache/niri-colors.kdl"
+      $DRY_RUN_CMD install -m 644 ${seedNiriColors} "$cache/niri-colors.kdl"
     fi
 
     # qs-colors.json — Colors.qml falls back to defaults if missing, but seed anyway.
     if [ ! -f "$cache/qs-colors.json" ]; then
-      $DRY_RUN_CMD cp ${seedQsColors} "$cache/qs-colors.json"
+      $DRY_RUN_CMD install -m 644 ${seedQsColors} "$cache/qs-colors.json"
     fi
 
     # mako/config — no longer managed by HM; seed if not present.
     if [ ! -f "$cfg/mako/config" ]; then
       $DRY_RUN_CMD mkdir -p "$cfg/mako"
-      $DRY_RUN_CMD cp ${seedMakoConfig} "$cfg/mako/config"
+      $DRY_RUN_CMD install -m 644 ${seedMakoConfig} "$cfg/mako/config"
     fi
 
     # wofi/style.css — no longer managed by HM; seed if not present.
     if [ ! -f "$cfg/wofi/style.css" ]; then
       $DRY_RUN_CMD mkdir -p "$cfg/wofi"
-      $DRY_RUN_CMD cp ${seedWofiStyle} "$cfg/wofi/style.css"
+      $DRY_RUN_CMD install -m 644 ${seedWofiStyle} "$cfg/wofi/style.css"
     fi
 
     # gtk-3.0/gtk.css — no longer managed by HM; seed if not present.
     if [ ! -f "$cfg/gtk-3.0/gtk.css" ]; then
       $DRY_RUN_CMD mkdir -p "$cfg/gtk-3.0"
-      $DRY_RUN_CMD cp ${seedGtk3Css} "$cfg/gtk-3.0/gtk.css"
+      $DRY_RUN_CMD install -m 644 ${seedGtk3Css} "$cfg/gtk-3.0/gtk.css"
+    fi
+
+    # gtk-4.0/gtk.css — no longer managed by HM; seed if not present.
+    if [ ! -f "$cfg/gtk-4.0/gtk.css" ]; then
+      $DRY_RUN_CMD mkdir -p "$cfg/gtk-4.0"
+      $DRY_RUN_CMD install -m 644 ${seedGtk4Css} "$cfg/gtk-4.0/gtk.css"
     fi
 
     # swaylock/config — no longer managed by HM; seed if not present.
     if [ ! -f "$cfg/swaylock/config" ]; then
       $DRY_RUN_CMD mkdir -p "$cfg/swaylock"
-      $DRY_RUN_CMD cp ${seedSwaylockConfig} "$cfg/swaylock/config"
+      $DRY_RUN_CMD install -m 644 ${seedSwaylockConfig} "$cfg/swaylock/config"
     fi
 
     # qutebrowser-colors.py — seed so qutebrowser has colors before first update-colors.
     if [ ! -f "$cache/qutebrowser-colors.py" ]; then
-      $DRY_RUN_CMD cp ${seedQutebrowserColors} "$cache/qutebrowser-colors.py"
+      $DRY_RUN_CMD install -m 644 ${seedQutebrowserColors} "$cache/qutebrowser-colors.py"
     fi
 
     # nvim-hl-colors.lua — seed so neovim has org headline colors before first update-colors.
     if [ ! -f "$cache/nvim-hl-colors.lua" ]; then
-      $DRY_RUN_CMD cp ${seedNvimHlColors} "$cache/nvim-hl-colors.lua"
+      $DRY_RUN_CMD install -m 644 ${seedNvimHlColors} "$cache/nvim-hl-colors.lua"
     fi
   '';
 }
