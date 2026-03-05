@@ -14,16 +14,19 @@ import QtQuick
 
 Singleton {
     // Apply alpha to a 6-digit hex color string.
-    // Returns an "#aarrggbb" string — pure JS string ops, no Qt.color() call.
-    // Qt.color() was a Qt 5 convenience that does not exist in Qt 6; calling it
-    // throws TypeError which permanently breaks the readonly property color
-    // binding (QML disconnects bindings that throw). Pure string manipulation
-    // cannot throw and always returns a valid QML color literal.
+    // Returns a proper QML color object via Qt.rgba() — not a string.
+    // Returning a hex string ("#aarrggbb") does not reliably coerce to the
+    // QML color type for readonly property color bindings in a Singleton on
+    // Qt 6.10, leaving some properties permanently undefined. Qt.rgba()
+    // returns a real QColor and makes sub-properties (.r/.g/.b) accessible.
+    // Qt.color() from Qt 5 does not exist in Qt 6 and must never be used.
     function withAlpha(hex, alpha) {
-        const aa = Math.round(alpha * 255).toString(16).padStart(2, "0")
         if (!hex || hex.length !== 7 || hex.charAt(0) !== "#")
-            return "#" + aa + "000000"
-        return "#" + aa + hex.substr(1)
+            return Qt.rgba(0, 0, 0, alpha)
+        const r = parseInt(hex[1] + hex[2], 16) / 255
+        const g = parseInt(hex[3] + hex[4], 16) / 255
+        const b = parseInt(hex[5] + hex[6], 16) / 255
+        return Qt.rgba(r, g, b, alpha)
     }
 
     FileView {
