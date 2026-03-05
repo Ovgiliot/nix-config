@@ -15,12 +15,6 @@ Item {
     property int cpuPct: 0
     property int memPct: 0
 
-    function barColor(pct) {
-        if (pct >= 75) return Colors.barRed
-        if (pct >= 40) return Colors.barAmber
-        return             Colors.barGreen
-    }
-
     // ── Pill background (hidden — MultiEffect renders it with shadow) ─────────
     Rectangle {
         id: pillBg
@@ -71,7 +65,12 @@ Item {
                 height: parent.height - 2
                 x: 1; y: 1
                 radius: 2
-                color:  root.barColor(root.cpuPct)
+                // Inline ternary so QML tracks Colors.bar* as direct binding
+                // dependencies — avoids function-internal dependency tracking
+                // failure that left barGreen permanently undefined every second.
+                color: root.cpuPct >= 75 ? Colors.barRed :
+                       root.cpuPct >= 40 ? Colors.barAmber :
+                                           Colors.barGreen
                 Behavior on width { NumberAnimation { duration: 300; easing.type: Easing.OutCubic } }
             }
         }
@@ -100,7 +99,9 @@ Item {
                 height: parent.height - 2
                 x: 1; y: 1
                 radius: 2
-                color:  root.barColor(root.memPct)
+                color: root.memPct >= 75 ? Colors.barRed :
+                       root.memPct >= 40 ? Colors.barAmber :
+                                           Colors.barGreen
                 Behavior on width { NumberAnimation { duration: 300; easing.type: Easing.OutCubic } }
             }
         }

@@ -60,6 +60,7 @@ Singleton {
         id: colorFileCheck
         path: colorFile.path
         onTextChanged: {
+            if (!text) return   // ignore empty: FileView may clear text before the async read completes
             if (text !== _lastColorText) {
                 _lastColorText = text
                 colorFile.reload()
