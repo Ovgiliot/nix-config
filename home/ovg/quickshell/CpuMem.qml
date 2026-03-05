@@ -72,7 +72,6 @@ Item {
                 x: 1; y: 1
                 radius: 2
                 color:  root.barColor(root.cpuPct)
-                Behavior on color { ColorAnimation { duration: 400 } }
                 Behavior on width { NumberAnimation { duration: 300; easing.type: Easing.OutCubic } }
             }
         }
@@ -102,7 +101,6 @@ Item {
                 x: 1; y: 1
                 radius: 2
                 color:  root.barColor(root.memPct)
-                Behavior on color { ColorAnimation { duration: 400 } }
                 Behavior on width { NumberAnimation { duration: 300; easing.type: Easing.OutCubic } }
             }
         }

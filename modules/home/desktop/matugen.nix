@@ -131,7 +131,7 @@
     @define-color accent_fg_color    #2a2f48;
   '';
 
-  # gtk4.css seed — same color roles as gtk3, targets gtk-4.0/gtk.css.
+  # gtk4.css seed — same color roles as gtk3; output goes to ~/.cache/matugen/gtk4-colors.css.
   seedGtk4Css = pkgs.writeText "gtk4-css-seed.css" ''
     @define-color window_bg_color    #131315;
     @define-color window_fg_color    #e5e1e4;
@@ -325,10 +325,11 @@ in {
       $DRY_RUN_CMD install -m 644 ${seedGtk3Css} "$cfg/gtk-3.0/gtk.css"
     fi
 
-    # gtk-4.0/gtk.css — no longer managed by HM; seed if not present.
-    if [ ! -f "$cfg/gtk-4.0/gtk.css" ]; then
-      $DRY_RUN_CMD mkdir -p "$cfg/gtk-4.0"
-      $DRY_RUN_CMD install -m 644 ${seedGtk4Css} "$cfg/gtk-4.0/gtk.css"
+    # gtk-4.0/gtk.css is a HM-managed symlink to the Nix store (read-only).
+    # Seed and matugen output go to ~/.cache/matugen/gtk4-colors.css instead;
+    # theme.nix's gtk.gtk4.extraCss imports it via HM's generated gtk.css.
+    if [ ! -f "$cache/gtk4-colors.css" ]; then
+      $DRY_RUN_CMD install -m 644 ${seedGtk4Css} "$cache/gtk4-colors.css"
     fi
 
     # swaylock/config — no longer managed by HM; seed if not present.

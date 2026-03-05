@@ -1,7 +1,11 @@
 // Dynamic color singleton driven by ~/.cache/matugen/qs-colors.json.
-// Colors are polled every second: simpler and immune to the inotify watch
-// loss caused by matugen's atomic rename (temp-file + rename replaces the
-// inode, which silently drops QFileSystemWatcher's existing watch).
+// A 1-second timer polls for changes but only calls reload() when the file
+// content has actually changed. This avoids the JsonAdapter property-reset
+// churn that caused "Unable to assign [undefined] to QColor" errors every
+// second. A separate FileView (no JsonAdapter) reads the raw text for
+// comparison so the parsed properties are never disturbed unnecessarily.
+// Polling is used instead of watchChanges because matugen's atomic rename
+// (temp-file + rename) replaces the inode and silently drops inotify watches.
 
 import Quickshell
 import Quickshell.Io
@@ -42,13 +46,30 @@ Singleton {
         }
     }
 
-    // Poll every second. This avoids relying on inotify watches which break
-    // when matugen atomically replaces the file via rename().
+    // Raw-text watcher for change detection. No JsonAdapter child, so reload()
+    // here does not disturb the parsed color properties.
+    FileView {
+        id: colorFileCheck
+        path: colorFile.path
+    }
+
+    property string _lastColorText: ""
+
+    // Poll every second. Only forward to the JsonAdapter (via colorFile.reload())
+    // when the file text has actually changed. This prevents the 1-second
+    // property-reset churn that caused transient undefined QColor errors.
     Timer {
         interval: 1000
         running: true
         repeat: true
-        onTriggered: colorFile.reload()
+        onTriggered: {
+            colorFileCheck.reload()
+            const t = colorFileCheck.text
+            if (t !== _lastColorText) {
+                _lastColorText = t
+                colorFile.reload()
+            }
+        }
     }
 
     // Pill backgrounds: 80% opacity

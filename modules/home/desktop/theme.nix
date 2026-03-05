@@ -13,6 +13,12 @@
       name = "Adwaita";
       package = pkgs.adwaita-icon-theme;
     };
+    # GTK4 colors are written by matugen to ~/.cache/matugen/gtk4-colors.css
+    # (because HM owns ~/.config/gtk-4.0/gtk.css as a read-only Nix store symlink).
+    # This import makes HM's generated gtk.css pull in the matugen output at runtime.
+    gtk4.extraCss = ''
+      @import url("/home/ovg/.cache/matugen/gtk4-colors.css");
+    '';
   };
 
   qt = {
