@@ -38,7 +38,7 @@ in {
     WALLPAPER="$HOME/.config/wallpaper.jpg"
     if [ -f "$WALLPAPER" ]; then
       $DRY_RUN_CMD ${pkgs.matugen}/bin/matugen image "$WALLPAPER" \
-        --mode dark --type scheme-fidelity
+        --mode dark --type scheme-tonal-spot -r gaussian
     fi
 
     # niri crashes if its include target is absent. Install the placeholder
