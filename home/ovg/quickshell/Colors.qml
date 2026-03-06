@@ -10,7 +10,7 @@ Singleton {
     property color barTrack:  "#1a1a1a"
     property color barFill:   "#aaaaaa"
     property color accent:    "#cccccc"
-    property color textColor: "#e8e0e8"
+    property color textColor: "#cdc3d2"
     property color outline:   "#4a4a4a"
     // shadow is always #000000 in any scheme; shadowColor adds the opacity.
     property color shadow:    "#000000"
