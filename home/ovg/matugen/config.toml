@@ -5,7 +5,8 @@ set_wallpaper = false
 [templates.ghostty-colors]
 input_path  = "~/.config/matugen/templates/ghostty-colors.conf"
 output_path = "~/.cache/matugen/ghostty-colors.conf"
-post_hook   = "ghostty +reload-config 2>/dev/null || true"
+# no post_hook: colors are pushed to open windows via OSC 4/10/11/12 sequences in update-colors
+# (ghostty +reload-config is not a valid CLI action)
 
 [templates.mako]
 input_path  = "~/.config/matugen/templates/mako.conf"
