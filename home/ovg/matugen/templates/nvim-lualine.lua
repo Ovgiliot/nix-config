@@ -10,7 +10,7 @@ return {
 			gui = "bold",
 		},
 		b = { bg = "{{colors.outline_variant.default.hex}}", fg = "{{colors.primary.default.hex}}" },
-		c = { bg = "{{colors.surface_container.default.hex}}", fg = "{{colors.outline_variant.default.hex}}" },
+		c = { bg = "{{colors.surface_container.default.hex}}", fg = "{{colors.inverse_primary.default.hex}}" },
 	},
 	insert = {
 		a = {
@@ -19,7 +19,7 @@ return {
 			gui = "bold",
 		},
 		b = { bg = "{{colors.outline_variant.default.hex}}", fg = "{{colors.tertiary.default.hex}}" },
-		c = { bg = "{{colors.surface_container.default.hex}}", fg = "{{colors.outline_variant.default.hex}}" },
+		c = { bg = "{{colors.surface_container.default.hex}}", fg = "{{colors.inverse_primary.default.hex}}" },
 	},
 	visual = {
 		a = {
@@ -28,7 +28,7 @@ return {
 			gui = "bold",
 		},
 		b = { bg = "{{colors.outline_variant.default.hex}}", fg = "{{colors.secondary.default.hex}}" },
-		c = { bg = "{{colors.surface_container.default.hex}}", fg = "{{colors.outline_variant.default.hex}}" },
+		c = { bg = "{{colors.surface_container.default.hex}}", fg = "{{colors.inverse_primary.default.hex}}" },
 	},
 	replace = {
 		a = {
@@ -37,7 +37,7 @@ return {
 			gui = "bold",
 		},
 		b = { bg = "{{colors.outline_variant.default.hex}}", fg = "{{colors.tertiary_fixed.default.hex}}" },
-		c = { bg = "{{colors.surface_container.default.hex}}", fg = "{{colors.outline_variant.default.hex}}" },
+		c = { bg = "{{colors.surface_container.default.hex}}", fg = "{{colors.inverse_primary.default.hex}}" },
 	},
 	command = {
 		a = {
@@ -46,11 +46,11 @@ return {
 			gui = "bold",
 		},
 		b = { bg = "{{colors.outline_variant.default.hex}}", fg = "{{colors.error.default.hex}}" },
-		c = { bg = "{{colors.surface_container.default.hex}}", fg = "{{colors.outline_variant.default.hex}}" },
+		c = { bg = "{{colors.surface_container.default.hex}}", fg = "{{colors.inverse_primary.default.hex}}" },
 	},
 	inactive = {
 		a = { bg = "{{colors.outline_variant.default.hex}}", fg = "{{colors.surface_container.default.hex}}" },
 		b = { bg = "{{colors.surface_container.default.hex}}", fg = "{{colors.on_surface_variant.default.hex}}" },
-		c = { bg = "{{colors.on_surface_variant.default.hex}}", fg = "{{colors.surface_container.default.hex}}" },
+		c = { bg = "{{colors.on_surface_variant.default.hex}}", fg = "{{colors.inverse_primary.default.hex}}" },
 	},
 }
