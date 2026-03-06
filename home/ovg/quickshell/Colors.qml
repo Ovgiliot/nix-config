@@ -18,6 +18,12 @@ Singleton {
     // shadow is always #000000 in any scheme; shadowColor adds the opacity.
     property color shadow:       "#000000"
     readonly property color shadowColor: Qt.rgba(shadow.r, shadow.g, shadow.b, 0.47)
+    // Picker / dialog surface tokens
+    property color pickerBg:          "#2a2a2a"
+    property color onSurface:         "#e6e1e5"
+    property color selectionBg:       "#4a4458"
+    property color selectionText:     "#ccc2dc"
+    property color outlineVariant:    "#49454f"
 
     FileView {
         id: colorFile
@@ -37,6 +43,11 @@ Singleton {
                 if (d.textColor)    textColor    = d.textColor
                 if (d.outline)      outline      = d.outline
                 if (d.shadow)       shadow       = d.shadow
+                if (d.pickerBg)         pickerBg         = d.pickerBg
+                if (d.onSurface)        onSurface        = d.onSurface
+                if (d.selectionBg)      selectionBg      = d.selectionBg
+                if (d.selectionText)    selectionText    = d.selectionText
+                if (d.outlineVariant)   outlineVariant   = d.outlineVariant
             } catch (_) {}
         }
     }

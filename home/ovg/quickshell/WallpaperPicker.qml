@@ -157,7 +157,7 @@ PanelWindow {
     // visible:false caused a zero-geometry source → white-box artifact on Qt 6.
     Rectangle {
         anchors.fill: parent
-        color:        Colors.barTrack
+        color:        Colors.pickerBg
         radius:       8
     }
 
@@ -220,8 +220,7 @@ PanelWindow {
                     anchors.fill: parent
                     radius:       4
                     color:        index === root.selectedIndex
-                                  ? Qt.rgba(Colors.accent.r, Colors.accent.g,
-                                            Colors.accent.b, 0.2)
+                                  ? Colors.selectionBg
                                   : "transparent"
                 }
 
@@ -236,7 +235,7 @@ PanelWindow {
                     font.family:    "FiraMono Nerd Font"
                     font.pixelSize: 13
                     color:          index === root.selectedIndex
-                                    ? Colors.accent : Colors.textColor
+                                    ? Colors.selectionText : Colors.onSurface
                     elide:          Text.ElideRight
                 }
             }
@@ -250,8 +249,7 @@ PanelWindow {
             anchors.left:   listView.right
             anchors.leftMargin: 4
             width:          1
-            color:          Qt.rgba(Colors.accent.r, Colors.accent.g,
-                                    Colors.accent.b, 0.3)
+            color:          Colors.outlineVariant
         }
 
         // ── Right pane: preview ───────────────────────────────────────────────
