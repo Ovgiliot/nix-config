@@ -24,10 +24,6 @@ Item {
         if (pct >= 60) return Colors.barTrack
         return Colors.primaryTrack
     }
-    function trackColorA(pct) {
-        const c = trackColor(pct)
-        return Qt.rgba(c.r, c.g, c.b, 0.7)
-    }
 
     // ── Pill background (hidden — MultiEffect renders it with shadow) ─────────
     Rectangle {
@@ -69,7 +65,7 @@ Item {
         Item { width: 6; height: 16 }
         Rectangle {
             width: 80; height: 16; radius: 2
-            color: root.trackColorA(root.cpuPct)
+            color: root.trackColor(root.cpuPct)
             border.width: 1
             border.color: Colors.outline
             Behavior on color { ColorAnimation { duration: 300 } }
@@ -100,7 +96,7 @@ Item {
         Item { width: 6; height: 16 }
         Rectangle {
             width: 80; height: 16; radius: 2
-            color: root.trackColorA(root.memPct)
+            color: root.trackColor(root.memPct)
             border.width: 1
             border.color: Colors.outline
             Behavior on color { ColorAnimation { duration: 300 } }
