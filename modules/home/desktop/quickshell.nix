@@ -77,7 +77,7 @@
     # mako/niri reloads are handled by per-template post_hooks in
     # matugen's config.toml. Ghostty and other tools needing special
     # orchestration are handled below.
-    runtimeInputs = with pkgs; [matugen procps glib neovim gnused];
+    runtimeInputs = with pkgs; [matugen procps glib neovim gnused coreutils];
     text = ''
       WALLPAPER="$HOME/.config/wallpaper.jpg"
       if [ ! -f "$WALLPAPER" ]; then
