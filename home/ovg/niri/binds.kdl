@@ -19,7 +19,7 @@ binds {
     Super+Alt+L hotkey-overlay-title="Lock the Screen: swaylock" { spawn "swaylock" "-f"; }
     Mod+Space hotkey-overlay-title="Open Launcher" { spawn "wofi" "--show" "drun"; }
     Mod+N hotkey-overlay-title="Create Roam Node" { spawn "ghostty" "-e" "nvim" "-c" "lua require('org-roam').api.find_node()"; }
-    Mod+O hotkey-overlay-title="Open Notes" { spawn "sh" "-c" "mkdir -p ~/Documents/org && ghostty -e ranger ~/Documents/org"; }
+    Mod+O hotkey-overlay-title="Open Home Node" { spawn "ghostty" "-e" "nvim" "-c" "lua local roam = require('org-roam'); roam.database:load():next(function() for _, id in ipairs(roam.database:ids()) do local node = roam.database:get_sync(id); if node and node.title == 'home' then vim.cmd.edit(node.file); break; end; end; end)"; }
     Mod+Ctrl+N hotkey-overlay-title="Wi-Fi Menu" { spawn "wifi-menu"; }
     Mod+Ctrl+B hotkey-overlay-title="Bluetooth Menu" { spawn "bluetooth-menu"; }
     Mod+Ctrl+S hotkey-overlay-title="Audio Output Menu" { spawn "audio-menu"; }
