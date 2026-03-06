@@ -50,3 +50,13 @@ input_path  = "~/.config/matugen/templates/qutebrowser-colors.py"
 output_path = "~/.cache/matugen/qutebrowser-colors.py"
 # no post_hook: reload needs pgrep guard to avoid opening a new window — handled in script
 
+[templates.nvim-lualine]
+input_path  = "~/.config/matugen/templates/nvim-lualine.lua"
+output_path = "~/.cache/matugen/nvim-lualine.lua"
+# no post_hook: neovim dofiles the cache on startup; restart nvim to apply new colors
+
+[templates.nvim-highlights]
+input_path  = "~/.config/matugen/templates/nvim-highlights.lua"
+output_path = "~/.cache/matugen/nvim-highlights.lua"
+# no post_hook: same as above
+

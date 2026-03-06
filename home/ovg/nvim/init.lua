@@ -20,7 +20,8 @@ vim.opt.number = true -- Show line numbers
 vim.opt.relativenumber = true -- Show relative line numbers
 vim.opt.signcolumn = "yes" -- Always show the sign column (prevents text shifting)
 vim.opt.cursorline = true -- Highlight the current line
-	vim.opt.background = "dark" -- Dark background (terminal provides actual color)
+vim.opt.termguicolors = true  -- Enable 24-bit RGB colors (required for matugen hex themes)
+vim.opt.background = "dark"  -- Dark background hint for plugins that adapt to it
 
 -- Clipboard
 vim.opt.clipboard = "unnamedplus" -- Sync with system clipboard
