@@ -5,8 +5,10 @@ set_wallpaper = false
 [templates.ghostty-colors]
 input_path  = "~/.config/matugen/templates/ghostty-colors.conf"
 output_path = "~/.cache/matugen/ghostty-colors.conf"
-# no post_hook: colors are pushed to open windows via OSC 4/10/11/12 sequences in update-colors
-# (ghostty +reload-config is not a valid CLI action)
+# ghostty-push-colors is installed into /etc/profiles/per-user/ovg/bin/ (home.packages).
+# It pushes the new palette to all open ghostty windows via OSC 4/10/11/12 sequences.
+# Running as a matugen post_hook keeps the reload logic in matugen, not in QS.
+post_hook   = "ghostty-push-colors 2>/dev/null || true"
 
 [templates.mako]
 input_path  = "~/.config/matugen/templates/mako.conf"

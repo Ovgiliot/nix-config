@@ -72,12 +72,40 @@
   # PATH prefix — avoiding the fragile ~/.nix-profile/bin/ hardcode.
   # ---------------------------------------------------------------------------
 
+  # ghostty-push-colors: invoked as a matugen post_hook (config.toml) so it
+  # runs in matugen's process context, not as a QS subprocess. Installed into
+  # home.packages → /etc/profiles/per-user/ovg/bin/ so matugen can find it by
+  # name regardless of which process calls matugen.
+  ghosttyPushColors = pkgs.writeShellApplication {
+    name = "ghostty-push-colors";
+    runtimeInputs = with pkgs; [gnused coreutils];
+    text = ''
+      COLORS_CONF="$HOME/.cache/matugen/ghostty-colors.conf"
+      [ -f "$COLORS_CONF" ] || exit 0
+      _fg=$(sed -n 's/^foreground = //p' "$COLORS_CONF")
+      _bg=$(sed -n 's/^background = //p' "$COLORS_CONF")
+      _cursor=$(sed -n 's/^cursor-color = //p' "$COLORS_CONF")
+      for pts in /dev/pts/[0-9]*; do
+        [ -w "$pts" ] || continue
+        {
+          if [ -n "$_fg" ];     then printf '\033]10;%s\007' "$_fg";     fi
+          if [ -n "$_bg" ];     then printf '\033]11;%s\007' "$_bg";     fi
+          if [ -n "$_cursor" ]; then printf '\033]12;%s\007' "$_cursor"; fi
+          sed -n 's/^palette = \([0-9]*\)=\(.*\)/\1 \2/p' "$COLORS_CONF" | \
+            while read -r _n _c; do
+              printf '\033]4;%s;%s\007' "$_n" "$_c"
+            done
+        } > "$pts" 2>/dev/null || true
+      done
+    '';
+  };
+
   updateColors = pkgs.writeShellApplication {
     name = "update-colors";
-    # mako/niri reloads are handled by per-template post_hooks in
-    # matugen's config.toml. Ghostty and other tools needing special
-    # orchestration are handled below.
-    runtimeInputs = with pkgs; [matugen procps glib neovim gnused coreutils];
+    # Ghostty palette reload is handled by the ghostty-colors post_hook in
+    # matugen's config.toml (ghostty-push-colors). mako/niri reloads are also
+    # post_hooks. Tools needing special orchestration are handled below.
+    runtimeInputs = with pkgs; [matugen procps glib neovim coreutils];
     text = ''
       WALLPAPER="$HOME/.config/wallpaper.jpg"
       if [ ! -f "$WALLPAPER" ]; then
@@ -85,7 +113,7 @@
         exit 1
       fi
 
-      # Generate all templates. Per-template post_hooks (mako, niri)
+      # Generate all templates. Per-template post_hooks (mako, niri, ghostty)
       # run automatically after each file is written.
       matugen image "$WALLPAPER" --mode dark --type scheme-content
 
@@ -112,29 +140,6 @@
       done
 
       wait
-
-      # Ghostty — push new palette to all open windows via OSC sequences.
-      # OSC 4 sets palette colors 0-15; OSC 10/11/12 set fg/bg/cursor color.
-      # ghostty +reload-config is not a valid CLI action; writing OSC escape
-      # sequences directly to the PTY slave is the correct documented approach.
-      COLORS_CONF="$HOME/.cache/matugen/ghostty-colors.conf"
-      if [ -f "$COLORS_CONF" ]; then
-        _fg=$(sed -n 's/^foreground = //p' "$COLORS_CONF")
-        _bg=$(sed -n 's/^background = //p' "$COLORS_CONF")
-        _cursor=$(sed -n 's/^cursor-color = //p' "$COLORS_CONF")
-        for pts in /dev/pts/[0-9]*; do
-          [ -w "$pts" ] || continue
-          {
-            if [ -n "$_fg" ];     then printf '\033]10;%s\007' "$_fg";     fi
-            if [ -n "$_bg" ];     then printf '\033]11;%s\007' "$_bg";     fi
-            if [ -n "$_cursor" ]; then printf '\033]12;%s\007' "$_cursor"; fi
-            sed -n 's/^palette = \([0-9]*\)=\(.*\)/\1 \2/p' "$COLORS_CONF" | \
-              while read -r _n _c; do
-                printf '\033]4;%s;%s\007' "$_n" "$_c"
-              done
-          } > "$pts" 2>/dev/null || true
-        done
-      fi
     '';
   };
 
@@ -214,6 +219,7 @@ in {
     updateColors
     setWallpaper
     toggleWallpaperPicker
+    ghosttyPushColors
   ];
 
   # Single directory link — all QML files (including generated Scripts.qml) live
