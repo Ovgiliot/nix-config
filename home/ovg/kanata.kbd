@@ -25,6 +25,10 @@
   k-shift (tap-hold 200 200 k rsft)
   l-ctrl  (tap-hold 200 200 l rctl)
   sem-super (tap-hold 200 200 ; lmet)
+
+  ;; Caps Lock: tap = Escape, hold = media layer.
+  ;; Replaces the XKB caps:escape option — kanata owns this now.
+  caps-esc-med (tap-hold 200 200 esc (layer-while-held media))
 )
 
 ;; Define your base layer with the homerow modifiers
@@ -32,7 +36,19 @@
   esc  f1   f2   f3   f4   f5   f6   f7   f8   f9   f10  f11  f12
   grv  1    2    3    4    5    6    7    8    9    0    -    =    bspc
   tab  q    w    e    r    t    y    u    i    o    p    [    ]    \
-  caps @a-super @s-ctrl @d-shift @f-alt g    h    @j-alt @k-shift @l-ctrl @sem-super '    ret
+  @caps-esc-med @a-super @s-ctrl @d-shift @f-alt g    h    @j-alt @k-shift @l-ctrl @sem-super '    ret
   lsft z    x    c    v    b    n    m    ,    .    /    rsft
   lctl lmet lalt           spc            ralt rmet rctl
+)
+
+;; Media layer — active while Caps Lock is held.
+;; HJKL = prev/vol-down/vol-up/next (vim-directional).
+;; Emits XF86 keysyms; niri binds.kdl handles the actual commands.
+(deflayer media
+  _    _    _    _    _    _    _    _    _    _    _    _    _
+  _    _    _    _    _    _    _    _    _    _    _    _    _    _
+  _    _    _    _    _    _    _    _    _    _    _    _    _    _
+  _    _    _    _    _    _    prev vold volu next _    _    _
+  _    _    _    _    _    _    _    mute brdn brup _    _
+  _    _    _              pp             _    _    _
 )

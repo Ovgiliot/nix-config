@@ -31,6 +31,6 @@
   services.xserver.xkb = {
     layout = "us,ru";
     variant = "";
-    options = "grp:ctrl_space_toggle,caps:escape";
+    options = "grp:ctrl_space_toggle";
   };
 }
