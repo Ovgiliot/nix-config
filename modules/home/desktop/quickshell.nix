@@ -32,7 +32,7 @@
     name = "list-wallpapers";
     runtimeInputs = [pkgs.findutils];
     text = ''
-      DIR="$HOME/Pictures/wallpapers"
+      DIR="$HOME/Pictures/Wallpapers"
       [ -d "$DIR" ] && find "$DIR" -maxdepth 1 -type f \
         \( -iname "*.jpg" -o -iname "*.jpeg" -o -iname "*.png" -o -iname "*.webp" \) \
         | sort
