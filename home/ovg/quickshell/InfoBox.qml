@@ -2,7 +2,7 @@
 // warningText and warningClass are bound from StatusPoller in shell.qml — no polling here.
 // Shows media info from Mpris when no warning is active (event-driven, no poll).
 // Width is set by anchors in shell.qml — do not set implicitWidth here.
-// Shadow: offset y=5, blur 0.7, #00000077 — matches Niri window shadow config.
+// Shadow: offset y=5, blur 0.7 — matches Niri window shadow config.
 
 import Quickshell.Services.Mpris
 import QtQuick
@@ -35,11 +35,16 @@ Item {
         return "none"
     }
 
+    // Warning state uses tertiary_container/tertiary; normal state uses standard pill colors.
+    readonly property bool isWarning: infoClass === "critical" || infoClass === "warning"
+    readonly property color bgColor:  isWarning ? Colors.barTrack  : Colors.pillBg
+    readonly property color fgColor:  isWarning ? Colors.barFill   : Colors.textColor
+
     // ── Pill background (hidden — MultiEffect renders it with shadow) ─────────
     Rectangle {
         id: pillBg
         anchors.fill: parent
-        color: Colors.pillBg
+        color: root.bgColor
         bottomLeftRadius:  12
         bottomRightRadius: 12
         visible: false
@@ -67,6 +72,6 @@ Item {
         horizontalAlignment: Text.AlignHCenter
         font.family:    "FiraMono Nerd Font"
         font.pixelSize: 14
-        color: Colors.textColor
+        color: root.fgColor
     }
 }
