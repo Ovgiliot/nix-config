@@ -9,7 +9,7 @@ custom-shader-animation = always
 custom-shader = shaders/cursor_warp.glsl
 window-padding-x = 8,8
 window-padding-y = 8,8
-background-opacity = 0.80
+background-opacity = 0.90
 cursor-style = block
 adjust-cursor-thickness = 2
 # Colors are live-updated by update-colors (matugen).
