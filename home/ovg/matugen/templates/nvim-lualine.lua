@@ -5,28 +5,28 @@
 return {
   normal = {
     a = { bg = "{{colors.primary.default.hex}}",              fg = "{{colors.primary_container.default.hex}}", gui = "bold" },
-    b = { bg = "{{colors.primary_container.default.hex}}",    fg = "{{colors.surface_container_high.default.hex}}" },
-    c = { bg = "{{colors.surface_container_high.default.hex}}", fg = "{{colors.primary.default.hex}}" },
+    b = { bg = "{{colors.primary_container.default.hex}}",    fg = "{{colors.surface_bright.default.hex}}" },
+    c = { bg = "{{colors.surface_bright.default.hex}}",       fg = "{{colors.primary.default.hex}}" },
   },
   insert = {
     a = { bg = "{{colors.tertiary.default.hex}}",              fg = "{{colors.tertiary_container.default.hex}}", gui = "bold" },
-    b = { bg = "{{colors.tertiary_container.default.hex}}",   fg = "{{colors.surface_container_high.default.hex}}" },
-    c = { bg = "{{colors.surface_container_high.default.hex}}", fg = "{{colors.tertiary.default.hex}}" },
+    b = { bg = "{{colors.tertiary_container.default.hex}}",   fg = "{{colors.surface_bright.default.hex}}" },
+    c = { bg = "{{colors.surface_bright.default.hex}}",       fg = "{{colors.tertiary.default.hex}}" },
   },
   visual = {
     a = { bg = "{{colors.secondary.default.hex}}",             fg = "{{colors.secondary_container.default.hex}}", gui = "bold" },
-    b = { bg = "{{colors.secondary_container.default.hex}}",  fg = "{{colors.surface_container_high.default.hex}}" },
-    c = { bg = "{{colors.surface_container_high.default.hex}}", fg = "{{colors.secondary.default.hex}}" },
+    b = { bg = "{{colors.secondary_container.default.hex}}",  fg = "{{colors.surface_bright.default.hex}}" },
+    c = { bg = "{{colors.surface_bright.default.hex}}",       fg = "{{colors.secondary.default.hex}}" },
   },
   replace = {
     a = { bg = "{{colors.tertiary_fixed.default.hex}}",        fg = "{{colors.tertiary_fixed_dim.default.hex}}", gui = "bold" },
-    b = { bg = "{{colors.tertiary_fixed_dim.default.hex}}",   fg = "{{colors.surface_container_high.default.hex}}" },
-    c = { bg = "{{colors.surface_container_high.default.hex}}", fg = "{{colors.tertiary_fixed.default.hex}}" },
+    b = { bg = "{{colors.tertiary_fixed_dim.default.hex}}",   fg = "{{colors.surface_bright.default.hex}}" },
+    c = { bg = "{{colors.surface_bright.default.hex}}",       fg = "{{colors.tertiary_fixed.default.hex}}" },
   },
   command = {
     a = { bg = "{{colors.error.default.hex}}",                 fg = "{{colors.error_container.default.hex}}", gui = "bold" },
-    b = { bg = "{{colors.error_container.default.hex}}",      fg = "{{colors.surface_container_high.default.hex}}" },
-    c = { bg = "{{colors.surface_container_high.default.hex}}", fg = "{{colors.error.default.hex}}" },
+    b = { bg = "{{colors.error_container.default.hex}}",      fg = "{{colors.surface_bright.default.hex}}" },
+    c = { bg = "{{colors.surface_bright.default.hex}}",       fg = "{{colors.error.default.hex}}" },
   },
   inactive = {
     a = { bg = "{{colors.surface_bright.default.hex}}",        fg = "{{colors.surface_container_high.default.hex}}" },
