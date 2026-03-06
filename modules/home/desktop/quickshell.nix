@@ -115,7 +115,7 @@
 
       # Generate all templates. Per-template post_hooks (mako, niri, ghostty)
       # run automatically after each file is written.
-      matugen image "$WALLPAPER" --mode dark --type scheme-content
+      matugen image "$WALLPAPER" --mode dark --type scheme-fidelity
 
       # GTK — toggle theme name to force running GTK apps to re-read CSS.
       # Needs sleep between the two calls so the theme switch is detected.
