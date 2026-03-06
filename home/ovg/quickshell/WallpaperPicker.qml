@@ -236,7 +236,7 @@ PanelWindow {
                     font.family:    "FiraMono Nerd Font"
                     font.pixelSize: 13
                     color:          index === root.selectedIndex
-                                    ? Colors.accent : "#fafafa"
+                                    ? Colors.accent : Colors.textColor
                     elide:          Text.ElideRight
                 }
             }

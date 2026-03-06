@@ -25,6 +25,47 @@
   };
 
   # ---------------------------------------------------------------------------
+  # Wallpaper picker helpers
+  # ---------------------------------------------------------------------------
+
+  listWallpapers = pkgs.writeShellApplication {
+    name = "list-wallpapers";
+    runtimeInputs = [pkgs.findutils];
+    text = ''
+      DIR="$HOME/Pictures/wallpapers"
+      [ -d "$DIR" ] && find "$DIR" -maxdepth 1 -type f \
+        \( -iname "*.jpg" -o -iname "*.jpeg" -o -iname "*.png" -o -iname "*.webp" \) \
+        | sort
+    '';
+  };
+
+  hideWallpaperPicker = pkgs.writeShellApplication {
+    name = "hide-wallpaper-picker";
+    runtimeInputs = [pkgs.coreutils];
+    text = ''
+      FILE="$HOME/.cache/qs-wallpaper-open"
+      mkdir -p "$(dirname "$FILE")"
+      printf '{"show":false}\n' > "$FILE"
+    '';
+  };
+
+  toggleWallpaperPicker = pkgs.writeShellApplication {
+    name = "toggle-wallpaper-picker";
+    runtimeInputs = [pkgs.coreutils];
+    text = ''
+      FILE="$HOME/.cache/qs-wallpaper-open"
+      mkdir -p "$(dirname "$FILE")"
+      CURRENT=""
+      [ -f "$FILE" ] && CURRENT=$(< "$FILE")
+      if [ "$CURRENT" = '{"show":true}' ]; then
+        printf '{"show":false}\n' > "$FILE"
+      else
+        printf '{"show":true}\n' > "$FILE"
+      fi
+    '';
+  };
+
+  # ---------------------------------------------------------------------------
   # Color Theming
   # Defined here (not in scripts.nix) so setWallpaper can reference it as a
   # runtimeInputs entry, which embeds the correct store path in the wrapper's
@@ -92,6 +133,8 @@
       # Convert to a real JPEG regardless of source format so matugen can
       # always decode it (matugen infers the codec from the file extension).
       convert "$SRC" "$HOME/.config/wallpaper.jpg"
+      # Record the source path so the wallpaper picker can highlight the active entry.
+      printf '%s\n' "$SRC" > "$HOME/.cache/qs-current-wallpaper"
       # Apply via swww (no-op when swww-daemon is absent).
       swww img "$HOME/.config/wallpaper.jpg" --transition-type random || true
       # Regenerate colour scheme to match the new wallpaper.
@@ -114,6 +157,9 @@
         // environment — used by Workspaces to dispatch focus-workspace actions.
         readonly property string niri:                  "${pkgs.niri}/bin/niri"
         readonly property string qsColors:              "file:///home/ovg/.cache/matugen/qs-colors.json"
+        readonly property string setWallpaper:          "${setWallpaper}/bin/set-wallpaper"
+        readonly property string listWallpapers:        "${listWallpapers}/bin/list-wallpapers"
+        readonly property string hideWallpaperPicker:   "${hideWallpaperPicker}/bin/hide-wallpaper-picker"
     }
   '';
 
@@ -133,6 +179,7 @@
     cp ${dotfilesDir}/quickshell/StatusPoller.qml       $out/StatusPoller.qml
     cp ${dotfilesDir}/quickshell/WifiMonitor.qml        $out/WifiMonitor.qml
     cp ${dotfilesDir}/quickshell/Colors.qml             $out/Colors.qml
+    cp ${dotfilesDir}/quickshell/WallpaperPicker.qml    $out/WallpaperPicker.qml
     cp ${pkgs.writeText "Scripts.qml" scriptsQml}       $out/Scripts.qml
   '';
 in {
@@ -142,6 +189,7 @@ in {
     pkgs.quickshell
     updateColors
     setWallpaper
+    toggleWallpaperPicker
   ];
 
   # Single directory link — all QML files (including generated Scripts.qml) live

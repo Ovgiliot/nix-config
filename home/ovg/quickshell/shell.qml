@@ -19,6 +19,10 @@ ShellRoot {
     // StatusIcons binds to its reactive wifiState property.
     WifiMonitor { id: wifiMonitor }
 
+    // Wallpaper picker overlay — visibility driven by ~/.cache/qs-wallpaper-open.
+    // Toggle externally with toggle-wallpaper-picker (Mod+Shift+W).
+    WallpaperPicker {}
+
     PanelWindow {
         id: bar
 
