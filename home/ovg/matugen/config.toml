@@ -50,7 +50,3 @@ input_path  = "~/.config/matugen/templates/qutebrowser-colors.py"
 output_path = "~/.cache/matugen/qutebrowser-colors.py"
 # no post_hook: reload needs pgrep guard to avoid opening a new window — handled in script
 
-[templates.nvim-hl-colors]
-input_path  = "~/.config/matugen/templates/nvim-hl-colors.lua"
-output_path = "~/.cache/matugen/nvim-hl-colors.lua"
-# no post_hook: reload needs a loop over multiple nvim sockets — handled in script

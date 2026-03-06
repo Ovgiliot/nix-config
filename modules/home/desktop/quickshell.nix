@@ -105,7 +105,7 @@
     # Ghostty palette reload is handled by the ghostty-colors post_hook in
     # matugen's config.toml (ghostty-push-colors). mako/niri reloads are also
     # post_hooks. Tools needing special orchestration are handled below.
-    runtimeInputs = with pkgs; [matugen procps glib neovim coreutils];
+    runtimeInputs = with pkgs; [matugen procps glib coreutils];
     text = ''
       WALLPAPER="$HOME/.config/wallpaper.jpg"
       if [ ! -f "$WALLPAPER" ]; then
@@ -129,17 +129,6 @@
       if pgrep -x qutebrowser > /dev/null 2>&1; then
         qutebrowser ':config-source' 2>/dev/null || true
       fi
-
-      # Neovim — reload highlight colours in all running instances.
-      UID_VAL=$(id -u)
-      for sock in /run/user/"$UID_VAL"/nvim.*.0; do
-        [ -S "$sock" ] && \
-          nvim --server "$sock" \
-            --remote-expr 'execute("luafile ~/.cache/matugen/nvim-hl-colors.lua")' \
-          2>/dev/null || true &
-      done
-
-      wait
     '';
   };
 

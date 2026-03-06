@@ -3,14 +3,11 @@
 -- This file only configures them — no plugin manager, no lazy specs.
 
 -- ---------------------------------------------------------------------------
--- Theme
+-- Highlights
 -- ---------------------------------------------------------------------------
-require("github-theme").setup({
-	options = {
-		transparent = true,
-	},
-})
-vim.cmd.colorscheme("github_dark_default")
+-- Static highlight overrides using ANSI cterm indices.
+-- Actual colors are provided by the terminal (matugen → ghostty palette).
+require("ovg.highlights")
 
 -- ---------------------------------------------------------------------------
 -- Status Line
@@ -282,16 +279,12 @@ require("headlines").setup({
 	},
 })
 
-local function set_org_highlights()
-	-- Load matugen-generated highlight colors; fall back silently if not present.
-	local f = vim.fn.expand("~/.cache/matugen/nvim-hl-colors.lua")
-	if vim.fn.filereadable(f) == 1 then
-		dofile(f)
-	end
-end
-
-set_org_highlights()
-vim.api.nvim_create_autocmd("ColorScheme", { callback = set_org_highlights })
+-- Re-apply highlights after any :colorscheme command resets them.
+vim.api.nvim_create_autocmd("ColorScheme", {
+	callback = function()
+		require("ovg.highlights")
+	end,
+})
 
 -- ---------------------------------------------------------------------------
 -- Git

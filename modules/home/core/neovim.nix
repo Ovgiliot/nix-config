@@ -29,7 +29,6 @@
       ]))
 
       # Theme & UI
-      github-nvim-theme
       lualine-nvim
       nvim-web-devicons
       which-key-nvim
