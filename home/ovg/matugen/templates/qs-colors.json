@@ -3,7 +3,7 @@
   "barTrack":     "{{colors.tertiary_container.default.hex}}",
   "barFill":      "{{colors.tertiary.default.hex}}",
   "accent":       "{{colors.primary.default.hex}}",
-  "primaryTrack": "{{colors.primary_container.default.hex}}",
+  "primaryTrack": "{{colors.surface_container.default.hex}}",
   "errorFill":    "{{colors.error.default.hex}}",
   "errorTrack":   "{{colors.error_container.default.hex}}",
   "textColor":    "{{colors.on_surface_variant.default.hex}}",

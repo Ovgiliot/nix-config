@@ -10,7 +10,7 @@ Singleton {
     property color barTrack:     "#1a1a1a"
     property color barFill:      "#aaaaaa"
     property color accent:       "#cccccc"
-    property color primaryTrack: "#1a0033"
+    property color primaryTrack: "#211e24"
     property color errorFill:    "#ffb4ab"
     property color errorTrack:   "#93000a"
     property color textColor:    "#cdc3d2"
