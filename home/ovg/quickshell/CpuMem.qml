@@ -1,8 +1,7 @@
 // CPU + Memory widget.
 // cpuPct and memPct are bound from StatusPoller in shell.qml — no polling here.
-// Pill background: standard dark. Bar tracks: opaque dark with 1px black border.
-// Bar fills: green/amber/red per bar, 80 px wide, animated.
-// Shadow: offset y=5, blur 0.8, #00000077 — matches Niri window shadow config.
+// Bar colors shift primary→tertiary→error as load crosses 60% and 80%.
+// Shadow: offset y=5, blur 0.7 — matches Niri window shadow config.
 
 import QtQuick
 import QtQuick.Effects
@@ -14,6 +13,17 @@ Item {
 
     property int cpuPct: 0
     property int memPct: 0
+
+    function fillColor(pct) {
+        if (pct >= 80) return Colors.errorFill
+        if (pct >= 60) return Colors.barFill
+        return Colors.accent
+    }
+    function trackColor(pct) {
+        if (pct >= 80) return Colors.errorTrack
+        if (pct >= 60) return Colors.barTrack
+        return Colors.primaryTrack
+    }
 
     // ── Pill background (hidden — MultiEffect renders it with shadow) ─────────
     Rectangle {
@@ -55,9 +65,10 @@ Item {
         Item { width: 6; height: 16 }
         Rectangle {
             width: 80; height: 16; radius: 2
-            color: Colors.barTrack
+            color: root.trackColor(root.cpuPct)
             border.width: 1
             border.color: Colors.outline
+            Behavior on color { ColorAnimation { duration: 300 } }
 
             Rectangle {
                 id: cpuFill
@@ -65,8 +76,9 @@ Item {
                 height: parent.height - 2
                 x: 1; y: 1
                 radius: 2
-                color: Colors.barFill
+                color: root.fillColor(root.cpuPct)
                 Behavior on width { NumberAnimation { duration: 300; easing.type: Easing.OutCubic } }
+                Behavior on color { ColorAnimation { duration: 300 } }
             }
         }
 
@@ -84,9 +96,10 @@ Item {
         Item { width: 6; height: 16 }
         Rectangle {
             width: 80; height: 16; radius: 2
-            color: Colors.barTrack
+            color: root.trackColor(root.memPct)
             border.width: 1
             border.color: Colors.outline
+            Behavior on color { ColorAnimation { duration: 300 } }
 
             Rectangle {
                 id: memFill
@@ -94,8 +107,9 @@ Item {
                 height: parent.height - 2
                 x: 1; y: 1
                 radius: 2
-                color: Colors.barFill
+                color: root.fillColor(root.memPct)
                 Behavior on width { NumberAnimation { duration: 300; easing.type: Easing.OutCubic } }
+                Behavior on color { ColorAnimation { duration: 300 } }
             }
         }
     }

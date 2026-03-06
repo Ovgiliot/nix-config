@@ -1,9 +1,12 @@
 {
-  "pillBg":    "{{colors.surface_container_lowest.default.hex}}",
-  "barTrack":  "{{colors.tertiary_container.default.hex}}",
-  "barFill":   "{{colors.tertiary.default.hex}}",
-  "accent":    "{{colors.primary.default.hex}}",
-  "textColor": "{{colors.on_surface_variant.default.hex}}",
-  "outline":   "{{colors.outline.default.hex}}",
-  "shadow":    "{{colors.shadow.default.hex}}"
+  "pillBg":       "{{colors.surface_container_lowest.default.hex}}",
+  "barTrack":     "{{colors.tertiary_container.default.hex}}",
+  "barFill":      "{{colors.tertiary.default.hex}}",
+  "accent":       "{{colors.primary.default.hex}}",
+  "primaryTrack": "{{colors.primary_container.default.hex}}",
+  "errorFill":    "{{colors.error.default.hex}}",
+  "errorTrack":   "{{colors.error_container.default.hex}}",
+  "textColor":    "{{colors.on_surface_variant.default.hex}}",
+  "outline":      "{{colors.outline.default.hex}}",
+  "shadow":       "{{colors.shadow.default.hex}}"
 }
