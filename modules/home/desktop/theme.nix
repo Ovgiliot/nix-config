@@ -40,7 +40,9 @@
     };
   };
 
-  # swaylock binary — config is written by matugen (see matugen.nix).
+  # swaylock-effects binary — drop-in replacement for swaylock with
+  # wp-fractional-scale-v1 + wp-viewport support (fixes 1.25x scale on eDP-1).
+  # Config is written by matugen (see matugen.nix).
   # PAM integration lives in modules/system/desktop/display.nix.
-  home.packages = [pkgs.swaylock];
+  home.packages = [pkgs.swaylock-effects];
 }

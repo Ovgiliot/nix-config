@@ -12,7 +12,8 @@
     kanata # Keyboard remapping (homerow mods)
     brightnessctl
     swayidle
-    swaylock
+    # swaylock-effects: same binary/PAM name as swaylock, adds fractional-scale support
+    swaylock-effects
     playerctl # Media control (for niri)
     pulsemixer # Audio control
 
