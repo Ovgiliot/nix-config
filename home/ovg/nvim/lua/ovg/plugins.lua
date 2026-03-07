@@ -175,7 +175,7 @@ vim.keymap.set("n", "<leader>rf", function()
 						vim.cmd.edit(node.file)
 						vim.api.nvim_win_set_cursor(0, { node.range.start.row + 1, node.range.start.column })
 					elseif input and input ~= "" then
-						roam.api.capture({ title = input })
+						roam.api.capture_node({ title = input })
 					end
 				end)
 				return true
@@ -230,7 +230,7 @@ vim.keymap.set("n", "<leader>ri", function()
 						vim.api.nvim_buf_set_lines(bufnr, cursor[1] - 1, cursor[1], false, { new_line })
 						vim.api.nvim_win_set_cursor(winnr, { cursor[1], col + #link })
 					elseif input and input ~= "" then
-						roam.api.insert({ title = input })
+						roam.api.insert_node({ title = input })
 					end
 				end)
 				return true
