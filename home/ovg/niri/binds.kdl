@@ -28,7 +28,7 @@ binds {
     // NixOS maintenance — scripts are Nix-built derivations (scripts.nix) in PATH.
     Mod+Shift+R hotkey-overlay-title="NixOS Rebuild" { spawn "ghostty" "--class=nixos-rebuild" "-e" "nixos-rebuild-dotfiles"; }
     Mod+Shift+U hotkey-overlay-title="Update + Rebuild NixOS" { spawn "ghostty" "--class=nixos-rebuild" "-e" "update-nixos"; }
-    Mod+Ctrl+Shift+C hotkey-overlay-title="OpenCode" { spawn "ghostty" "-e" "opencode-dotfiles"; }
+    Mod+Ctrl+Shift+C hotkey-overlay-title="OpenCode" { spawn "ghostty" "--class=opencode" "-e" "opencode-dotfiles"; }
 
     // Use spawn-sh to run a shell command. Do this if you need pipes, multiple commands, etc.
     // Note: the entire command goes as a single argument. It's passed verbatim to `sh -c`.
