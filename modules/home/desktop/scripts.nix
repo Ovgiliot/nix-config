@@ -94,7 +94,7 @@
 
   btMenu = pkgs.writeShellApplication {
     name = "bluetooth-menu";
-    runtimeInputs = with pkgs; [bluez wofi libnotify coreutils gnugrep gnused];
+    runtimeInputs = with pkgs; [bluez wofi libnotify coreutils gnugrep gnused util-linux];
     text = stripShebang (builtins.readFile (dotfilesDir + "/wofi/scripts/bluetooth-menu.sh"));
   };
 

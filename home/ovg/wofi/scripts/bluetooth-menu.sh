@@ -3,6 +3,8 @@
 if ! bluetoothctl show | grep -q "Powered: yes"; then
 	action=$(echo -e "Power On\nExit" | wofi -dmenu -p "Bluetooth is Power Off" -i || true)
 	if [ "$action" == "Power On" ]; then
+		rfkill unblock bluetooth
+		sleep 2
 		if bluetoothctl power on; then
 			sleep 1
 			exec "${BASH_SOURCE[0]}"
@@ -43,6 +45,7 @@ if [ -n "$chosen" ]; then
 		exec "${BASH_SOURCE[0]}" # Re-run script
 	elif [ "$chosen" == "Power Off" ]; then
 		bluetoothctl power off || true
+		rfkill block bluetooth
 	else
 		re='\(([^)]*)\)'
 		[[ "$chosen" =~ $re ]] && mac="${BASH_REMATCH[1]}"
