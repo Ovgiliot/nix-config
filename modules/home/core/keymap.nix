@@ -28,14 +28,23 @@
     ++ (lib.mapAttrsToList (from: to: {inherit from to;}) layout.punctuation.upper))
   layouts);
 
-  # Vim langmap escaping: comma and semicolon are delimiters, backslash is escape.
+  # Escape a character for Vim's langmap option embedded in a Lua "..." string.
+  # Two layers: (1) Vim langmap needs \, and \; for its delimiters, and \\ for
+  # literal backslash.  (2) The Lua double-quoted string needs \ and " escaped.
+  # The Nix string adds a third layer of escaping at write time.
+  #
+  # Resulting file content per special character:
+  #   , → \\,    (Lua reads \\, → \,  ; Vim reads \,  → literal ,)
+  #   ; → \\;    (Lua reads \\; → \;  ; Vim reads \;  → literal ;)
+  #   \ → \\\\   (Lua reads \\\\ → \\ ; Vim reads \\ → literal \)
+  #   " → \"     (Lua reads \" → "    ; Vim sees literal ")
   vimEscape = c:
     if c == "\\"
-    then "\\\\"
+    then "\\\\\\\\"
     else if c == ","
-    then "\\,"
+    then "\\\\,"
     else if c == ";"
-    then "\\;"
+    then "\\\\;"
     else if c == "\""
     then "\\\""
     else c;
