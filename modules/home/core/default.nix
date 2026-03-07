@@ -3,6 +3,7 @@
     ./shell.nix
     ./packages.nix
     ./neovim.nix
+    ./keymap.nix
   ];
 
   # User identity — common across all Linux profiles.
@@ -31,8 +32,7 @@
     gitCredentialHelper.enable = true;
   };
 
-  # XDG links for core tools
-  xdg.configFile."nvim".source = dotfilesDir + "/nvim";
+  # XDG links for core tools — nvim is handled by keymap.nix (hybrid runCommand).
   xdg.configFile."ranger/rc.conf".source = dotfilesDir + "/ranger/rc.conf";
   xdg.configFile."ranger/rifle.conf".source = dotfilesDir + "/ranger/rifle.conf";
   xdg.configFile."ranger/scope.sh".source = dotfilesDir + "/ranger/scope.sh";

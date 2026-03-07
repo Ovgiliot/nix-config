@@ -32,6 +32,11 @@ vim.opt.tabstop = 4 -- Number of spaces tabs count for
 vim.opt.shiftwidth = 4 -- Size of an indent
 vim.opt.softtabstop = 4 -- Number of spaces a <Tab> counts for while editing
 vim.opt.breakindent = true -- Maintain indent on wrapped lines
+vim.opt.linebreak = true -- Wrap at word boundaries, not mid-word
+
+-- Keyboard layout — generated langmap for layout-agnostic normal mode.
+-- See modules/home/core/keymap.nix for the source of truth.
+require("ovg.langmap")
 
 -- Search
 vim.opt.ignorecase = true -- Ignore case when searching...

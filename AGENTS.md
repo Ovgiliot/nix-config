@@ -20,7 +20,7 @@ This is a multi-profile NixOS (and macOS) flake-based configuration using Home M
   - `laptop/` — `boot.nix`, `power.nix`, `services.nix`
   - `optional/` — `gaming.nix`
 - `modules/home/` — Home Manager modules, imported by profiles via `home-manager.users.ovg.imports`.
-  - `core/` — Shell, Neovim, CLI packages.
+  - `core/` — Shell, Neovim, CLI packages, keyboard layout mapping.
   - `desktop/` — Theme, Niri, Waybar, Ghostty, Mako, Wofi, apps, web-apps.
   - `laptop/` — power-monitor user service + kanata XDG link.
   - `darwin/` — macOS home directory override.
@@ -31,7 +31,8 @@ This is a multi-profile NixOS (and macOS) flake-based configuration using Home M
 - **System vs User split is strict.** System daemons and hardware config go in `modules/system/` or `hosts/`. User apps, dotfiles, and shell config go in `modules/home/`.
 - **No duplication.** Before adding a package or option, read the relevant file to confirm it is not already declared.
 - **Explicit imports only.** Do not use `*` or catch-all imports. Every module must be explicitly listed.
-- **XDG linkage.** Dotfiles live in `home/ovg/` and are linked via `xdg.configFile."<name>".source = dotfilesDir + "/<path>";`. Do not write config directly into the Nix store.
+- **XDG linkage.** Dotfiles live in `home/ovg/` and are linked via `xdg.configFile."<name>".source = dotfilesDir + "/<path>";`. Do not write config directly into the Nix store unless using the hybrid `runCommand` pattern (see below).
+- **Hybrid `runCommand` pattern.** When Nix needs to inject generated files alongside raw dotfiles (e.g. Neovim `langmap.lua`, QuickShell `Scripts.qml`/`KeyMap.qml`), use `pkgs.runCommand` to copy the raw dotfile tree and add generated files. This is used by `keymap.nix` (Neovim) and `quickshell.nix`.
 - **`dotfilesDir` specialArg.** Every module receives the `dotfilesDir` path (`../../home/ovg`) via `extraSpecialArgs`. Use it for all `source` and `builtins.readFile` references — never use relative paths inside modules.
 
 ## Suckless Philosophy
@@ -40,6 +41,22 @@ This is a multi-profile NixOS (and macOS) flake-based configuration using Home M
 - **No bloat.** Do not add packages "just in case". If it is not used actively, it does not belong here.
 - **Readable configs.** Comments should explain *why*, not *what*. Keep configuration files short and scannable.
 - **Prefer proven tools.** Established, auditable tools over trendy alternatives.
+
+## Keyboard Layout Mapping
+
+The system uses multiple XKB layouts (`us,ru` — defined in `modules/system/desktop/input.nix`). To make keybindings work regardless of active layout, a **centralized keymap system** generates per-app config fragments from a single source of truth.
+
+- **`modules/home/core/keymap-layouts.nix`** — Pure data file. Defines non-Latin → Latin character mappings for each layout. To add a new language, add an entry here and rebuild.
+- **`modules/home/core/keymap.nix`** — HM module that consumes `keymap-layouts.nix` and generates:
+  - Neovim `langmap.lua` — injected into the nvim config via hybrid `runCommand`.
+  - Qutebrowser `keymap.py` — sourced by the raw `config.py`.
+- **`modules/home/desktop/quickshell.nix`** — Also consumes `keymap-layouts.nix` to generate `KeyMap.qml` (Qt key codes for QML key handlers), bundled into the QuickShell `runCommand`.
+
+**Adding a new language:** Edit `keymap-layouts.nix`, rebuild. All apps get updated automatically.
+
+**Adding a new app:** Write a small generator in the app's module (or in `keymap.nix`) that reads `keymap-layouts.nix` and produces the app's native keymap format. Wire it as an `xdg.configFile` or into a `runCommand`.
+
+**Do not** hardcode per-layout key mappings directly in app config files. Always generate them from `keymap-layouts.nix`.
 
 ## Workflow
 

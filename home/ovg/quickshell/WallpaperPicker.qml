@@ -172,6 +172,7 @@ PanelWindow {
             switch (event.key) {
             case Qt.Key_J:
             case Qt.Key_Down:
+            case KeyMap.cyrillicJ: // Generated from keymap-layouts.nix
                 root.selectedIndex =
                     Math.min(root.selectedIndex + 1, root.wallpapers.length - 1)
                 listView.positionViewAtIndex(root.selectedIndex, ListView.Contain)
@@ -179,6 +180,7 @@ PanelWindow {
                 break
             case Qt.Key_K:
             case Qt.Key_Up:
+            case KeyMap.cyrillicK: // Generated from keymap-layouts.nix
                 root.selectedIndex = Math.max(root.selectedIndex - 1, 0)
                 listView.positionViewAtIndex(root.selectedIndex, ListView.Contain)
                 event.accepted = true
