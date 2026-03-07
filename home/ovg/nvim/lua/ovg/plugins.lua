@@ -569,7 +569,4 @@ vim.keymap.set("n", "<leader>cu", dapui.toggle, { desc = "Debug: Toggle UI" })
 -- ---------------------------------------------------------------------------
 -- Autosave
 -- ---------------------------------------------------------------------------
-require("auto-save").setup({
-	trigger_events = { "InsertLeave", "TextChanged" },
-	debounce_delay = 1000,
-})
+require("auto-save").setup({})
