@@ -27,7 +27,7 @@ window-rule {
 }
 
 window-rule {
-    match app-id="nixos-rebuild"
+    match app-id="org.nixos.rebuild"
     open-floating true
     default-floating-position x=0 y=6 relative-to="top"
     default-column-width { proportion 0.6; }
@@ -35,17 +35,17 @@ window-rule {
 }
 
 window-rule {
-    match app-id="opencode"
+    match app-id="dev.opencode.opencode"
     default-column-width { proportion 0.4; }
 }
 
 window-rule {
-    match app-id="webapp-Apple-Music"
+    match app-id="chrome-music.apple.com__-Default"
     default-column-width { proportion 0.3; }
 }
 
 window-rule {
-    match app-id="webapp-YouTube"
+    match app-id="chrome-www.youtube.com__-Default"
     default-column-width { proportion 1.0; }
 }
 
