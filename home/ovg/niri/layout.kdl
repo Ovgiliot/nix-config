@@ -14,7 +14,7 @@ layout {
         proportion 1.0
     }
 
-    default-column-width { proportion 0.5; }
+    default-column-width { proportion 0.6; }
 
     // Remove 'off' to activate; colors configured here for quick re-enable.
     border {
