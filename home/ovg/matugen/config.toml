@@ -53,10 +53,10 @@ output_path = "~/.cache/matugen/qutebrowser-colors.py"
 [templates.nvim-lualine]
 input_path  = "~/.config/matugen/templates/nvim-lualine.lua"
 output_path = "~/.cache/matugen/nvim-lualine.lua"
-# no post_hook: neovim dofiles the cache on startup; restart nvim to apply new colors
+# no post_hook: nvim-highlights hook sends SIGUSR1 which reloads both files
 
 [templates.nvim-highlights]
 input_path  = "~/.config/matugen/templates/nvim-highlights.lua"
 output_path = "~/.cache/matugen/nvim-highlights.lua"
-# no post_hook: same as above
+post_hook   = "pkill -USR1 nvim 2>/dev/null || true"
 
