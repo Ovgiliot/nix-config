@@ -134,15 +134,13 @@ vim.api.nvim_set_hl(0, "@diff.delta", { fg = "{{colors.secondary.default.hex}}" 
 -- ---------------------------------------------------------------------------
 -- Org-mode headlines (headlines.nvim)
 -- ---------------------------------------------------------------------------
--- Background bars: surface tones (~10-17) — dim, non-competing fills.
--- Avoids _container roles (tone ~30) which are too bright and clash with
--- accent foregrounds, violating M3 contrast guidelines.
-vim.api.nvim_set_hl(0, "Headline1", { bg = "{{colors.surface_container.default.hex}}" })
-vim.api.nvim_set_hl(0, "Headline2", { bg = "{{colors.surface_container.default.hex}}" })
-vim.api.nvim_set_hl(0, "Headline3", { bg = "{{colors.surface_container_high.default.hex}}" })
-vim.api.nvim_set_hl(0, "Headline4", { bg = "{{colors.surface_container_high.default.hex}}" })
-vim.api.nvim_set_hl(0, "Headline5", { bg = "{{colors.surface_container_low.default.hex}}" })
-vim.api.nvim_set_hl(0, "Headline6", { bg = "{{colors.surface_container_low.default.hex}}" })
+-- Background bars: uniform surface_bright (~tone 24) — subtle lift from base.
+vim.api.nvim_set_hl(0, "Headline1", { bg = "{{colors.surface_bright.default.hex}}" })
+vim.api.nvim_set_hl(0, "Headline2", { bg = "{{colors.surface_bright.default.hex}}" })
+vim.api.nvim_set_hl(0, "Headline3", { bg = "{{colors.surface_bright.default.hex}}" })
+vim.api.nvim_set_hl(0, "Headline4", { bg = "{{colors.surface_bright.default.hex}}" })
+vim.api.nvim_set_hl(0, "Headline5", { bg = "{{colors.surface_bright.default.hex}}" })
+vim.api.nvim_set_hl(0, "Headline6", { bg = "{{colors.surface_bright.default.hex}}" })
 
 -- Headline text: tone ~80 accent roles only — never _container tokens (tone ~30).
 -- Each level uses a distinct hue for visual hierarchy. All foregrounds are
