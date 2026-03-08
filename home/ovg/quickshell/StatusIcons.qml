@@ -64,12 +64,12 @@ Item {
     }
 
     function batIcon(level, charging) {
-        if (charging)   return "\uf1e6"   // U+F1E6  FA plug
-        if (level > 87) return "\uf240"
-        if (level > 62) return "\uf241"
-        if (level > 37) return "\uf242"
-        if (level > 12) return "\uf243"
-        return "\uf244"
+        if (charging)   return "\uDB80\uDC84"   // U+F0084  nf-md-battery_charging
+        if (level > 80) return "\uDB80\uDC79"   // U+F0079  nf-md-battery
+        if (level > 60) return "\uDB80\uDC80"   // U+F0080  nf-md-battery_70
+        if (level > 40) return "\uDB80\uDC7E"   // U+F007E  nf-md-battery_50
+        if (level > 20) return "\uDB80\uDC7B"   // U+F007B  nf-md-battery_20
+        return "\uDB80\uDC8E"                   // U+F008E  nf-md-battery_outline
     }
 
     // ── Pill background (hidden — MultiEffect renders it with shadow) ─────────
@@ -145,8 +145,6 @@ Item {
                 // percentage is 0.0–1.0; multiply by 100 for display
                 readonly property int  level:    Math.round(modelData.percentage * 100)
 
-                width: 48
-                horizontalAlignment: Text.AlignHCenter
                 anchors.verticalCenter: parent.verticalCenter
                 text:           root.batIcon(level, charging) + " " + level + "%"
                 font.family:    "FiraMono Nerd Font"
