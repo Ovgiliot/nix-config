@@ -13,7 +13,7 @@ import QtQuick.Effects
 
 Item {
     id: root
-    implicitWidth:  iconsRow.implicitWidth + 24
+    implicitWidth:  iconsRow.implicitWidth + 48
     implicitHeight: 24
 
     // WiFi and power state bound from singletons via shell.qml

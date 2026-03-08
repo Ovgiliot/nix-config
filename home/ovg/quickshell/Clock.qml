@@ -7,7 +7,7 @@ import QtQuick.Effects
 
 Item {
     id: root
-    implicitWidth:  timeText.implicitWidth + 24
+    implicitWidth:  timeText.implicitWidth + 48
     implicitHeight: 24
 
     // ── Pill background (hidden — MultiEffect renders it with shadow) ─────────

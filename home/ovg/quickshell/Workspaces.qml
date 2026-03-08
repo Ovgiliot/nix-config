@@ -22,7 +22,7 @@ Item {
     // ── Pill background (hidden — MultiEffect renders it with shadow) ─────────
     Rectangle {
         id: pillBg
-        width:  wsRow.implicitWidth + 24
+        width:  wsRow.implicitWidth + 48
         height: 24
         color:  Colors.pillBg
         bottomLeftRadius:  12
