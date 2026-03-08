@@ -18,6 +18,7 @@
     ../modules/system/laptop/boot.nix
     ../modules/system/laptop/power.nix
     ../modules/system/laptop/services.nix
+    ../modules/system/optional/virtualization.nix
   ];
 
   nixpkgs.config = {

@@ -36,7 +36,7 @@ in {
         isNormalUser = true;
         shell = pkgs.fish;
         description = "ovg";
-        extraGroups = ["networkmanager" "wheel" "input" "uinput" "video"];
+        extraGroups = ["networkmanager" "wheel" "input" "uinput" "video" "libvirtd"];
       };
 
       system.stateVersion = "25.11";

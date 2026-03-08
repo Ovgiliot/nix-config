@@ -16,6 +16,7 @@
     ../modules/system/desktop/display.nix
     ../modules/system/desktop/input.nix
     ../modules/system/optional/gaming.nix
+    ../modules/system/optional/virtualization.nix
   ];
 
   nixpkgs.config = {
