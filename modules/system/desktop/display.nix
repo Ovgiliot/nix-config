@@ -64,7 +64,16 @@
   # Font configuration
   fonts.packages = with pkgs; [
     pkgs.nerd-fonts."symbols-only"
+    noto-fonts-cjk-sans
   ];
+
+  # Fontconfig fallback chain: FiraMono for Latin/Cyrillic, Noto Sans CJK JP
+  # for Japanese (and other CJK) glyphs that FiraMono does not cover.
+  fonts.fontconfig.defaultFonts = {
+    sansSerif = ["FiraMono Nerd Font" "Noto Sans CJK JP"];
+    serif = ["Noto Sans CJK JP"];
+    monospace = ["FiraMono Nerd Font" "Noto Sans CJK JP"];
+  };
 
   # Chromium - Kept for specific web-app support and DRM.
   programs.chromium.enable = true;

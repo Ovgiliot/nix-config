@@ -7,6 +7,7 @@
 -- ---------------------------------------------------------------------------
 vim.api.nvim_set_hl(0, "CursorLine", { bg = "{{colors.surface_container_high.default.hex}}" })
 vim.api.nvim_set_hl(0, "Visual", { bg = "{{colors.secondary_container.default.hex}}" })
+vim.api.nvim_set_hl(0, "Folded", { bg = "{{colors.surface_bright.default.hex}}", fg = "{{colors.on_surface_variant.default.hex}}" })
 
 -- ===========================================================================
 -- Generic treesitter syntax — applies to all languages
