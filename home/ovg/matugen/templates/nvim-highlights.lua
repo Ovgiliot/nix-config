@@ -73,12 +73,12 @@ vim.api.nvim_set_hl(0, "@variable.parameter", { fg = "{{colors.on_surface_varian
 vim.api.nvim_set_hl(0, "@variable.member", { fg = "{{colors.secondary_fixed_dim.default.hex}}" })
 
 -- ---------------------------------------------------------------------------
--- Operators & punctuation — structural, muted
+-- Operators & punctuation — fully visible, never miss a semicolon
 -- ---------------------------------------------------------------------------
-vim.api.nvim_set_hl(0, "@operator", { fg = "{{colors.on_surface_variant.default.hex}}" })
-vim.api.nvim_set_hl(0, "@punctuation.bracket", { fg = "{{colors.on_surface_variant.default.hex}}" })
-vim.api.nvim_set_hl(0, "@punctuation.delimiter", { fg = "{{colors.outline_variant.default.hex}}" })
-vim.api.nvim_set_hl(0, "@punctuation.special", { fg = "{{colors.on_surface_variant.default.hex}}" })
+vim.api.nvim_set_hl(0, "@operator", { fg = "{{colors.on_surface.default.hex}}" })
+vim.api.nvim_set_hl(0, "@punctuation.bracket", { fg = "{{colors.on_surface.default.hex}}" })
+vim.api.nvim_set_hl(0, "@punctuation.delimiter", { fg = "{{colors.on_surface.default.hex}}" })
+vim.api.nvim_set_hl(0, "@punctuation.special", { fg = "{{colors.on_surface.default.hex}}" })
 
 -- ---------------------------------------------------------------------------
 -- Comments — low emphasis, special annotations highlighted
