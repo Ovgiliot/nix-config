@@ -146,7 +146,7 @@ Item {
                 readonly property int  level:    Math.round(modelData.percentage * 100)
 
                 anchors.verticalCenter: parent.verticalCenter
-                text:           root.batIcon(level, charging) + " " + level + "%"
+                text:           root.batIcon(level, charging) + level + "%"
                 font.family:    "FiraMono Nerd Font"
                 font.pixelSize: 16
                 color:          Colors.textColor
