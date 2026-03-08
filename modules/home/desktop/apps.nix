@@ -21,5 +21,7 @@
     bitwarden-cli
     pandoc
     ghostty
+
+    musescore # Music notation software
   ];
 }
