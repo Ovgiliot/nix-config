@@ -65,6 +65,7 @@ Item {
         Item { width: 6; height: 16 }
         Rectangle {
             width: 80; height: 12; radius: 6
+            anchors.verticalCenter: parent.verticalCenter
             color: root.trackColor(root.cpuPct)
             border.width: 1
             border.color: Colors.outline
@@ -96,6 +97,7 @@ Item {
         Item { width: 6; height: 16 }
         Rectangle {
             width: 80; height: 12; radius: 6
+            anchors.verticalCenter: parent.verticalCenter
             color: root.trackColor(root.memPct)
             border.width: 1
             border.color: Colors.outline
