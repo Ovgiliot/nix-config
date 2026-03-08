@@ -214,6 +214,7 @@
     cp ${dotfilesDir}/quickshell/shell.qml              $out/shell.qml
     cp ${dotfilesDir}/quickshell/Clock.qml              $out/Clock.qml
     cp ${dotfilesDir}/quickshell/Workspaces.qml         $out/Workspaces.qml
+    cp ${dotfilesDir}/quickshell/Columns.qml            $out/Columns.qml
     cp ${dotfilesDir}/quickshell/CpuMem.qml             $out/CpuMem.qml
     cp ${dotfilesDir}/quickshell/InfoBox.qml            $out/InfoBox.qml
     cp ${dotfilesDir}/quickshell/Language.qml           $out/Language.qml

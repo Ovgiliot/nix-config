@@ -67,6 +67,15 @@ ShellRoot {
                 anchors.verticalCenter: parent.verticalCenter
             }
 
+            // ── COLUMNS: left of clock, grows left ──────────────────────────
+            Columns {
+                id: columnsWidget
+                columnModel: niriIpc.columns
+                anchors.right: clockWidget.left
+                anchors.rightMargin: 6
+                anchors.verticalCenter: parent.verticalCenter
+            }
+
             // ── INFO BOX: fills gap between clock and right section ──────────
             // anchors.left = clock.right  +  anchors.right = rightSection.left
             // makes this widget span exactly the remaining space on any resolution.

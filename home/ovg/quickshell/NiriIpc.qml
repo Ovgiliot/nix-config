@@ -1,6 +1,6 @@
 // Niri IPC singleton (non-pragma) instantiated in shell.qml.
 // Owns the single EventStream socket for the whole bar.
-// Exposes workspaces and keyboard layout as reactive properties.
+// Exposes workspaces, columns, and keyboard layout as reactive properties.
 // Reconnects automatically after 3 s if the socket drops.
 // Retries socket path resolution every 2 s if NIRI_SOCKET is empty at startup.
 
@@ -12,12 +12,15 @@ QtObject {
 
     // Public — bound into child widgets by shell.qml
     property var    workspaces:    []
+    property var    columns:       []      // [{ columnIndex, isFocused }] for active workspace
     property string languageText:  "EN"
     property string languageClass: "en"
 
     // Internal
     property string _socketPath:  ""
     property var    _layoutNames: []
+    property var    _windows:     ({})     // windowId → window object
+    property int    _focusedWindowId: -1
 
     // ── Read NIRI_SOCKET path from environment via shell ──────────────────────
     property var _getSocketPath: Process {
@@ -69,6 +72,7 @@ QtObject {
 
                     if (msg.WorkspacesChanged) {
                         root.workspaces = msg.WorkspacesChanged.workspaces
+                        root._rebuildColumns()
 
                     } else if (msg.WorkspaceActivated) {
                         if (msg.WorkspaceActivated.focused) {
@@ -76,7 +80,48 @@ QtObject {
                             root.workspaces = root.workspaces.map(ws =>
                                 Object.assign({}, ws, { is_focused: ws.id === id })
                             )
+                            root._rebuildColumns()
                         }
+
+                    } else if (msg.WindowOpenedOrChanged) {
+                        const w = msg.WindowOpenedOrChanged.window
+                        const wins = root._windows
+                        wins[w.id] = w
+                        root._windows = wins
+                        if (w.is_focused) root._focusedWindowId = w.id
+                        root._rebuildColumns()
+
+                    } else if (msg.WindowClosed) {
+                        const wid = msg.WindowClosed.id
+                        const wins = root._windows
+                        delete wins[wid]
+                        root._windows = wins
+                        if (root._focusedWindowId === wid) root._focusedWindowId = -1
+                        root._rebuildColumns()
+
+                    } else if (msg.WindowFocusChanged) {
+                        root._focusedWindowId = msg.WindowFocusChanged.id ?? -1
+                        root._rebuildColumns()
+
+                    } else if (msg.WindowsChanged) {
+                        const newWins = {}
+                        const list = msg.WindowsChanged.windows
+                        for (let i = 0; i < list.length; ++i) {
+                            newWins[list[i].id] = list[i]
+                        }
+                        root._windows = newWins
+                        root._rebuildColumns()
+
+                    } else if (msg.WindowLayoutsChanged) {
+                        const changes = msg.WindowLayoutsChanged.changes
+                        const wins = root._windows
+                        for (let i = 0; i < changes.length; ++i) {
+                            const wid = changes[i][0]
+                            const layout = changes[i][1]
+                            if (wins[wid]) wins[wid].layout = layout
+                        }
+                        root._windows = wins
+                        root._rebuildColumns()
 
                     } else if (msg.KeyboardLayoutsChanged) {
                         const kl = msg.KeyboardLayoutsChanged.keyboard_layouts
@@ -101,6 +146,43 @@ QtObject {
             root._socketPath = ""
             root._socketPath = p
         }
+    }
+
+    // ── Column rebuild ──────────────────────────────────────────────────────
+    // Derives the public `columns` array from the internal _windows map.
+    // Groups tiled windows on the focused workspace by column index.
+    function _rebuildColumns() {
+        // Find the focused workspace id
+        let focusedWsId = -1
+        for (let i = 0; i < root.workspaces.length; ++i) {
+            if (root.workspaces[i].is_focused) {
+                focusedWsId = root.workspaces[i].id
+                break
+            }
+        }
+        if (focusedWsId === -1) { root.columns = []; return }
+
+        // Collect unique column indices for tiled windows on the focused workspace
+        const colSet = {}
+        const wins = root._windows
+        const keys = Object.keys(wins)
+        for (let i = 0; i < keys.length; ++i) {
+            const w = wins[keys[i]]
+            if (w.workspace_id !== focusedWsId) continue
+            const pos = w.layout && w.layout.pos_in_scrolling_layout
+            if (!pos) continue                   // floating window — skip
+            const colIdx = pos[0]
+            if (colSet[colIdx] === undefined) {
+                colSet[colIdx] = false            // not focused yet
+            }
+            if (w.id === root._focusedWindowId) {
+                colSet[colIdx] = true
+            }
+        }
+
+        // Sort by column index and build the public array
+        const sorted = Object.keys(colSet).map(Number).sort((a, b) => a - b)
+        root.columns = sorted.map(ci => ({ columnIndex: ci, isFocused: colSet[ci] }))
     }
 
     // ── Layout helper ─────────────────────────────────────────────────────────
