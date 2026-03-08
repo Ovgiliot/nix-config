@@ -3,6 +3,12 @@
 -- See home/ovg/matugen/templates/ghostty-colors.conf for the M3 role reference.
 
 -- ---------------------------------------------------------------------------
+-- Core UI
+-- ---------------------------------------------------------------------------
+vim.api.nvim_set_hl(0, "CursorLine", { bg = "{{colors.surface_container.default.hex}}" })
+vim.api.nvim_set_hl(0, "Visual",     { bg = "{{colors.secondary_container.default.hex}}" })
+
+-- ---------------------------------------------------------------------------
 -- Org-mode headlines (headlines.nvim)
 -- ---------------------------------------------------------------------------
 -- Background bars: container tones (~30) — dim accent fills.
