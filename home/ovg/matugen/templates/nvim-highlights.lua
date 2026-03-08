@@ -134,23 +134,27 @@ vim.api.nvim_set_hl(0, "@diff.delta", { fg = "{{colors.secondary.default.hex}}" 
 -- ---------------------------------------------------------------------------
 -- Org-mode headlines (headlines.nvim)
 -- ---------------------------------------------------------------------------
--- Background bars: container tones (~30) — dim accent fills.
-vim.api.nvim_set_hl(0, "Headline1", { bg = "{{colors.primary_container.default.hex}}" })
-vim.api.nvim_set_hl(0, "Headline2", { bg = "{{colors.secondary_container.default.hex}}" })
-vim.api.nvim_set_hl(0, "Headline3", { bg = "{{colors.tertiary_container.default.hex}}" })
-vim.api.nvim_set_hl(0, "Headline4", { bg = "{{colors.error_container.default.hex}}" })
-vim.api.nvim_set_hl(0, "Headline5", { bg = "{{colors.surface_container_high.default.hex}}" })
-vim.api.nvim_set_hl(0, "Headline6", { bg = "{{colors.surface_bright.default.hex}}" })
+-- Background bars: surface tones (~10-17) — dim, non-competing fills.
+-- Avoids _container roles (tone ~30) which are too bright and clash with
+-- accent foregrounds, violating M3 contrast guidelines.
+vim.api.nvim_set_hl(0, "Headline1", { bg = "{{colors.surface_container.default.hex}}" })
+vim.api.nvim_set_hl(0, "Headline2", { bg = "{{colors.surface_container.default.hex}}" })
+vim.api.nvim_set_hl(0, "Headline3", { bg = "{{colors.surface_container_high.default.hex}}" })
+vim.api.nvim_set_hl(0, "Headline4", { bg = "{{colors.surface_container_high.default.hex}}" })
+vim.api.nvim_set_hl(0, "Headline5", { bg = "{{colors.surface_container_low.default.hex}}" })
+vim.api.nvim_set_hl(0, "Headline6", { bg = "{{colors.surface_container_low.default.hex}}" })
 
--- Headline text: tone ~80 roles — bright accent foregrounds.
+-- Headline text: tone ~80 accent roles only — never _container tokens (tone ~30).
+-- Each level uses a distinct hue for visual hierarchy. All foregrounds are
+-- bright enough to exceed WCAG AA 4.5:1 contrast on surface backgrounds.
 vim.api.nvim_set_hl(0, "@org.headline.level1", { fg = "{{colors.primary.default.hex}}", bold = true })
-vim.api.nvim_set_hl(0, "@org.headline.level2", { fg = "{{colors.primary_container.default.hex}}", bold = true })
-vim.api.nvim_set_hl(0, "@org.headline.level3", { fg = "{{colors.tertiary_container.default.hex}}", bold = true })
+vim.api.nvim_set_hl(0, "@org.headline.level2", { fg = "{{colors.secondary.default.hex}}", bold = true })
+vim.api.nvim_set_hl(0, "@org.headline.level3", { fg = "{{colors.tertiary.default.hex}}", bold = true })
 vim.api.nvim_set_hl(0, "@org.headline.level4", { fg = "{{colors.error.default.hex}}", bold = true })
-vim.api.nvim_set_hl(0, "@org.headline.level5", { fg = "{{colors.secondary.default.hex}}", bold = true })
-vim.api.nvim_set_hl(0, "@org.headline.level6", { fg = "{{colors.tertiary.default.hex}}", bold = true })
+vim.api.nvim_set_hl(0, "@org.headline.level5", { fg = "{{colors.primary_fixed_dim.default.hex}}", bold = true })
+vim.api.nvim_set_hl(0, "@org.headline.level6", { fg = "{{colors.tertiary_fixed_dim.default.hex}}", bold = true })
 vim.api.nvim_set_hl(0, "@org.headline.level7", { fg = "{{colors.on_surface_variant.default.hex}}", bold = true })
-vim.api.nvim_set_hl(0, "@org.headline.level8", { fg = "{{colors.secondary_container.default.hex}}", bold = true })
+vim.api.nvim_set_hl(0, "@org.headline.level8", { fg = "{{colors.secondary_fixed.default.hex}}", bold = true })
 
 -- ---------------------------------------------------------------------------
 -- TODO keywords
