@@ -8,7 +8,7 @@ import QtQuick.Effects
 
 Item {
     id: root
-    implicitWidth:  contentRow.implicitWidth + 48
+    implicitWidth:  contentRow.implicitWidth + 36
     implicitHeight: 24
 
     property int cpuPct: 0

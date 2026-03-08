@@ -6,7 +6,7 @@ import QtQuick.Effects
 
 Item {
     id: root
-    implicitWidth:  langLabel.implicitWidth + 48
+    implicitWidth:  langLabel.implicitWidth + 36
     implicitHeight: 24
 
     property string langText:  "EN"

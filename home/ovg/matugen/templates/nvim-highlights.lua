@@ -5,8 +5,8 @@
 -- ---------------------------------------------------------------------------
 -- Core UI
 -- ---------------------------------------------------------------------------
-vim.api.nvim_set_hl(0, "CursorLine", { bg = "{{colors.surface_container.default.hex}}" })
-vim.api.nvim_set_hl(0, "Visual",     { bg = "{{colors.secondary_container.default.hex}}" })
+vim.api.nvim_set_hl(0, "CursorLine", { bg = "{{colors.surface_container_high.default.hex}}" })
+vim.api.nvim_set_hl(0, "Visual", { bg = "{{colors.secondary_container.default.hex}}" })
 
 -- ---------------------------------------------------------------------------
 -- Org-mode headlines (headlines.nvim)
@@ -20,16 +20,16 @@ vim.api.nvim_set_hl(0, "Headline5", { bg = "{{colors.surface_container_high.defa
 vim.api.nvim_set_hl(0, "Headline6", { bg = "{{colors.surface_bright.default.hex}}" })
 
 -- Headline text: tone ~80 roles — bright accent foregrounds.
-vim.api.nvim_set_hl(0, "@org.headline.level1", { fg = "{{colors.primary.default.hex}}",            bold = true })
-vim.api.nvim_set_hl(0, "@org.headline.level2", { fg = "{{colors.primary_container.default.hex}}",  bold = true })
+vim.api.nvim_set_hl(0, "@org.headline.level1", { fg = "{{colors.primary.default.hex}}", bold = true })
+vim.api.nvim_set_hl(0, "@org.headline.level2", { fg = "{{colors.primary_container.default.hex}}", bold = true })
 vim.api.nvim_set_hl(0, "@org.headline.level3", { fg = "{{colors.tertiary_container.default.hex}}", bold = true })
-vim.api.nvim_set_hl(0, "@org.headline.level4", { fg = "{{colors.error.default.hex}}",              bold = true })
-vim.api.nvim_set_hl(0, "@org.headline.level5", { fg = "{{colors.secondary.default.hex}}",          bold = true })
-vim.api.nvim_set_hl(0, "@org.headline.level6", { fg = "{{colors.tertiary.default.hex}}",           bold = true })
+vim.api.nvim_set_hl(0, "@org.headline.level4", { fg = "{{colors.error.default.hex}}", bold = true })
+vim.api.nvim_set_hl(0, "@org.headline.level5", { fg = "{{colors.secondary.default.hex}}", bold = true })
+vim.api.nvim_set_hl(0, "@org.headline.level6", { fg = "{{colors.tertiary.default.hex}}", bold = true })
 vim.api.nvim_set_hl(0, "@org.headline.level7", { fg = "{{colors.on_surface_variant.default.hex}}", bold = true })
 vim.api.nvim_set_hl(0, "@org.headline.level8", { fg = "{{colors.secondary_container.default.hex}}", bold = true })
 
 -- Links
-vim.api.nvim_set_hl(0, "@org.hyperlink",      { fg = "{{colors.primary.default.hex}}",           underline = true })
-vim.api.nvim_set_hl(0, "@org.hyperlink.desc", { fg = "{{colors.primary.default.hex}}",           underline = true })
-vim.api.nvim_set_hl(0, "@org.hyperlink.url",  { fg = "{{colors.primary_container.default.hex}}", underline = true })
+vim.api.nvim_set_hl(0, "@org.hyperlink", { fg = "{{colors.primary.default.hex}}", underline = true })
+vim.api.nvim_set_hl(0, "@org.hyperlink.desc", { fg = "{{colors.primary.default.hex}}", underline = true })
+vim.api.nvim_set_hl(0, "@org.hyperlink.url", { fg = "{{colors.primary_container.default.hex}}", underline = true })
