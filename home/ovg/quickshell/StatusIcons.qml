@@ -59,7 +59,7 @@ Item {
     // state is one of: "performance", "balanced", "power-saver"
     function powerIcon(state) {
         if (state === "performance") return "\uDB85\uDC0B"   // U+F140B
-        if (state === "power-saver") return "\uDB81\uDCD8"   // U+F04D8
+        if (state === "power-saver") return "\uDB80\uDF2A"   // U+F032A  nf-md-leaf
         return "\uDB81\uDDD1"                                // U+F05D1  nf-md-scale_balance
     }
 

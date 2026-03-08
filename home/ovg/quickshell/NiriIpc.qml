@@ -71,7 +71,9 @@ QtObject {
                     if (msg.Ok !== undefined) return   // acknowledgement
 
                     if (msg.WorkspacesChanged) {
-                        root.workspaces = msg.WorkspacesChanged.workspaces
+                        const ws = msg.WorkspacesChanged.workspaces
+                        ws.sort((a, b) => a.idx - b.idx)
+                        root.workspaces = ws
                         root._rebuildColumns()
 
                     } else if (msg.WorkspaceActivated) {
