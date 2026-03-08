@@ -60,7 +60,7 @@ Item {
     function powerIcon(state) {
         if (state === "performance") return "\uDB85\uDC0B"   // U+F140B
         if (state === "power-saver") return "\uDB81\uDCD8"   // U+F04D8
-        return "\uDB81\uDCD2"                                // U+F04D2  balanced
+        return "\uDB81\uDDD1"                                // U+F05D1  nf-md-scale_balance
     }
 
     function batIcon(level, charging) {

@@ -8,6 +8,129 @@
 vim.api.nvim_set_hl(0, "CursorLine", { bg = "{{colors.surface_container_high.default.hex}}" })
 vim.api.nvim_set_hl(0, "Visual", { bg = "{{colors.secondary_container.default.hex}}" })
 
+-- ===========================================================================
+-- Generic treesitter syntax — applies to all languages
+-- ===========================================================================
+-- Accent mapping: primary = keywords, secondary = functions, tertiary = types.
+-- All foreground colors use tone-80+ roles for readability on dark backgrounds.
+
+-- ---------------------------------------------------------------------------
+-- Keywords (primary — control flow, the skeleton of code)
+-- ---------------------------------------------------------------------------
+vim.api.nvim_set_hl(0, "@keyword", { fg = "{{colors.primary.default.hex}}", bold = true })
+vim.api.nvim_set_hl(0, "@keyword.function", { fg = "{{colors.primary.default.hex}}", bold = true })
+vim.api.nvim_set_hl(0, "@keyword.return", { fg = "{{colors.primary.default.hex}}", bold = true })
+vim.api.nvim_set_hl(0, "@keyword.operator", { fg = "{{colors.primary.default.hex}}" })
+vim.api.nvim_set_hl(0, "@keyword.conditional", { fg = "{{colors.primary.default.hex}}", bold = true })
+vim.api.nvim_set_hl(0, "@keyword.repeat", { fg = "{{colors.primary.default.hex}}", bold = true })
+vim.api.nvim_set_hl(0, "@keyword.exception", { fg = "{{colors.primary.default.hex}}", bold = true })
+vim.api.nvim_set_hl(0, "@keyword.import", { fg = "{{colors.primary.default.hex}}" })
+vim.api.nvim_set_hl(0, "@keyword.coroutine", { fg = "{{colors.primary.default.hex}}", bold = true })
+vim.api.nvim_set_hl(0, "@keyword.modifier", { fg = "{{colors.primary.default.hex}}", italic = true })
+
+-- ---------------------------------------------------------------------------
+-- Functions (secondary — callable things)
+-- ---------------------------------------------------------------------------
+vim.api.nvim_set_hl(0, "@function", { fg = "{{colors.secondary.default.hex}}" })
+vim.api.nvim_set_hl(0, "@function.call", { fg = "{{colors.secondary.default.hex}}" })
+vim.api.nvim_set_hl(0, "@function.builtin", { fg = "{{colors.secondary.default.hex}}", italic = true })
+vim.api.nvim_set_hl(0, "@function.method", { fg = "{{colors.secondary.default.hex}}" })
+vim.api.nvim_set_hl(0, "@function.method.call", { fg = "{{colors.secondary.default.hex}}" })
+
+-- ---------------------------------------------------------------------------
+-- Types (tertiary — the type system)
+-- ---------------------------------------------------------------------------
+vim.api.nvim_set_hl(0, "@type", { fg = "{{colors.tertiary.default.hex}}" })
+vim.api.nvim_set_hl(0, "@type.builtin", { fg = "{{colors.tertiary.default.hex}}", italic = true })
+vim.api.nvim_set_hl(0, "@type.definition", { fg = "{{colors.tertiary.default.hex}}", bold = true })
+vim.api.nvim_set_hl(0, "@constructor", { fg = "{{colors.tertiary.default.hex}}" })
+
+-- ---------------------------------------------------------------------------
+-- Strings (tertiary_fixed_dim — data, distinct from code)
+-- ---------------------------------------------------------------------------
+vim.api.nvim_set_hl(0, "@string", { fg = "{{colors.tertiary_fixed_dim.default.hex}}" })
+vim.api.nvim_set_hl(0, "@string.escape", { fg = "{{colors.tertiary_fixed.default.hex}}", bold = true })
+vim.api.nvim_set_hl(0, "@string.special", { fg = "{{colors.tertiary_fixed.default.hex}}" })
+vim.api.nvim_set_hl(0, "@string.regex", { fg = "{{colors.tertiary_fixed.default.hex}}" })
+vim.api.nvim_set_hl(0, "@character", { fg = "{{colors.tertiary_fixed_dim.default.hex}}" })
+vim.api.nvim_set_hl(0, "@character.special", { fg = "{{colors.tertiary_fixed.default.hex}}" })
+
+-- ---------------------------------------------------------------------------
+-- Constants & literals (secondary_fixed_dim — stable values)
+-- ---------------------------------------------------------------------------
+vim.api.nvim_set_hl(0, "@constant", { fg = "{{colors.secondary_fixed_dim.default.hex}}" })
+vim.api.nvim_set_hl(0, "@constant.builtin", { fg = "{{colors.secondary_fixed_dim.default.hex}}", italic = true })
+vim.api.nvim_set_hl(0, "@boolean", { fg = "{{colors.secondary_fixed_dim.default.hex}}", bold = true })
+vim.api.nvim_set_hl(0, "@number", { fg = "{{colors.secondary_fixed_dim.default.hex}}" })
+vim.api.nvim_set_hl(0, "@number.float", { fg = "{{colors.secondary_fixed_dim.default.hex}}" })
+
+-- ---------------------------------------------------------------------------
+-- Variables — default readable text, builtins/params slightly muted
+-- ---------------------------------------------------------------------------
+vim.api.nvim_set_hl(0, "@variable", { fg = "{{colors.on_surface.default.hex}}" })
+vim.api.nvim_set_hl(0, "@variable.builtin", { fg = "{{colors.on_surface_variant.default.hex}}", italic = true })
+vim.api.nvim_set_hl(0, "@variable.parameter", { fg = "{{colors.on_surface_variant.default.hex}}" })
+vim.api.nvim_set_hl(0, "@variable.member", { fg = "{{colors.secondary_fixed_dim.default.hex}}" })
+
+-- ---------------------------------------------------------------------------
+-- Operators & punctuation — structural, muted
+-- ---------------------------------------------------------------------------
+vim.api.nvim_set_hl(0, "@operator", { fg = "{{colors.on_surface_variant.default.hex}}" })
+vim.api.nvim_set_hl(0, "@punctuation.bracket", { fg = "{{colors.on_surface_variant.default.hex}}" })
+vim.api.nvim_set_hl(0, "@punctuation.delimiter", { fg = "{{colors.outline_variant.default.hex}}" })
+vim.api.nvim_set_hl(0, "@punctuation.special", { fg = "{{colors.on_surface_variant.default.hex}}" })
+
+-- ---------------------------------------------------------------------------
+-- Comments — low emphasis, special annotations highlighted
+-- ---------------------------------------------------------------------------
+vim.api.nvim_set_hl(0, "@comment", { fg = "{{colors.outline.default.hex}}", italic = true })
+vim.api.nvim_set_hl(0, "@comment.todo", { fg = "{{colors.primary.default.hex}}", bold = true })
+vim.api.nvim_set_hl(0, "@comment.note", { fg = "{{colors.secondary.default.hex}}", bold = true })
+vim.api.nvim_set_hl(0, "@comment.warning", { fg = "{{colors.tertiary.default.hex}}", bold = true })
+vim.api.nvim_set_hl(0, "@comment.error", { fg = "{{colors.error.default.hex}}", bold = true })
+
+-- ---------------------------------------------------------------------------
+-- Properties & attributes — object fields
+-- ---------------------------------------------------------------------------
+vim.api.nvim_set_hl(0, "@property", { fg = "{{colors.secondary_fixed_dim.default.hex}}" })
+vim.api.nvim_set_hl(0, "@attribute", { fg = "{{colors.secondary_fixed_dim.default.hex}}", italic = true })
+
+-- ---------------------------------------------------------------------------
+-- Tags (HTML/JSX) — primary for elements, muted for attributes
+-- ---------------------------------------------------------------------------
+vim.api.nvim_set_hl(0, "@tag", { fg = "{{colors.primary.default.hex}}" })
+vim.api.nvim_set_hl(0, "@tag.attribute", { fg = "{{colors.secondary_fixed_dim.default.hex}}" })
+vim.api.nvim_set_hl(0, "@tag.delimiter", { fg = "{{colors.outline_variant.default.hex}}" })
+
+-- ---------------------------------------------------------------------------
+-- Labels & modules
+-- ---------------------------------------------------------------------------
+vim.api.nvim_set_hl(0, "@label", { fg = "{{colors.secondary.default.hex}}" })
+vim.api.nvim_set_hl(0, "@module", { fg = "{{colors.on_surface_variant.default.hex}}" })
+vim.api.nvim_set_hl(0, "@module.builtin", { fg = "{{colors.on_surface_variant.default.hex}}", italic = true })
+
+-- ---------------------------------------------------------------------------
+-- Generic markup (markdown, etc.)
+-- ---------------------------------------------------------------------------
+vim.api.nvim_set_hl(0, "@markup.heading", { fg = "{{colors.primary.default.hex}}", bold = true })
+vim.api.nvim_set_hl(0, "@markup.strong", { fg = "{{colors.on_surface.default.hex}}", bold = true })
+vim.api.nvim_set_hl(0, "@markup.italic", { fg = "{{colors.on_surface.default.hex}}", italic = true })
+vim.api.nvim_set_hl(0, "@markup.link", { fg = "{{colors.primary.default.hex}}", underline = true })
+vim.api.nvim_set_hl(0, "@markup.link.url", { fg = "{{colors.secondary_fixed_dim.default.hex}}", underline = true })
+vim.api.nvim_set_hl(0, "@markup.raw", { fg = "{{colors.tertiary_fixed_dim.default.hex}}" })
+vim.api.nvim_set_hl(0, "@markup.list", { fg = "{{colors.primary.default.hex}}" })
+
+-- ---------------------------------------------------------------------------
+-- Diff
+-- ---------------------------------------------------------------------------
+vim.api.nvim_set_hl(0, "@diff.plus", { fg = "{{colors.tertiary.default.hex}}" })
+vim.api.nvim_set_hl(0, "@diff.minus", { fg = "{{colors.error.default.hex}}" })
+vim.api.nvim_set_hl(0, "@diff.delta", { fg = "{{colors.secondary.default.hex}}" })
+
+-- ===========================================================================
+-- Org-mode
+-- ===========================================================================
+
 -- ---------------------------------------------------------------------------
 -- Org-mode headlines (headlines.nvim)
 -- ---------------------------------------------------------------------------
