@@ -64,7 +64,7 @@ Item {
         }
         Item { width: 6; height: 16 }
         Rectangle {
-            width: 80; height: 16; radius: 8
+            width: 80; height: 12; radius: 6
             color: root.trackColor(root.cpuPct)
             border.width: 1
             border.color: Colors.outline
@@ -75,7 +75,7 @@ Item {
                 width:  Math.max(0, (parent.width - 2) * root.cpuPct / 100)
                 height: parent.height - 2
                 x: 1; y: 1
-                radius: 7
+                radius: 5
                 color: root.fillColor(root.cpuPct)
                 Behavior on width { NumberAnimation { duration: 300; easing.type: Easing.OutCubic } }
                 Behavior on color { ColorAnimation { duration: 300 } }
@@ -95,7 +95,7 @@ Item {
         }
         Item { width: 6; height: 16 }
         Rectangle {
-            width: 80; height: 16; radius: 8
+            width: 80; height: 12; radius: 6
             color: root.trackColor(root.memPct)
             border.width: 1
             border.color: Colors.outline
@@ -106,7 +106,7 @@ Item {
                 width:  Math.max(0, (parent.width - 2) * root.memPct / 100)
                 height: parent.height - 2
                 x: 1; y: 1
-                radius: 7
+                radius: 5
                 color: root.fillColor(root.memPct)
                 Behavior on width { NumberAnimation { duration: 300; easing.type: Easing.OutCubic } }
                 Behavior on color { ColorAnimation { duration: 300 } }
