@@ -81,9 +81,9 @@ ShellRoot {
             // makes this widget span exactly the remaining space on any resolution.
             InfoBox {
                 anchors.left:        clockWidget.right
-                anchors.leftMargin:  3
+                anchors.leftMargin:  6
                 anchors.right:       rightSection.left
-                anchors.rightMargin: 3
+                anchors.rightMargin: 6
                 anchors.top:         parent.top
                 anchors.bottom:      parent.bottom
 
