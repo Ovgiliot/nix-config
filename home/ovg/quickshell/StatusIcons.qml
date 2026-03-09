@@ -20,6 +20,9 @@ Item {
     property string wifiState:  "off"
     property string powerState: "balanced"
 
+    // Parent PanelWindow — needed by PopupWindow for anchoring.
+    property var parentWindow: null
+
     // BT state computed from Bluetooth singleton (event-driven)
     readonly property string btState: {
         const adapter = Bluetooth.defaultAdapter
@@ -28,16 +31,23 @@ Item {
         return "on"
     }
 
-    // Whether any laptop battery exists — drives visibility of the bar.
-    // Touch isLaptopBattery on each device so QML tracks add/remove reactively.
-    readonly property bool hasBattery: {
+    // Laptop batteries from UPower — needed for per-battery popup rows.
+    // Touch reactive properties inside the loop so QML tracks changes.
+    readonly property var laptopBatteries: {
         const all = UPower.devices.values
+        const result = []
         for (var i = 0; i < all.length; i++) {
-            void all[i].isLaptopBattery
-            if (all[i].isLaptopBattery) return true
+            const dev = all[i]
+            void dev.isLaptopBattery
+            void dev.percentage
+            void dev.state
+            void dev.healthPercentage
+            void dev.nativePath
+            if (dev.isLaptopBattery) result.push(dev)
         }
-        return false
+        return result
     }
+    readonly property bool hasBattery: laptopBatteries.length > 0
 
     // Combined level from UPower's virtual aggregate device (0–100).
     readonly property int batLevel: Math.round(UPower.displayDevice.percentage * 100)
@@ -75,6 +85,13 @@ Item {
         if (pct < 20) return Colors.errorTrack
         if (pct < 40) return Colors.barTrack
         return Colors.primaryTrack
+    }
+
+    function formatTime(seconds) {
+        if (seconds <= 0) return "--:--"
+        const h = Math.floor(seconds / 3600)
+        const m = Math.floor((seconds % 3600) / 60)
+        return h + ":" + (m < 10 ? "0" + m : m)
     }
 
     // ── Pill background (hidden — MultiEffect renders it with shadow) ─────────
@@ -139,11 +156,14 @@ Item {
 
         // Battery bar — combined capacity; hidden on desktop (0 batteries).
         // Fill anchored right: full charge = full bar, depleted = shrinks from left.
-        Item {
+        // MouseArea triggers the battery detail popup on hover.
+        MouseArea {
+            id: batHover
             visible: root.hasBattery
             width: visible ? 80 : 0
             height: 16
             anchors.verticalCenter: parent.verticalCenter
+            hoverEnabled: true
 
             Rectangle {
                 width: 80; height: 12; radius: 6
@@ -163,6 +183,93 @@ Item {
                     color: root.batFillColor(root.batLevel)
                     Behavior on width { NumberAnimation { duration: 300; easing.type: Easing.OutCubic } }
                     Behavior on color { ColorAnimation { duration: 300 } }
+                }
+            }
+        }
+    }
+
+    // ── Battery detail popup — shown on hover over the battery bar ────────────
+    PopupWindow {
+        id: batPopup
+        parentWindow: root.parentWindow
+        visible: batHover.containsMouse && root.hasBattery
+
+        anchor.window: root.parentWindow
+        anchor.item:   root
+        anchor.edges:  Edges.Bottom
+        anchor.gravity: Edges.Bottom
+        anchor.adjustment: PopupAdjustment.SlideX
+
+        width:  root.width
+        height: popupContent.implicitHeight + 16
+        color:  "transparent"
+
+        Rectangle {
+            anchors.fill: parent
+            color: Colors.pillBg
+            radius: 8
+        }
+
+        Column {
+            id: popupContent
+            anchors.fill: parent
+            anchors.margins: 8
+            spacing: 6
+
+            // Time to full (on AC) or time to empty (on battery)
+            Text {
+                text: root.batCharging
+                    ? "Full in " + root.formatTime(UPower.displayDevice.timeToFull)
+                    : root.formatTime(UPower.displayDevice.timeToEmpty) + " remaining"
+                font.family:    "FiraMono Nerd Font"
+                font.pixelSize: 13
+                color:          Colors.textColor
+            }
+
+            // Per-battery rows
+            Repeater {
+                model: root.laptopBatteries
+                Row {
+                    required property var modelData
+                    readonly property int level:  Math.round(modelData.percentage * 100)
+                    readonly property int health: modelData.healthSupported
+                                                ? Math.round(modelData.healthPercentage * 100)
+                                                : -1
+                    spacing: 6
+                    width: popupContent.width
+
+                    Text {
+                        text: modelData.nativePath
+                        font.family:    "FiraMono Nerd Font"
+                        font.pixelSize: 13
+                        color:          Colors.textColor
+                        anchors.verticalCenter: parent.verticalCenter
+                    }
+
+                    Rectangle {
+                        width: 60; height: 10; radius: 5
+                        anchors.verticalCenter: parent.verticalCenter
+                        color: root.batTrackColor(level)
+                        border.width: 1
+                        border.color: Colors.outline
+
+                        Rectangle {
+                            width:  Math.max(0, (parent.width - 2) * level / 100)
+                            height: parent.height - 2
+                            x: parent.width - 1 - width
+                            y: 1
+                            radius: 4
+                            color: root.batFillColor(level)
+                        }
+                    }
+
+                    Text {
+                        text: health >= 0 ? "HP " + health + "%" : ""
+                        font.family:    "FiraMono Nerd Font"
+                        font.pixelSize: 13
+                        color:          Colors.textColor
+                        anchors.verticalCenter: parent.verticalCenter
+                    }
                 }
             }
         }

@@ -104,8 +104,9 @@ ShellRoot {
                     langClass: niriIpc.languageClass
                 }
                 StatusIcons {
-                    wifiState:  wifiMonitor.wifiState
-                    powerState: statusPoller.powerState
+                    wifiState:    wifiMonitor.wifiState
+                    powerState:   statusPoller.powerState
+                    parentWindow: bar
                 }
             }
         }
