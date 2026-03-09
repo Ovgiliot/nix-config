@@ -68,13 +68,13 @@ Item {
     // Battery: lower = worse, so thresholds are inverted from CPU/MEM.
     function batFillColor(pct) {
         if (pct < 20) return Colors.errorFill
-        if (pct < 40) return Colors.accent
-        return Colors.barFill
+        if (pct < 40) return Colors.barFill
+        return Colors.accent
     }
     function batTrackColor(pct) {
         if (pct < 20) return Colors.errorTrack
-        if (pct < 40) return Colors.primaryTrack
-        return Colors.barTrack
+        if (pct < 40) return Colors.barTrack
+        return Colors.primaryTrack
     }
 
     // ── Pill background (hidden — MultiEffect renders it with shadow) ─────────
@@ -141,27 +141,16 @@ Item {
         // Fill anchored right: full charge = full bar, depleted = shrinks from left.
         Item {
             visible: root.hasBattery
-            width: visible ? batLabel.implicitWidth + 6 + 80 : 0
+            width: visible ? 80 : 0
             height: 16
             anchors.verticalCenter: parent.verticalCenter
 
-            Text {
-                id: batLabel
-                height: 16
-                verticalAlignment: Text.AlignVCenter
-                text: "BAT"
-                font.family:    "FiraMono Nerd Font"
-                font.pixelSize: 14
-                color: Colors.textColor
-            }
-
             Rectangle {
-                x: batLabel.implicitWidth + 6
                 width: 80; height: 12; radius: 6
                 anchors.verticalCenter: parent.verticalCenter
                 color: root.batTrackColor(root.batLevel)
                 border.width: 1
-                border.color: root.batCharging ? Colors.accent : Colors.outline
+                border.color: root.batCharging ? Colors.barFill : Colors.outline
                 Behavior on color { ColorAnimation { duration: 300 } }
                 Behavior on border.color { ColorAnimation { duration: 300 } }
 
