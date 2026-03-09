@@ -200,10 +200,11 @@ Item {
             parentWindow: root.parentWindow
             visible: batHover.containsMouse
 
-            // Map root's top-left corner to the parent window's coordinate space.
-            // Left edges align (same x); width matches root, so right edges align too.
+            // Position below the pill with 6px gap, left-aligned to pill.
+            // mapToItem(null,...) gives root's position in the parent window;
+            // the -6 corrects for an observed PopupWindow positioning offset.
             readonly property point rootPos: root.mapToItem(null, 0, 0)
-            relativeX: rootPos.x
+            relativeX: rootPos.x - 6
             relativeY: rootPos.y + root.height + 6
 
             width:  root.width
