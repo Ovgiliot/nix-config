@@ -189,25 +189,44 @@ Item {
     }
 
     // ── Battery detail popup — shown on hover over the battery bar ────────────
-    // Positioned below the pill, right-aligned to its right edge.
+    // Positioned below the pill, right-aligned to its right edge, with 6px gap.
     // Lazily loaded to avoid crash: PopupWindow cannot resolve its anchor
     // during construction when the parent Item has no window yet.
+    // relativeX/Y are relative to the parentWindow, so we map root's position.
     Loader {
         active: root.parentWindow !== null && root.hasBattery
         sourceComponent: PopupWindow {
+            id: batPopup
             parentWindow: root.parentWindow
             visible: batHover.containsMouse
-            relativeX: root.width - width
-            relativeY: root.height
+
+            // Map root's top-left corner to the parent window's coordinate space.
+            readonly property point rootPos: root.mapToItem(null, 0, 0)
+            relativeX: rootPos.x + root.width - width
+            relativeY: rootPos.y + root.height + 6
 
             width:  root.width
             height: popupCol.implicitHeight + 16
             color:  "transparent"
 
+            // Background (hidden — MultiEffect renders it with shadow)
             Rectangle {
+                id: popupBg
                 anchors.fill: parent
                 color: Colors.pillBg
                 radius: 8
+                visible: false
+            }
+
+            MultiEffect {
+                source:               popupBg
+                anchors.fill:         popupBg
+                autoPaddingEnabled:   true
+                shadowEnabled:        true
+                shadowColor:          Colors.shadowColor
+                shadowBlur:           0.7
+                shadowVerticalOffset: 5
+                shadowHorizontalOffset: 0
             }
 
             Column {
