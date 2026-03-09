@@ -24,9 +24,17 @@ PanelWindow {
 
     // ── Layout constants ─────────────────────────────────────────────────────
     readonly property int visibleCount: 5
-    readonly property real cellWidth: content.width / visibleCount
     readonly property int filenameHeight: 22
     readonly property int cellSpacing: 8
+    readonly property int contentMargin: 8   // anchors.margins on content Item
+
+    // Effective width available for cells (screen width minus layer-shell
+    // margins minus the content Item's own margins on both sides).
+    readonly property real contentWidth: screen.width * 0.6 - contentMargin * 2
+    readonly property real cellWidth: contentWidth / visibleCount
+    // Thumbnail image width/height inside each cell (16:9 aspect ratio).
+    readonly property real thumbWidth:  cellWidth - cellSpacing
+    readonly property real thumbHeight: thumbWidth * 9 / 16
 
     // ── Layer-shell geometry ─────────────────────────────────────────────────
     anchors {
@@ -37,7 +45,8 @@ PanelWindow {
     margins.top:   28
     margins.left:  screen.width  * 0.2
     margins.right: screen.width  * 0.2
-    implicitHeight: screen.height * 0.28
+    // Height derived from 16:9 thumbnails + filename + spacing + margins.
+    implicitHeight: thumbHeight + filenameHeight + 4 + contentMargin * 2
 
     color: "transparent"
 
@@ -229,10 +238,10 @@ PanelWindow {
                     anchors.margins: root.cellSpacing / 2
                     spacing: 4
 
-                    // Image container with selection border
+                    // Image container with selection border (16:9 aspect)
                     Rectangle {
-                        width:  parent.width
-                        height: parent.height - root.filenameHeight - parent.spacing
+                        width:  root.thumbWidth
+                        height: root.thumbHeight
                         radius: 6
                         color:  "transparent"
                         border.width: del.isCurrent ? 2 : 0
