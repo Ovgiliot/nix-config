@@ -189,86 +189,87 @@ Item {
     }
 
     // ── Battery detail popup — shown on hover over the battery bar ────────────
-    PopupWindow {
-        id: batPopup
-        parentWindow: root.parentWindow
-        visible: batHover.containsMouse && root.hasBattery
+    // Positioned below the pill, right-aligned to its right edge.
+    // Lazily loaded to avoid crash: PopupWindow cannot resolve its anchor
+    // during construction when the parent Item has no window yet.
+    Loader {
+        active: root.parentWindow !== null && root.hasBattery
+        sourceComponent: PopupWindow {
+            parentWindow: root.parentWindow
+            visible: batHover.containsMouse
+            relativeX: root.width - width
+            relativeY: root.height
 
-        anchor.window: root.parentWindow
-        anchor.item:   root
-        anchor.edges:  Edges.Bottom
-        anchor.gravity: Edges.Bottom
-        anchor.adjustment: PopupAdjustment.SlideX
+            width:  root.width
+            height: popupCol.implicitHeight + 16
+            color:  "transparent"
 
-        width:  root.width
-        height: popupContent.implicitHeight + 16
-        color:  "transparent"
-
-        Rectangle {
-            anchors.fill: parent
-            color: Colors.pillBg
-            radius: 8
-        }
-
-        Column {
-            id: popupContent
-            anchors.fill: parent
-            anchors.margins: 8
-            spacing: 6
-
-            // Time to full (on AC) or time to empty (on battery)
-            Text {
-                text: root.batCharging
-                    ? "Full in " + root.formatTime(UPower.displayDevice.timeToFull)
-                    : root.formatTime(UPower.displayDevice.timeToEmpty) + " remaining"
-                font.family:    "FiraMono Nerd Font"
-                font.pixelSize: 13
-                color:          Colors.textColor
+            Rectangle {
+                anchors.fill: parent
+                color: Colors.pillBg
+                radius: 8
             }
 
-            // Per-battery rows
-            Repeater {
-                model: root.laptopBatteries
-                Row {
-                    required property var modelData
-                    readonly property int level:  Math.round(modelData.percentage * 100)
-                    readonly property int health: modelData.healthSupported
-                                                ? Math.round(modelData.healthPercentage * 100)
-                                                : -1
-                    spacing: 6
-                    width: popupContent.width
+            Column {
+                id: popupCol
+                anchors.fill: parent
+                anchors.margins: 8
+                spacing: 6
 
-                    Text {
-                        text: modelData.nativePath
-                        font.family:    "FiraMono Nerd Font"
-                        font.pixelSize: 13
-                        color:          Colors.textColor
-                        anchors.verticalCenter: parent.verticalCenter
-                    }
+                // Time to full (on AC) or time to empty (on battery)
+                Text {
+                    text: root.batCharging
+                        ? "Full in " + root.formatTime(UPower.displayDevice.timeToFull)
+                        : root.formatTime(UPower.displayDevice.timeToEmpty) + " remaining"
+                    font.family:    "FiraMono Nerd Font"
+                    font.pixelSize: 13
+                    color:          Colors.textColor
+                }
 
-                    Rectangle {
-                        width: 60; height: 10; radius: 5
-                        anchors.verticalCenter: parent.verticalCenter
-                        color: root.batTrackColor(level)
-                        border.width: 1
-                        border.color: Colors.outline
+                // Per-battery rows
+                Repeater {
+                    model: root.laptopBatteries
+                    Row {
+                        required property var modelData
+                        readonly property int level:  Math.round(modelData.percentage * 100)
+                        readonly property int health: modelData.healthSupported
+                                                    ? Math.round(modelData.healthPercentage * 100)
+                                                    : -1
+                        spacing: 6
+                        width: popupCol.width
+
+                        Text {
+                            text: modelData.nativePath
+                            font.family:    "FiraMono Nerd Font"
+                            font.pixelSize: 13
+                            color:          Colors.textColor
+                            anchors.verticalCenter: parent.verticalCenter
+                        }
 
                         Rectangle {
-                            width:  Math.max(0, (parent.width - 2) * level / 100)
-                            height: parent.height - 2
-                            x: parent.width - 1 - width
-                            y: 1
-                            radius: 4
-                            color: root.batFillColor(level)
-                        }
-                    }
+                            width: 60; height: 10; radius: 5
+                            anchors.verticalCenter: parent.verticalCenter
+                            color: root.batTrackColor(level)
+                            border.width: 1
+                            border.color: Colors.outline
 
-                    Text {
-                        text: health >= 0 ? "HP " + health + "%" : ""
-                        font.family:    "FiraMono Nerd Font"
-                        font.pixelSize: 13
-                        color:          Colors.textColor
-                        anchors.verticalCenter: parent.verticalCenter
+                            Rectangle {
+                                width:  Math.max(0, (parent.width - 2) * level / 100)
+                                height: parent.height - 2
+                                x: parent.width - 1 - width
+                                y: 1
+                                radius: 4
+                                color: root.batFillColor(level)
+                            }
+                        }
+
+                        Text {
+                            text: health >= 0 ? "HP " + health + "%" : ""
+                            font.family:    "FiraMono Nerd Font"
+                            font.pixelSize: 13
+                            color:          Colors.textColor
+                            anchors.verticalCenter: parent.verticalCenter
+                        }
                     }
                 }
             }
