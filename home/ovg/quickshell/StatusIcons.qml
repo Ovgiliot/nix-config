@@ -201,8 +201,9 @@ Item {
             visible: batHover.containsMouse
 
             // Map root's top-left corner to the parent window's coordinate space.
+            // Left edges align (same x); width matches root, so right edges align too.
             readonly property point rootPos: root.mapToItem(null, 0, 0)
-            relativeX: rootPos.x + root.width - width
+            relativeX: rootPos.x
             relativeY: rootPos.y + root.height + 6
 
             width:  root.width
@@ -245,28 +246,44 @@ Item {
                     color:          Colors.textColor
                 }
 
-                // Per-battery rows
+                // Per-battery rows — bar stretches to fill between label and health text.
                 Repeater {
                     model: root.laptopBatteries
-                    Row {
+                    Item {
                         required property var modelData
                         readonly property int level:  Math.round(modelData.percentage * 100)
                         readonly property int health: modelData.healthSupported
-                                                    ? Math.round(modelData.healthPercentage * 100)
+                                                    ? Math.round(modelData.healthPercentage)
                                                     : -1
-                        spacing: 6
                         width: popupCol.width
+                        height: batLabel.height
 
                         Text {
+                            id: batLabel
                             text: modelData.nativePath
                             font.family:    "FiraMono Nerd Font"
                             font.pixelSize: 13
                             color:          Colors.textColor
+                            anchors.left: parent.left
+                            anchors.verticalCenter: parent.verticalCenter
+                        }
+
+                        Text {
+                            id: batHealth
+                            text: health >= 0 ? "HP " + health + "%" : ""
+                            font.family:    "FiraMono Nerd Font"
+                            font.pixelSize: 13
+                            color:          Colors.textColor
+                            anchors.right: parent.right
                             anchors.verticalCenter: parent.verticalCenter
                         }
 
                         Rectangle {
-                            width: 60; height: 10; radius: 5
+                            anchors.left: batLabel.right
+                            anchors.leftMargin: 6
+                            anchors.right: batHealth.left
+                            anchors.rightMargin: health >= 0 ? 6 : 0
+                            height: 10; radius: 5
                             anchors.verticalCenter: parent.verticalCenter
                             color: root.batTrackColor(level)
                             border.width: 1
@@ -280,14 +297,6 @@ Item {
                                 radius: 4
                                 color: root.batFillColor(level)
                             }
-                        }
-
-                        Text {
-                            text: health >= 0 ? "HP " + health + "%" : ""
-                            font.family:    "FiraMono Nerd Font"
-                            font.pixelSize: 13
-                            color:          Colors.textColor
-                            anchors.verticalCenter: parent.verticalCenter
                         }
                     }
                 }
