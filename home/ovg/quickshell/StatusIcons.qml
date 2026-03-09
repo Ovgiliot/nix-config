@@ -197,15 +197,15 @@ Item {
         active: root.parentWindow !== null && root.hasBattery
         sourceComponent: PopupWindow {
             id: batPopup
-            parentWindow: root.parentWindow
             visible: batHover.containsMouse
 
-            // Position below the pill with 6px gap, left-aligned to pill.
-            // mapToItem(null,...) gives root's position in the parent window;
-            // the -6 corrects for an observed PopupWindow positioning offset.
-            readonly property point rootPos: root.mapToItem(null, 0, 0)
-            relativeX: rootPos.x - 6
-            relativeY: rootPos.y + root.height + 6
+            // Anchor to the bottom edge of the pill, left-aligned.
+            // gravity: expand downward and rightward from the anchor point.
+            // margins.top: 6px gap between pill and popup.
+            anchor.item: root
+            anchor.edges: Edges.Bottom | Edges.Left
+            anchor.gravity: Edges.Bottom | Edges.Right
+            anchor.margins.top: 6
 
             width:  root.width
             height: popupCol.implicitHeight + 16
