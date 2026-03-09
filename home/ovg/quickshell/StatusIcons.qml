@@ -2,7 +2,7 @@
 // WiFi:    driven by WifiMonitor singleton in shell.qml (event-driven).
 // Power:   driven by StatusPoller singleton in shell.qml (5 s poll).
 // BT:      Quickshell.Bluetooth service singleton (event-driven).
-// Battery: Quickshell.Services.UPower singleton (event-driven).
+// Battery: combined bar via UPower.displayDevice + UPower.onBattery (event-driven).
 // Shadow: offset y=5, blur 0.7, #00000077 — matches Niri window shadow config.
 
 import Quickshell
@@ -28,21 +28,23 @@ Item {
         return "on"
     }
 
-    // Laptop batteries from UPower (filter by isLaptopBattery).
-    // Touch dev.percentage and dev.state inside the loop so QML tracks
-    // those property changes as reactive dependencies — otherwise the
-    // binding only re-evaluates when devices are added/removed.
-    readonly property var laptopBatteries: {
+    // Whether any laptop battery exists — drives visibility of the bar.
+    // Touch isLaptopBattery on each device so QML tracks add/remove reactively.
+    readonly property bool hasBattery: {
         const all = UPower.devices.values
-        const result = []
         for (var i = 0; i < all.length; i++) {
-            const dev = all[i]
-            void dev.percentage
-            void dev.state
-            if (dev.isLaptopBattery) result.push(dev)
+            void all[i].isLaptopBattery
+            if (all[i].isLaptopBattery) return true
         }
-        return result
+        return false
     }
+
+    // Combined level from UPower's virtual aggregate device (0–100).
+    readonly property int batLevel: Math.round(UPower.displayDevice.percentage * 100)
+
+    // Charger plugged in — UPower.onBattery is false when on AC power.
+    // This correctly ignores internal battery-to-battery balancing.
+    readonly property bool batCharging: !UPower.onBattery
 
     function wifiIcon(state) {
         if (state === "ethernet") return "\uDB80\uDE00"   // U+F0200
@@ -63,13 +65,16 @@ Item {
         return "\uDB81\uDDD1"                                // U+F05D1  nf-md-scale_balance
     }
 
-    function batIcon(level, charging) {
-        if (charging)   return "\uDB80\uDC84"   // U+F0084  nf-md-battery_charging
-        if (level > 80) return "\uDB80\uDC79"   // U+F0079  nf-md-battery
-        if (level > 60) return "\uDB80\uDC80"   // U+F0080  nf-md-battery_70
-        if (level > 40) return "\uDB80\uDC7E"   // U+F007E  nf-md-battery_50
-        if (level > 20) return "\uDB80\uDC7B"   // U+F007B  nf-md-battery_20
-        return "\uDB80\uDC8E"                   // U+F008E  nf-md-battery_outline
+    // Battery: lower = worse, so thresholds are inverted from CPU/MEM.
+    function batFillColor(pct) {
+        if (pct < 20) return Colors.errorFill
+        if (pct < 40) return Colors.accent
+        return Colors.barFill
+    }
+    function batTrackColor(pct) {
+        if (pct < 20) return Colors.errorTrack
+        if (pct < 40) return Colors.primaryTrack
+        return Colors.barTrack
     }
 
     // ── Pill background (hidden — MultiEffect renders it with shadow) ─────────
@@ -132,24 +137,44 @@ Item {
             color:          Colors.textColor
         }
 
-        // Batteries — one entry per laptop battery; empty on desktop hosts
-        Repeater {
-            model: root.laptopBatteries
+        // Battery bar — combined capacity; hidden on desktop (0 batteries).
+        // Fill anchored right: full charge = full bar, depleted = shrinks from left.
+        Item {
+            visible: root.hasBattery
+            width: visible ? batLabel.implicitWidth + 6 + 80 : 0
+            height: 16
+            anchors.verticalCenter: parent.verticalCenter
+
             Text {
-                required property var modelData
-
-                // FullyCharged treated as charging so icon/color stay correct
-                readonly property bool charging: modelData.state === UPowerDeviceState.Charging
-                                              || modelData.state === UPowerDeviceState.PendingCharge
-                                              || modelData.state === UPowerDeviceState.FullyCharged
-                // percentage is 0.0–1.0; multiply by 100 for display
-                readonly property int  level:    Math.round(modelData.percentage * 100)
-
-                anchors.verticalCenter: parent.verticalCenter
-                text:           root.batIcon(level, charging) + level + "%"
+                id: batLabel
+                height: 16
+                verticalAlignment: Text.AlignVCenter
+                text: "BAT"
                 font.family:    "FiraMono Nerd Font"
-                font.pixelSize: 16
-                color:          Colors.textColor
+                font.pixelSize: 14
+                color: Colors.textColor
+            }
+
+            Rectangle {
+                x: batLabel.implicitWidth + 6
+                width: 80; height: 12; radius: 6
+                anchors.verticalCenter: parent.verticalCenter
+                color: root.batTrackColor(root.batLevel)
+                border.width: 1
+                border.color: root.batCharging ? Colors.accent : Colors.outline
+                Behavior on color { ColorAnimation { duration: 300 } }
+                Behavior on border.color { ColorAnimation { duration: 300 } }
+
+                Rectangle {
+                    width:  Math.max(0, (parent.width - 2) * root.batLevel / 100)
+                    height: parent.height - 2
+                    x: parent.width - 1 - width
+                    y: 1
+                    radius: 5
+                    color: root.batFillColor(root.batLevel)
+                    Behavior on width { NumberAnimation { duration: 300; easing.type: Easing.OutCubic } }
+                    Behavior on color { ColorAnimation { duration: 300 } }
+                }
             }
         }
     }
