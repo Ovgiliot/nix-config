@@ -1,16 +1,17 @@
-// Wallpaper picker overlay.
+// Wallpaper picker carousel overlay.
 //
 // Visibility is driven by ~/.cache/qs-wallpaper-open (JSON: {"show": true/false}).
 // External toggle: toggle-wallpaper-picker (niri keybind Mod+Shift+W).
 // Internal close: Escape key writes {"show":false} via hide-wallpaper-picker.
 //
-// Navigation: j/k or Down/Up — move selection, preview updates live.
-//             Enter — apply selected wallpaper via set-wallpaper.
+// Navigation: j/k — spin carousel left/right, center item is the selection.
+//             Enter — apply the center wallpaper via set-wallpaper.
 //             Escape — close.
 //
-// Layout: 60% screen width, 25% screen height, top-centred below the bar.
-//   Left 1/3 — scrollable filename list.
-//   Right 2/3 — image preview.
+// Layout: 60% screen width, top-centred below the bar.
+//   Horizontal carousel showing 5 wallpaper thumbnails with filenames beneath.
+//   The center item is visually highlighted as the current selection.
+//   7 images are loaded at all times (5 visible + 1 off-screen on each side).
 
 import Quickshell
 import Quickshell.Wayland
@@ -21,9 +22,13 @@ import QtQuick
 PanelWindow {
     id: root
 
+    // ── Layout constants ─────────────────────────────────────────────────────
+    readonly property int visibleCount: 5
+    readonly property real cellWidth: content.width / visibleCount
+    readonly property int filenameHeight: 22
+    readonly property int cellSpacing: 8
+
     // ── Layer-shell geometry ─────────────────────────────────────────────────
-    // left+right anchors with 20% margins each side → 60% effective width.
-    // margins.top: 24px bar exclusiveZone + 4px gap.
     anchors {
         top:   true
         left:  true
@@ -32,22 +37,17 @@ PanelWindow {
     margins.top:   28
     margins.left:  screen.width  * 0.2
     margins.right: screen.width  * 0.2
-    implicitHeight: screen.height * 0.25
+    implicitHeight: screen.height * 0.28
 
     color: "transparent"
 
     WlrLayershell.layer:         WlrLayer.Overlay
     WlrLayershell.exclusiveZone: -1
     WlrLayershell.namespace:     "wallpaper-picker"
-    // Steal keyboard input only while visible — prevents grabbing all input when
-    // the picker is hidden (including on startup before the flag file is read).
     WlrLayershell.keyboardFocus: visible ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
 
-    visible: false   // driven by flag file below
+    visible: false
 
-    // On every startup, unconditionally reset the flag file to {"show":false}.
-    // This clears any stale {"show":true} left by a crashed previous session,
-    // which would otherwise cause the picker to grab all keyboard input on boot.
     Component.onCompleted: {
         if (!hideProc.running) hideProc.running = true
     }
@@ -66,13 +66,11 @@ PanelWindow {
         }
     }
 
-    // Bind visibility to flag file; refresh list every time the picker opens.
     Binding { target: root; property: "visible"; value: flagData.show }
 
     onVisibleChanged: {
         if (visible) {
             root.refresh()
-            // Give the inner Item keyboard focus as soon as the window appears.
             Qt.callLater(() => content.forceActiveFocus())
         }
     }
@@ -80,7 +78,7 @@ PanelWindow {
     // ── State ────────────────────────────────────────────────────────────────
     property var    wallpapers:       []
     property int    selectedIndex:    0
-    property string currentWallpaper: ""   // path from qs-current-wallpaper
+    property string currentWallpaper: ""
     property string wallpaperToApply: ""
 
     // ── Read active wallpaper path via FileView ───────────────────────────────
@@ -89,7 +87,6 @@ PanelWindow {
         path: StandardPaths.writableLocation(StandardPaths.GenericCacheLocation)
               + "/qs-current-wallpaper"
         onTextChanged: {
-            // FileView.text is a function in Quickshell 0.2.x — call it via id.
             root.currentWallpaper = (currentWallpaperFile.text() || "").trim()
         }
     }
@@ -108,9 +105,8 @@ PanelWindow {
                 const idx = root.wallpapers.findIndex(
                     w => w.path === root.currentWallpaper)
                 root.selectedIndex = idx >= 0 ? idx : 0
-                // positionViewAtIndex needs one event-loop tick after model update.
-                Qt.callLater(() =>
-                    listView.positionViewAtIndex(root.selectedIndex, ListView.Center))
+                Qt.callLater(() => carousel.positionViewAtIndex(
+                    root.selectedIndex, ListView.Center))
             }
         }
     }
@@ -136,8 +132,6 @@ PanelWindow {
     // ── Helpers ───────────────────────────────────────────────────────────────
     function refresh() {
         currentWallpaperFile.reload()
-        // Always start listProc directly — don't gate it on currentWallpaperFile
-        // loading, since that file may not exist (no wallpaper set yet).
         if (!listProc.running) listProc.running = true
     }
 
@@ -152,9 +146,6 @@ PanelWindow {
     }
 
     // ── Background ────────────────────────────────────────────────────────────
-    // Plain Rectangle — no MultiEffect shadow. The picker is a prominent overlay
-    // and doesn't need a shadow. Using MultiEffect on a window that starts as
-    // visible:false caused a zero-geometry source → white-box artifact on Qt 6.
     Rectangle {
         anchors.fill: parent
         color:        Colors.pickerBg
@@ -172,17 +163,15 @@ PanelWindow {
             switch (event.key) {
             case Qt.Key_J:
             case Qt.Key_Down:
-            case KeyMap.cyrillicJ: // Generated from keymap-layouts.nix
+            case KeyMap.cyrillicJ:
                 root.selectedIndex =
                     Math.min(root.selectedIndex + 1, root.wallpapers.length - 1)
-                listView.positionViewAtIndex(root.selectedIndex, ListView.Contain)
                 event.accepted = true
                 break
             case Qt.Key_K:
             case Qt.Key_Up:
-            case KeyMap.cyrillicK: // Generated from keymap-layouts.nix
+            case KeyMap.cyrillicK:
                 root.selectedIndex = Math.max(root.selectedIndex - 1, 0)
-                listView.positionViewAtIndex(root.selectedIndex, ListView.Contain)
                 event.accepted = true
                 break
             case Qt.Key_Return:
@@ -199,77 +188,118 @@ PanelWindow {
             }
         }
 
-        // ── Left pane: file list ──────────────────────────────────────────────
+        // ── Horizontal carousel ──────────────────────────────────────────────
         ListView {
-            id: listView
-            anchors.left:   parent.left
-            anchors.top:    parent.top
-            anchors.bottom: parent.bottom
-            width:          Math.floor(parent.width / 3)
-            clip:           true
-            model:          root.wallpapers
-            currentIndex:   root.selectedIndex
+            id: carousel
+            anchors.fill: parent
+            orientation:  ListView.Horizontal
+            clip:         true
+            model:        root.wallpapers
+            currentIndex: root.selectedIndex
+
+            // Snap so one item is always perfectly centered.
+            snapMode:              ListView.SnapOneItem
+            highlightRangeMode:    ListView.StrictlyEnforceRange
+            preferredHighlightBegin: root.cellWidth * 2
+            preferredHighlightEnd:   root.cellWidth * 3
+
+            // Smooth animated scrolling when j/k is pressed.
+            highlightMoveDuration: 200
+
+            // Preload 1 off-screen item on each side → 7 total delegates alive.
+            cacheBuffer: Math.ceil(root.cellWidth)
+
+            // Disable interactive drag — keyboard-only navigation.
+            interactive: false
 
             delegate: Item {
+                id: del
                 required property var modelData
                 required property int index
 
-                width:  listView.width
-                height: 22
+                width:  root.cellWidth
+                height: carousel.height
 
-                // Selection highlight
-                Rectangle {
+                readonly property bool isCurrent: index === root.selectedIndex
+                readonly property bool isApplied: modelData.path === root.currentWallpaper
+
+                // ── Thumbnail card ───────────────────────────────────────────
+                Column {
                     anchors.fill: parent
-                    radius:       4
-                    color:        index === root.selectedIndex
-                                  ? Colors.selectionBg
-                                  : "transparent"
-                }
+                    anchors.margins: root.cellSpacing / 2
+                    spacing: 4
 
-                Text {
-                    anchors.verticalCenter: parent.verticalCenter
-                    anchors.left:           parent.left
-                    anchors.leftMargin:     6
-                    anchors.right:          parent.right
-                    anchors.rightMargin:    6
-                    text:           (index === root.selectedIndex ? "● " : "  ")
-                                    + modelData.name
-                    font.family:    "FiraMono Nerd Font"
-                    font.pixelSize: 13
-                    color:          index === root.selectedIndex
-                                    ? Colors.selectionText : Colors.onSurface
-                    elide:          Text.ElideRight
+                    // Image container with selection border
+                    Rectangle {
+                        width:  parent.width
+                        height: parent.height - root.filenameHeight - parent.spacing
+                        radius: 6
+                        color:  "transparent"
+                        border.width: del.isCurrent ? 2 : 0
+                        border.color: Colors.selectionBg
+
+                        // Clip the image to the rounded rectangle
+                        Rectangle {
+                            id: imageClip
+                            anchors.fill:    parent
+                            anchors.margins: del.isCurrent ? 2 : 0
+                            radius:          del.isCurrent ? 4 : 6
+                            color:           "transparent"
+                            clip:            true
+
+                            Image {
+                                anchors.fill: parent
+                                source:       "file://" + modelData.path
+                                fillMode:     Image.PreserveAspectCrop
+                                asynchronous: true
+                                smooth:       true
+                                // Dim non-center items
+                                opacity:      del.isCurrent ? 1.0 : 0.5
+                            }
+                        }
+
+                        // Applied-wallpaper indicator (checkmark badge)
+                        Rectangle {
+                            visible: del.isApplied
+                            anchors.top:    parent.top
+                            anchors.right:  parent.right
+                            anchors.topMargin:   4
+                            anchors.rightMargin: 4
+                            width:  18
+                            height: 18
+                            radius: 9
+                            color:  Colors.selectionBg
+
+                            Text {
+                                anchors.centerIn: parent
+                                text:             "✓"
+                                font.pixelSize:   11
+                                font.family:      "FiraMono Nerd Font"
+                                color:            Colors.selectionText
+                            }
+                        }
+                    }
+
+                    // Filename label
+                    Text {
+                        width:              parent.width
+                        height:             root.filenameHeight
+                        text:               modelData.name
+                        font.family:        "FiraMono Nerd Font"
+                        font.pixelSize:     12
+                        font.bold:          del.isCurrent
+                        color:              del.isCurrent
+                                            ? Colors.selectionText : Colors.onSurface
+                        horizontalAlignment: Text.AlignHCenter
+                        verticalAlignment:   Text.AlignVCenter
+                        elide:              Text.ElideRight
+                        opacity:            del.isCurrent ? 1.0 : 0.6
+                    }
                 }
             }
         }
 
-        // ── Divider ───────────────────────────────────────────────────────────
-        Rectangle {
-            id:             divider
-            anchors.top:    parent.top
-            anchors.bottom: parent.bottom
-            anchors.left:   listView.right
-            anchors.leftMargin: 4
-            width:          1
-            color:          Colors.outlineVariant
-        }
-
-        // ── Right pane: preview ───────────────────────────────────────────────
-        Image {
-            anchors.left:        divider.right
-            anchors.leftMargin:  4
-            anchors.right:       parent.right
-            anchors.top:         parent.top
-            anchors.bottom:      parent.bottom
-            source:              root.wallpapers.length > 0
-                                 ? "file://" + root.wallpapers[root.selectedIndex].path
-                                 : ""
-            fillMode:            Image.PreserveAspectFit
-            asynchronous:        true
-            smooth:              true
-        }
-
-        // Loading placeholder — shown until the list is populated.
+        // Loading placeholder
         Text {
             anchors.centerIn: parent
             visible:          root.wallpapers.length === 0
