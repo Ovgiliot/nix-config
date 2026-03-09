@@ -201,11 +201,11 @@ Item {
 
             // Anchor to the bottom edge of the pill, left-aligned.
             // gravity: expand downward and rightward from the anchor point.
-            // margins.top: 6px gap between pill and popup.
+            // rect.y offset by 6 to create a 6px gap below the pill.
             anchor.item: root
             anchor.edges: Edges.Bottom | Edges.Left
             anchor.gravity: Edges.Bottom | Edges.Right
-            anchor.margins.top: 6
+            anchor.rect.y: 6
 
             width:  root.width
             height: popupCol.implicitHeight + 16

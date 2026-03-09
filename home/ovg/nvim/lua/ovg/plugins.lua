@@ -72,10 +72,12 @@ require("orgmode").setup({
 	org_todo_keywords = { "TODO(t)", "NEXT(n)", "STRT(s)", "WAIT(w)", "|", "DONE(d)", "KILL(k)" },
 	org_indent_mode = "indent",
 	org_hide_emphasis_markers = true,
-	org_startup_folded = "inherit",
+	org_startup_folded = "showeverything",
 	mappings = {
 		org = {
 			org_open_at_point = "<CR>",
+			org_next_visible_heading = false,
+			org_previous_visible_heading = false,
 		},
 		capture = {
 			org_capture_finalize = "<C-c><C-c>",
