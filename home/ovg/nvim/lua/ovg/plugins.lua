@@ -70,7 +70,7 @@ require("orgmode").setup({
 	org_agenda_files = "~/Documents/org/**/*",
 	org_default_notes_file = "~/Documents/org/refile.org",
 	org_todo_keywords = { "TODO(t)", "NEXT(n)", "STRT(s)", "WAIT(w)", "|", "DONE(d)", "KILL(k)" },
-	org_indent_mode = "indent",
+	org_indent_mode = "noindent",
 	org_hide_emphasis_markers = true,
 	org_startup_folded = "showeverything",
 	mappings = {
@@ -90,6 +90,10 @@ require("orgmode").setup({
 vim.api.nvim_create_autocmd("FileType", {
 	pattern = "org",
 	callback = function()
+		vim.bo.shiftwidth = 4
+		vim.bo.tabstop = 4
+		vim.bo.softtabstop = 4
+
 		vim.keymap.set("n", "gd", function()
 			require("orgmode").action("org_mappings.open_at_point")
 		end, { buffer = true, desc = "Org: Follow Link" })
