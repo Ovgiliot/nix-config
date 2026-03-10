@@ -366,6 +366,72 @@
             server.succeed("systemctl is-active NetworkManager")
           '';
         };
+
+        # ── Install pipeline test ────────────────────────────────────────────
+        # Runs install.sh --unattended --skip-disko inside a VM.
+        # Exercises: template generation for disko.nix / default.nix,
+        # flake.nix patching, passwordFile stripping, and alejandra formatting.
+        # Disko partitioning is skipped (requires internet in the VM to build
+        # the partitioning script).  Actual partitioning is implicitly tested
+        # by server-build.
+        install-server-test = pkgs.testers.runNixOSTest {
+          name = "install-server";
+          nodes.installer = {pkgs, ...}: {
+            environment.systemPackages = with pkgs; [
+              alejandra
+            ];
+            # Copy the flake source tree into the VM (read-only in nix store).
+            environment.etc."test-flake".source = ./.;
+            virtualisation.memorySize = 2048;
+          };
+          testScript = ''
+            installer.wait_for_unit("multi-user.target")
+
+            # Copy flake to a writable location.
+            # -L dereferences symlinks (environment.etc creates symlink trees
+            # pointing into the read-only nix store).
+            # --no-preserve=all ensures copies get default writable permissions.
+            installer.succeed("cp -rL --no-preserve=all /etc/test-flake /tmp/test-flake")
+
+            # Run install.sh in unattended mode, skipping disko + install.
+            installer.succeed(
+                "cd /tmp/test-flake && "
+                "PROFILE=server "
+                "TARGET_HOST=installtest "
+                "SYSTEM_DISK=/dev/vda "
+                "SEPARATE_HOME=false "
+                "ROOT_SIZE=4G "
+                "LUKS_PASSPHRASE=testpassword "
+                "INITIAL_PASSWORD=testpass123 "
+                "bash install.sh --unattended --skip-disko"
+            )
+
+            # ── Verify generated files exist ───────────────────────────────
+            installer.succeed("test -f /tmp/test-flake/hosts/installtest/disko.nix")
+            installer.succeed("test -f /tmp/test-flake/hosts/installtest/hardware.nix")
+            installer.succeed("test -f /tmp/test-flake/hosts/installtest/default.nix")
+
+            # ── Verify formatting is clean ─────────────────────────────────
+            installer.succeed("alejandra --check /tmp/test-flake/hosts/installtest/")
+
+            # ── Verify flake.nix was patched with new host ─────────────────
+            installer.succeed("grep -q 'installtest = mkNixosHost' /tmp/test-flake/flake.nix")
+
+            # ── Verify passwordFile lines were stripped from disko.nix ─────
+            installer.succeed("! grep -q 'passwordFile' /tmp/test-flake/hosts/installtest/disko.nix")
+
+            # ── Verify disko.nix has a disk device configured ──────────────
+            installer.succeed("grep -q 'device =' /tmp/test-flake/hosts/installtest/disko.nix")
+
+            # ── Verify default.nix imports disko module and disko.nix ──────
+            installer.succeed("grep -q 'disko.nixosModules.disko' /tmp/test-flake/hosts/installtest/default.nix")
+            installer.succeed("grep -q './disko.nix' /tmp/test-flake/hosts/installtest/default.nix")
+
+            # ── Verify default.nix has correct profile and hostname ────────
+            installer.succeed("grep -q 'server.nix' /tmp/test-flake/hosts/installtest/default.nix")
+            installer.succeed("grep -q 'installtest' /tmp/test-flake/hosts/installtest/default.nix")
+          '';
+        };
       };
     };
   };
