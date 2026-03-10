@@ -65,9 +65,11 @@ This opens a simple text menu. Choose **"Activate a connection"**, select your n
 
 ## Step 4 — Run the installer
 
+
 ```bash
 bootstrap
 ```
+
 
 This clones the configuration from GitHub and starts the interactive installer. It will ask you a series of questions:
 

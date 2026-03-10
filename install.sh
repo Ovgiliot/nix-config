@@ -16,6 +16,12 @@ set -euo pipefail
 
 FLAKE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
+# NixOS state version — derived from the running installer's nixpkgs.
+# nixos-version outputs e.g. "25.11.20250308.abc1234"; we extract "25.11".
+STATE_VERSION="$(nixos-version 2>/dev/null | grep -oP '^\d+\.\d+')" ||
+	die "Could not determine NixOS version from nixos-version."
+[[ -n "$STATE_VERSION" ]] || die "Could not parse stateVersion from nixos-version output."
+
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
@@ -164,8 +170,10 @@ info "Profile: $PROFILE"
 # ---------------------------------------------------------------------------
 # 5. Hostname
 # ---------------------------------------------------------------------------
-prompt HOSTNAME "Hostname for this machine"
-info "Hostname: $HOSTNAME"
+prompt TARGET_HOST "Hostname for this machine"
+[[ "$TARGET_HOST" =~ ^[a-zA-Z][a-zA-Z0-9-]*$ ]] ||
+	die "Invalid hostname: must start with a letter and contain only letters, digits, and hyphens."
+info "Hostname: $TARGET_HOST"
 
 # ---------------------------------------------------------------------------
 # 6. Profile-specific inputs: GPU + kanata (desktop profiles)
@@ -313,7 +321,7 @@ fi
 # ---------------------------------------------------------------------------
 # Sanity check: host directory
 # ---------------------------------------------------------------------------
-HOST_DIR="$FLAKE_DIR/hosts/$HOSTNAME"
+HOST_DIR="$FLAKE_DIR/hosts/$TARGET_HOST"
 if [[ -d "$HOST_DIR" ]]; then
 	warn "Host directory $HOST_DIR already exists."
 	printf 'Overwrite? [y/N]: '
@@ -325,7 +333,7 @@ mkdir -p "$HOST_DIR"
 # ---------------------------------------------------------------------------
 # 14. Generate hosts/<hostname>/disko.nix
 # ---------------------------------------------------------------------------
-info "Writing hosts/$HOSTNAME/disko.nix..."
+info "Writing hosts/$TARGET_HOST/disko.nix..."
 
 if [[ "$SEPARATE_HOME" == false ]]; then
 	# ── Single disk layout ───────────────────────────────────────────────────
@@ -614,16 +622,16 @@ NIXEOF
 NIXEOF
 	fi
 fi
-ok "hosts/$HOSTNAME/disko.nix written."
+ok "hosts/$TARGET_HOST/disko.nix written."
 
 # ---------------------------------------------------------------------------
 # 15. Inject host into flake.nix
 # ---------------------------------------------------------------------------
-info "Injecting $HOSTNAME into flake.nix..."
+info "Injecting $TARGET_HOST into flake.nix..."
 MARKER="# <<NIXOS_HOSTS>>"
-ENTRY="      ${HOSTNAME} = mkNixosHost \"${HOSTNAME}\";"
-if grep -q "\"${HOSTNAME}\"" "$FLAKE_DIR/flake.nix"; then
-	warn "$HOSTNAME already in flake.nix — skipping injection."
+ENTRY="      ${TARGET_HOST} = mkNixosHost \"${TARGET_HOST}\";"
+if grep -q "\"${TARGET_HOST}\"" "$FLAKE_DIR/flake.nix"; then
+	warn "$TARGET_HOST already in flake.nix — skipping injection."
 else
 	awk -v entry="${ENTRY}" -v marker="${MARKER}" '
 		index($0, marker) > 0 { print entry }
@@ -636,8 +644,8 @@ fi
 # ---------------------------------------------------------------------------
 # 16. Set system hostname
 # ---------------------------------------------------------------------------
-info "Setting hostname to '$HOSTNAME'..."
-hostnamectl set-hostname "$HOSTNAME" 2>/dev/null ||
+info "Setting hostname to '$TARGET_HOST'..."
+hostnamectl set-hostname "$TARGET_HOST" 2>/dev/null ||
 	warn "Could not set hostname — set manually with hostnamectl after reboot."
 
 # ---------------------------------------------------------------------------
@@ -715,7 +723,7 @@ info "Stripping disko-managed entries from hardware.nix..."
 awk '
   /^  fileSystems\./              { skip=1; next }
   /^  swapDevices/                { skip=1; next }
-  /^  boot\.initrd\.luks\.devices\./ { next }
+  /^  boot\.initrd\.luks\.devices\./ { skip=1; next }
   skip && /^  [}\]]/             { skip=0; next }
   skip                           { next }
   { print }
@@ -727,7 +735,7 @@ ok "hardware.nix cleaned."
 # 23. Generate hosts/<hostname>/default.nix
 # (moved after disko so SWAP_DEVICE is known; no sed patching needed)
 # ---------------------------------------------------------------------------
-info "Writing hosts/$HOSTNAME/default.nix..."
+info "Writing hosts/$TARGET_HOST/default.nix..."
 
 if [[ "$PROFILE" == "laptop" ]]; then
 
@@ -761,7 +769,7 @@ in {
     inputs.disko.nixosModules.disko
     ./disko.nix
     ({pkgs, ...}: {
-      networking.hostName = "${HOSTNAME}";
+      networking.hostName = "${TARGET_HOST}";
 
       programs.fish.enable = true;
 
@@ -772,12 +780,12 @@ in {
         extraGroups = ["networkmanager" "wheel" "input" "uinput" "video"];
       };
 
-      system.stateVersion = "25.11";
+      system.stateVersion = "${STATE_VERSION}";
 
       home-manager.users.ovg = {
         home.username = "ovg";
         home.homeDirectory = "/home/ovg";
-        home.stateVersion = "25.11";
+        home.stateVersion = "${STATE_VERSION}";
       };
     })
   ];
@@ -809,7 +817,7 @@ in {
     inputs.disko.nixosModules.disko
     ./disko.nix
     ({pkgs, ...}: {
-      networking.hostName = "${HOSTNAME}";
+      networking.hostName = "${TARGET_HOST}";
 
       programs.fish.enable = true;
 
@@ -820,12 +828,12 @@ in {
         extraGroups = ["networkmanager" "wheel" "input" "uinput" "video"];
       };
 
-      system.stateVersion = "25.11";
+      system.stateVersion = "${STATE_VERSION}";
 
       home-manager.users.ovg = {
         home.username = "ovg";
         home.homeDirectory = "/home/ovg";
-        home.stateVersion = "25.11";
+        home.stateVersion = "${STATE_VERSION}";
       };
     })
   ];
@@ -852,7 +860,7 @@ in {
     inputs.disko.nixosModules.disko
     ./disko.nix
     ({pkgs, ...}: {
-      networking.hostName = "${HOSTNAME}";
+      networking.hostName = "${TARGET_HOST}";
 
       programs.fish.enable = true;
 
@@ -866,12 +874,12 @@ in {
         initialPassword = "${INITIAL_PASSWORD}";
       };
 
-      system.stateVersion = "25.11";
+      system.stateVersion = "${STATE_VERSION}";
 
       home-manager.users.ovg = {
         home.username = "ovg";
         home.homeDirectory = "/home/ovg";
-        home.stateVersion = "25.11";
+        home.stateVersion = "${STATE_VERSION}";
       };
     })
   ];
@@ -879,13 +887,24 @@ in {
 NIXEOF
 
 fi
-ok "hosts/$HOSTNAME/default.nix written."
+ok "hosts/$TARGET_HOST/default.nix written."
 
 # ---------------------------------------------------------------------------
 # 24. Format hosts/<hostname>/ with alejandra (single pass covers all files)
 # ---------------------------------------------------------------------------
-info "Formatting hosts/$HOSTNAME/ with alejandra..."
+info "Formatting hosts/$TARGET_HOST/ with alejandra..."
 alejandra "$HOST_DIR/" 2>/dev/null || warn "alejandra failed — run 'nix fmt' later."
+
+# ---------------------------------------------------------------------------
+# 24b. Validate flake configuration before proceeding
+# ---------------------------------------------------------------------------
+# Catch Nix evaluation errors (bad imports, missing specialArgs, syntax) now,
+# before TPM enrollment or nixos-install.  Eval-only — no packages are built.
+info "Validating flake configuration for $TARGET_HOST..."
+nix eval ".#nixosConfigurations.${TARGET_HOST}.config.system.build.toplevel" \
+	--no-build --accept-flake-config 2>&1 ||
+	die "Flake evaluation failed for $TARGET_HOST. Check the generated files in hosts/$TARGET_HOST/."
+ok "Flake configuration is valid."
 
 # ---------------------------------------------------------------------------
 # 25. Optional TPM2 enrollment for password-free LUKS unlock at boot
@@ -939,12 +958,13 @@ unset LUKS_PASSPHRASE
 # ---------------------------------------------------------------------------
 # 27. nixos-install
 # ---------------------------------------------------------------------------
-info "Running nixos-install for .#$HOSTNAME ..."
+info "Running nixos-install for .#$TARGET_HOST ..."
 cd "$FLAKE_DIR"
 sudo nixos-install \
-	--flake ".#${HOSTNAME}" \
+	--flake ".#${TARGET_HOST}" \
 	--root /mnt \
 	--no-root-passwd \
+	--no-channel-copy \
 	--accept-flake-config ||
 	die "nixos-install failed."
 ok "NixOS installed."

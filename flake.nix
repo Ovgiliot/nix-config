@@ -202,7 +202,8 @@
           echo "==> This will ERASE $DEVICE. Continue? [y/N]"
           read -r yn
           [[ "$yn" =~ ^[Yy]$ ]] || exit 1
-          ISO=$(echo ${x86_iso}/iso/*.iso)
+          ISO=$(ls ${x86_iso}/iso/*.iso | head -1)
+          [[ -f "$ISO" ]] || { echo "err: no ISO found in ${x86_iso}/iso/"; exit 1; }
           echo "==> Writing $(basename "$ISO") to $DEVICE..."
           sudo dd if="$ISO" of="$DEVICE" bs=4M status=progress conv=fsync
           echo "==> Done. Boot from $DEVICE on any x86_64 UEFI machine."
