@@ -21,11 +21,13 @@ input {
     // Next sections include libinput settings.
     // Omitting settings disables them, or leaves them at their default values.
     // All commented-out settings here are examples, not defaults.
+    // Touchpad is kernel-inhibited by default (udev sets inhibited=1).
+    // toggle-touchpad (Mod+Ctrl+T) flips the sysfs attribute at runtime.
+    // These settings apply when the touchpad is un-inhibited.
     touchpad {
-        // Disabled entirely — trackpoint is preferred on this ThinkPad.
-        // disabled-on-external-mouse alone is not sufficient as the touchpad
-        // is in the way during normal typing; off keeps it fully inactive.
-        off
+        tap
+        dwt
+        accel-speed 0.2
     }
 
     trackpoint {

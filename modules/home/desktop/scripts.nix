@@ -109,6 +109,32 @@
     runtimeInputs = with pkgs; [pulseaudio wofi gawk];
     text = stripShebang (builtins.readFile (dotfilesDir + "/wofi/scripts/audio-switcher.sh"));
   };
+
+  # ---------------------------------------------------------------------------
+  # Hardware Toggles
+  # ---------------------------------------------------------------------------
+
+  toggleTouchpad = pkgs.writeShellApplication {
+    name = "toggle-touchpad";
+    runtimeInputs = with pkgs; [libnotify gnugrep];
+    text = ''
+      for name_file in /sys/class/input/input*/name; do
+        if grep -q "Synaptics" "$name_file"; then
+          inhibited="$(dirname "$name_file")/inhibited"
+          current=$(cat "$inhibited")
+          if [ "$current" = "0" ]; then
+            echo 1 > "$inhibited"
+            notify-send -t 2000 "Touchpad" "Disabled"
+          else
+            echo 0 > "$inhibited"
+            notify-send -t 2000 "Touchpad" "Enabled"
+          fi
+          exit 0
+        fi
+      done
+      notify-send -t 2000 "Touchpad" "Device not found"
+    '';
+  };
 in {
   home.packages = [
     nixosRebuild
@@ -120,5 +146,6 @@ in {
     btMenu
     powerMenu
     audioMenu
+    toggleTouchpad
   ];
 }
