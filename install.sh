@@ -38,6 +38,13 @@ die() {
 	exit 1
 }
 
+# Clean up sensitive temp files and environment on exit (normal or abnormal).
+cleanup() {
+	rm -f /tmp/luks-install.key
+	unset LUKS_PASSPHRASE INITIAL_PASSWORD HASHED_PASSWORD 2>/dev/null || true
+}
+trap cleanup EXIT
+
 prompt() {
 	local var="$1" msg="$2" default="${3:-}"
 	if [[ "$UNATTENDED" == true ]]; then
@@ -163,12 +170,6 @@ enroll_tpm2() {
 		warn "  TPM2 enrollment failed for $dev — enroll manually later with:"$'\n'"    sudo systemd-cryptenroll --tpm2-device=auto --tpm2-pcrs=\"\" $dev"
 }
 
-# NixOS state version — derived from the running installer's nixpkgs.
-# nixos-version outputs e.g. "25.11.20250308.abc1234"; we extract "25.11".
-STATE_VERSION="$(nixos-version 2>/dev/null | cut -d. -f1,2)" ||
-	die "Could not determine NixOS version from nixos-version."
-[[ -n "$STATE_VERSION" ]] || die "Could not parse stateVersion from nixos-version output."
-
 # ---------------------------------------------------------------------------
 # Argument parsing
 # ---------------------------------------------------------------------------
@@ -183,6 +184,18 @@ for arg in "$@"; do
 	*) die "Unknown argument: $arg" ;;
 	esac
 done
+
+# ---------------------------------------------------------------------------
+# NixOS state version
+# ---------------------------------------------------------------------------
+# Derived from the running installer's nixpkgs (e.g. "25.11.20250308.abc1234"
+# → "25.11").  Override via STATE_VERSION env var for testing on non-NixOS.
+STATE_VERSION="${STATE_VERSION:-}"
+if [[ -z "$STATE_VERSION" ]]; then
+	STATE_VERSION="$(nixos-version 2>/dev/null | cut -d. -f1,2)" ||
+		die "Could not determine NixOS version from nixos-version."
+	[[ -n "$STATE_VERSION" ]] || die "Could not parse stateVersion from nixos-version output."
+fi
 
 # ---------------------------------------------------------------------------
 # 1. Live ISO guard
@@ -224,13 +237,18 @@ ok "All required tools present."
 # ---------------------------------------------------------------------------
 choose PROFILE "Select a profile:" "laptop" "workstation" "server"
 info "Profile: $PROFILE"
+# Server profile needs mkpasswd to hash the initial password.
+if [[ "$PROFILE" == "server" ]]; then
+	command -v mkpasswd &>/dev/null ||
+		die "mkpasswd not found. Use the custom installer ISO (nix build .#installMedia-x86_64) or install the 'whois' package."
+fi
 
 # ---------------------------------------------------------------------------
 # 5. Hostname
 # ---------------------------------------------------------------------------
 prompt TARGET_HOST "Hostname for this machine"
-[[ "$TARGET_HOST" =~ ^[a-zA-Z][a-zA-Z0-9-]*$ ]] ||
-	die "Invalid hostname: must start with a letter and contain only letters, digits, and hyphens."
+[[ "$TARGET_HOST" =~ ^[a-zA-Z]([a-zA-Z0-9-]*[a-zA-Z0-9])?$ ]] ||
+	die "Invalid hostname: must start with a letter, end with a letter or digit, and contain only letters, digits, and hyphens."
 info "Hostname: $TARGET_HOST"
 
 # ---------------------------------------------------------------------------
@@ -242,8 +260,13 @@ if [[ "$PROFILE" == "laptop" || "$PROFILE" == "workstation" ]]; then
 	choose VIDEO_ACCEL "GPU vendor (for hardware video acceleration):" "intel" "amd" "none"
 	info "Video acceleration: $VIDEO_ACCEL"
 
-	DEFAULT_KBD="/dev/input/by-path/platform-i8042-serio-0-event-kbd"
-	prompt KANATA_DEVICE "Keyboard device path for Kanata" "$DEFAULT_KBD"
+	if [[ "$PROFILE" == "laptop" ]]; then
+		DEFAULT_KBD="/dev/input/by-path/platform-i8042-serio-0-event-kbd"
+		prompt KANATA_DEVICE "Keyboard device path for Kanata" "$DEFAULT_KBD"
+	else
+		# Workstations typically use USB keyboards — no safe default exists.
+		prompt KANATA_DEVICE "Keyboard device path for Kanata (e.g. /dev/input/by-path/…-usb-…-event-kbd)"
+	fi
 	info "Kanata device: $KANATA_DEVICE"
 fi
 
@@ -251,13 +274,13 @@ fi
 # 7. Server: initial password (no autologin on server — must set one)
 # ---------------------------------------------------------------------------
 INITIAL_PASSWORD="${INITIAL_PASSWORD:-}"
+HASHED_PASSWORD=""
 if [[ "$PROFILE" == "server" ]]; then
 	if [[ "$UNATTENDED" == true ]]; then
 		[[ -n "$INITIAL_PASSWORD" ]] || die "--unattended: INITIAL_PASSWORD not set for server profile."
 	else
 		warn "Server profile has no autologin. An initial password is required for first boot."
 		warn "Change it immediately after login with: passwd ovg"
-		warn "The password must not contain: \" \\ or \${ characters."
 		while true; do
 			prompt_secret INITIAL_PASSWORD "Initial password for ovg"
 			INITIAL_PASSWORD_CONFIRM=""
@@ -269,9 +292,11 @@ if [[ "$PROFILE" == "server" ]]; then
 			warn "Passwords do not match. Try again."
 		done
 	fi
-	if [[ "$INITIAL_PASSWORD" == *'"'* || "$INITIAL_PASSWORD" == *'\'* || "$INITIAL_PASSWORD" == *'${'* ]]; then
-		die "Initial password contains characters that cannot be embedded in a Nix string."
-	fi
+	# Hash the password so plaintext never appears in generated Nix files.
+	HASHED_PASSWORD=$(printf '%s' "$INITIAL_PASSWORD" | mkpasswd -m sha-512 --stdin) ||
+		die "mkpasswd failed to hash the initial password."
+	[[ -n "$HASHED_PASSWORD" ]] || die "mkpasswd produced empty output."
+	unset INITIAL_PASSWORD
 fi
 
 # ---------------------------------------------------------------------------
@@ -315,6 +340,13 @@ if [[ "$UNATTENDED" != true ]] && [[ ${#ALL_DISKS[@]} -gt 1 ]]; then
 		[[ -b "$HOME_DISK" ]] || die "Not a block device: $HOME_DISK"
 		info "Home disk: $HOME_DISK"
 	fi
+fi
+# Validate HOME_DISK regardless of mode (interactive mode validates above,
+# but unattended mode skips the interactive block entirely).
+if [[ "$SEPARATE_HOME" == true ]]; then
+	[[ -n "$HOME_DISK" ]] || die "SEPARATE_HOME=true but HOME_DISK is not set."
+	[[ "$HOME_DISK" != "$SYSTEM_DISK" ]] || die "Home disk must differ from system disk."
+	[[ -b "$HOME_DISK" ]] || die "Not a block device: $HOME_DISK"
 fi
 info "Separate home disk: $SEPARATE_HOME"
 
@@ -971,9 +1003,9 @@ in {
         shell = pkgs.fish;
         description = "ovg";
         extraGroups = ["networkmanager" "wheel"];
-        # Temporary initial password — change immediately after first boot
+        # Hashed initial password — change immediately after first boot
         # with: passwd ovg
-        initialPassword = "${INITIAL_PASSWORD}";
+        initialHashedPassword = "${HASHED_PASSWORD}";
       };
 
       system.stateVersion = "${STATE_VERSION}";
@@ -1060,18 +1092,21 @@ else
 fi
 
 # ---------------------------------------------------------------------------
-# 26. Clear passphrase from environment
+# 26. Clear secrets from environment
 # ---------------------------------------------------------------------------
-unset LUKS_PASSPHRASE
+unset LUKS_PASSPHRASE INITIAL_PASSWORD HASHED_PASSWORD
 
 # ---------------------------------------------------------------------------
 # 27. nixos-install
 # ---------------------------------------------------------------------------
 if [[ "$SKIP_INSTALL" != true ]]; then
+	info "Checking network connectivity..."
+	curl -sf --max-time 10 https://cache.nixos.org/nix-cache-info >/dev/null 2>&1 ||
+		warn "Cannot reach cache.nixos.org — nixos-install may fail or be very slow."
+
 	info "Running nixos-install for .#$TARGET_HOST ..."
-	cd "$FLAKE_DIR"
 	sudo nixos-install \
-		--flake ".#${TARGET_HOST}" \
+		--flake "${FLAKE_DIR}#${TARGET_HOST}" \
 		--root /mnt \
 		--no-root-passwd \
 		--no-channel-copy \

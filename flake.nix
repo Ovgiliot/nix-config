@@ -91,6 +91,7 @@
               # ── installer essentials ──────────────────────────────────────
               alejandra
               inputs.disko.packages.${system}.default
+              whois # provides mkpasswd (used by install.sh for password hashing)
 
               # ── WiFi ─────────────────────────────────────────────────────
               # wpa_supplicant is NM's WiFi backend (default). NM's module
@@ -379,6 +380,7 @@
           nodes.installer = {pkgs, ...}: {
             environment.systemPackages = with pkgs; [
               alejandra
+              whois # provides mkpasswd (used by install.sh for password hashing)
             ];
             # Copy the flake source tree into the VM (read-only in nix store).
             environment.etc."test-flake".source = ./.;
@@ -430,6 +432,10 @@
             # ── Verify default.nix has correct profile and hostname ────────
             installer.succeed("grep -q 'server.nix' /tmp/test-flake/hosts/installtest/default.nix")
             installer.succeed("grep -q 'installtest' /tmp/test-flake/hosts/installtest/default.nix")
+
+            # ── Verify password is hashed (no plaintext initialPassword) ───
+            installer.succeed("grep -q 'initialHashedPassword' /tmp/test-flake/hosts/installtest/default.nix")
+            installer.succeed("! grep -q 'initialPassword' /tmp/test-flake/hosts/installtest/default.nix")
           '';
         };
       };
