@@ -9,10 +9,10 @@ in {
     inherit inputs dotfilesDir;
     # LUKS UUID for the swap/hibernate partition.
     # Used in modules/system/laptop/boot.nix to add the initrd LUKS entry.
-    swapLuksUuid = "9de9918d-99aa-4f0d-8a35-22af09cf8049";
+    swapLuksUuid = "0de2bb84-adb6-4580-83df-dfd1459ad438";
     # Full device path used by power.nix for boot.resumeDevice and resume= param.
     # Encrypted swap: /dev/mapper/luks-<swapLuksUuid>
-    swapDevice = "/dev/mapper/luks-9de9918d-99aa-4f0d-8a35-22af09cf8049";
+    swapDevice = "/dev/mapper/luks-0de2bb84-adb6-4580-83df-dfd1459ad438";
     # Kanata config resolved from the flake root; avoids fragile relative paths inside modules.
     kanataConfig = dotfilesDir + "/kanata.kbd";
     # PS/2 keyboard device path for Kanata on this ThinkPad.
@@ -27,7 +27,7 @@ in {
     ../../profiles/laptop.nix
     ./hardware.nix
     ({pkgs, ...}: {
-      networking.hostName = "nixos";
+      networking.hostName = "nixpad";
 
       # Fish must be enabled at the system level to be a valid login shell.
       programs.fish.enable = true;

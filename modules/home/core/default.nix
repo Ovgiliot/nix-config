@@ -10,8 +10,8 @@
   # Darwin profile overrides home.homeDirectory.
   # stateVersion is also set in hosts/nixos/default.nix; kept here so profile
   # eval tests (which use a minimal testHostModule) have a valid value.
-  home.username = "ovg";
-  home.homeDirectory = "/home/ovg";
+  home.username = "ethel";
+  home.homeDirectory = "/home/ethel";
   home.stateVersion = "25.11";
 
   programs.home-manager.enable = true;

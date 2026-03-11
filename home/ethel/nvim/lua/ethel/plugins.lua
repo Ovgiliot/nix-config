@@ -1,5 +1,5 @@
 -- Plugin configuration.
--- All plugins are declared in home/ovg/default.nix (programs.neovim.plugins).
+-- All plugins are declared in home/ethel/default.nix (programs.neovim.plugins).
 -- This file only configures them — no plugin manager, no lazy specs.
 
 -- ---------------------------------------------------------------------------
@@ -7,12 +7,12 @@
 -- ---------------------------------------------------------------------------
 -- Static highlight overrides using ANSI cterm indices.
 -- Actual colors are provided by the terminal (matugen → ghostty palette).
-require("ovg.highlights")
+require("ethel.highlights")
 
 -- ---------------------------------------------------------------------------
 -- Status Line
 -- ---------------------------------------------------------------------------
-require("lualine").setup({ options = { theme = require("ovg.lualine_theme") } })
+require("lualine").setup({ options = { theme = require("ethel.lualine_theme") } })
 
 -- ---------------------------------------------------------------------------
 -- Keybindings Help
@@ -288,7 +288,7 @@ require("headlines").setup({
 -- Re-apply highlights after any :colorscheme command resets them.
 vim.api.nvim_create_autocmd("ColorScheme", {
 	callback = function()
-		require("ovg.highlights")
+		require("ethel.highlights")
 	end,
 })
 

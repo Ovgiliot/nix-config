@@ -99,7 +99,7 @@
 
   # ghostty-push-colors: invoked as a matugen post_hook (config.toml) so it
   # runs in matugen's process context, not as a QS subprocess. Installed into
-  # home.packages → /etc/profiles/per-user/ovg/bin/ so matugen can find it by
+  # home.packages → /etc/profiles/per-user/ethel/bin/ so matugen can find it by
   # name regardless of which process calls matugen.
   ghosttyPushColors = pkgs.writeShellApplication {
     name = "ghostty-push-colors";
@@ -199,7 +199,7 @@
         // Absolute store path avoids relying on PATH in the systemd user service
         // environment — used by Workspaces to dispatch focus-workspace actions.
         readonly property string niri:                  "${pkgs.niri}/bin/niri"
-        readonly property string qsColors:              "file:///home/ovg/.cache/matugen/qs-colors.json"
+        readonly property string qsColors:              "file:///home/ethel/.cache/matugen/qs-colors.json"
         readonly property string setWallpaper:          "${setWallpaper}/bin/set-wallpaper"
         readonly property string listWallpapers:        "${listWallpapers}/bin/list-wallpapers"
         readonly property string hideWallpaperPicker:   "${hideWallpaperPicker}/bin/hide-wallpaper-picker"

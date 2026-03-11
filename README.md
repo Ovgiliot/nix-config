@@ -45,7 +45,7 @@ A modular, multi-profile NixOS and macOS configuration using **Nix Flakes** and 
 │   │   └── optional/
 │   │       └── gaming.nix      # Steam, Gamescope, Gamemode, zram tuning
 │   │
-│   └── home/               # Home Manager modules — imported by profiles via home-manager.users.ovg.imports
+│   └── home/               # Home Manager modules — imported by profiles via home-manager.users.ethel.imports
 │       ├── core/
 │       │   ├── default.nix       # Aggregates sub-modules; git/gh identity, ranger + opencode XDG links
 │       │   ├── shell.nix         # Fish + Bash aliases
@@ -72,10 +72,10 @@ A modular, multi-profile NixOS and macOS configuration using **Nix Flakes** and 
 │       └── darwin/
 │           └── default.nix       # macOS home dir override, Ghostty + kanata XDG links, macOS packages
 │
-└── home/ovg/               # Raw dotfiles — linked into XDG config via modules/home/
+└── home/ethel/               # Raw dotfiles — linked into XDG config via modules/home/
     ├── niri/               # config.kdl, binds.kdl, input.kdl, layout.kdl, rules.kdl
     ├── ghostty/            # config + shaders/cursor_warp.glsl
-    ├── nvim/               # init.lua, lua/ovg/{remap,plugins,highlights,lualine_theme}.lua
+    ├── nvim/               # init.lua, lua/ethel/{remap,plugins,highlights,lualine_theme}.lua
     ├── quickshell/         # 13 QML files + scripts/{wifi-monitor,system-stats}.sh
     ├── matugen/            # config.toml + 11 templates (ghostty, mako, wofi, niri, qs, gtk, nvim, etc.)
     ├── wofi/               # config + scripts/{wifi-menu,bluetooth-menu,power-menu,audio-switcher}.sh
@@ -136,7 +136,7 @@ Then without further prompts it will:
 - Run `nixos-generate-config --root /mnt` to produce `hosts/<hostname>/hardware.nix`.
 - Inject the new host into `flake.nix`.
 - Run `nixos-install --flake .#<hostname>`.
-- Copy the dotfiles repo into `/mnt/home/ovg/dotfiles/nix`.
+- Copy the dotfiles repo into `/mnt/home/ethel/dotfiles/nix`.
 
 Remove the USB and reboot. The dotfiles are available at `~/dotfiles/nix` after first login.
 
@@ -207,7 +207,7 @@ sudo kanata --cfg ~/.config/kanata/kanata.kbd
 sudo nixos-rebuild switch --flake .#nixos
 
 # With automatic git stage + commit + push
-./home/ovg/scripts/nixos-rebuild-with-git.sh
+./home/ethel/scripts/nixos-rebuild-with-git.sh
 ```
 
 macOS:
@@ -260,8 +260,8 @@ Available checks: `nixos-build`, `server-build`, `workstation-build`, `server-ev
 - **System vs User split is strict.** System daemons and hardware config belong in `modules/system/` or `hosts/`. User apps, dotfiles, and shell config belong in `modules/home/`.
 - **No duplication.** Before adding a package or option, confirm it is not already declared.
 - **Explicit imports only.** No `*` or catch-all imports. Every module is explicitly listed.
-- **XDG linkage.** Dotfiles live in `home/ovg/` and are linked via `xdg.configFile."<name>".source = dotfilesDir + "/<path>";`. Never write config directly into the Nix store unless using the hybrid `runCommand` pattern.
-- **`dotfilesDir` specialArg.** All modules receive the `dotfilesDir` path (`../../home/ovg`) via `extraSpecialArgs`. Use it for any `source` or `builtins.readFile` reference.
+- **XDG linkage.** Dotfiles live in `home/ethel/` and are linked via `xdg.configFile."<name>".source = dotfilesDir + "/<path>";`. Never write config directly into the Nix store unless using the hybrid `runCommand` pattern.
+- **`dotfilesDir` specialArg.** All modules receive the `dotfilesDir` path (`../../home/ethel`) via `extraSpecialArgs`. Use it for any `source` or `builtins.readFile` reference.
 - **Minimalism first.** Every added package must justify its existence.
 
 ---
@@ -271,17 +271,17 @@ Available checks: `nixos-build`, `server-build`, `workstation-build`, `server-ev
 ### Keyboard — Kanata
 
 Home-row mods: `A/S/D/F` act as `Super/Ctrl/Shift/Alt` when held.
-Config: `home/ovg/kanata.kbd` | System service: `modules/system/desktop/input.nix`
+Config: `home/ethel/kanata.kbd` | System service: `modules/system/desktop/input.nix`
 
 ### Window Manager — Niri
 
 Scrollable-tiling Wayland compositor.
-Config: `home/ovg/niri/` | Status bar: `home/ovg/quickshell/` | Launcher: `home/ovg/wofi/`
+Config: `home/ethel/niri/` | Status bar: `home/ethel/quickshell/` | Launcher: `home/ethel/wofi/`
 
 ### Color Theming — Matugen
 
 Wallpaper-based Material Design 3 color generation. A single wallpaper (`~/.config/wallpaper.jpg`) generates colors for 11 applications (Ghostty, mako, wofi, niri, QuickShell, GTK3/4, swaylock, qutebrowser, Neovim).
-Config: `home/ovg/matugen/` | Module: `modules/home/desktop/matugen.nix`
+Config: `home/ethel/matugen/` | Module: `modules/home/desktop/matugen.nix`
 
 ### Gaming
 

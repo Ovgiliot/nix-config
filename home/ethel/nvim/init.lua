@@ -36,7 +36,7 @@ vim.opt.linebreak = true -- Wrap at word boundaries, not mid-word
 
 -- Keyboard layout — generated langmap for layout-agnostic normal mode.
 -- See modules/home/core/keymap.nix for the source of truth.
-require("ovg.langmap")
+require("ethel.langmap")
 
 -- Search
 vim.opt.ignorecase = true -- Ignore case when searching...
@@ -57,5 +57,5 @@ vim.opt.timeoutlen = 400 -- Time to wait for a mapped sequence to complete (in m
 vim.opt.conceallevel = 2 -- Conceal text (useful for Markdown/Org mode)
 vim.opt.autoread = true -- Reload files changed outside of Neovim
 
-require("ovg.remap")
-require("ovg.plugins")
+require("ethel.remap")
+require("ethel.plugins")

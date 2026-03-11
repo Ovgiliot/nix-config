@@ -35,7 +35,7 @@
     useUserPackages = true;
     backupFileExtension = "bak";
     extraSpecialArgs = {inherit inputs dotfilesDir;};
-    users.ovg.imports = [
+    users.ethel.imports = [
       ../modules/home/core
       ../modules/home/desktop
       ../modules/home/laptop

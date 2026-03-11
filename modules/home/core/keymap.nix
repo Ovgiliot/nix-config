@@ -89,13 +89,13 @@
   # Copies raw nvim dotfiles and injects the generated langmap.lua.
 
   nvimConfig = pkgs.runCommand "nvim-config" {} ''
-    mkdir -p $out/lua/ovg
+    mkdir -p $out/lua/ethel
     cp ${dotfilesDir}/nvim/init.lua                $out/init.lua
-    cp ${dotfilesDir}/nvim/lua/ovg/remap.lua       $out/lua/ovg/remap.lua
-    cp ${dotfilesDir}/nvim/lua/ovg/plugins.lua     $out/lua/ovg/plugins.lua
-    cp ${dotfilesDir}/nvim/lua/ovg/highlights.lua  $out/lua/ovg/highlights.lua
-    cp ${dotfilesDir}/nvim/lua/ovg/lualine_theme.lua $out/lua/ovg/lualine_theme.lua
-    cp ${pkgs.writeText "langmap.lua" vimLangmapLua}  $out/lua/ovg/langmap.lua
+    cp ${dotfilesDir}/nvim/lua/ethel/remap.lua       $out/lua/ethel/remap.lua
+    cp ${dotfilesDir}/nvim/lua/ethel/plugins.lua     $out/lua/ethel/plugins.lua
+    cp ${dotfilesDir}/nvim/lua/ethel/highlights.lua  $out/lua/ethel/highlights.lua
+    cp ${dotfilesDir}/nvim/lua/ethel/lualine_theme.lua $out/lua/ethel/lualine_theme.lua
+    cp ${pkgs.writeText "langmap.lua" vimLangmapLua}  $out/lua/ethel/langmap.lua
   '';
 in {
   # Neovim — hybrid: raw dotfiles + generated langmap.lua

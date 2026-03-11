@@ -129,7 +129,7 @@ Remove the USB drive when the machine starts to shut down.
 
 If you did not enable TPM2, you will be asked for your LUKS passphrase. After that you will reach the login screen.
 
-Log in with username `ovg`. No password is set initially — set one immediately after logging in:
+Log in with username `ethel`. No password is set initially — set one immediately after logging in:
 
 ```bash
 passwd

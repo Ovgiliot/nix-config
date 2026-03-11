@@ -20,19 +20,19 @@ This is a multi-profile NixOS (and macOS) flake-based configuration using Home M
   - `desktop/` — `audio.nix`, `display.nix`, `input.nix`
   - `laptop/` — `boot.nix`, `power.nix`, `services.nix`
   - `optional/` — `gaming.nix`
-- `modules/home/` — Home Manager modules, imported by profiles via `home-manager.users.ovg.imports`.
+- `modules/home/` — Home Manager modules, imported by profiles via `home-manager.users.ethel.imports`.
   - `core/` — Shell, Neovim, CLI packages, keyboard layout mapping, git/gh, ranger, opencode.
   - `desktop/` — Theme, Niri, QuickShell (status bar), Ghostty, notifications (mako stub), launcher (wofi), matugen (color theming), apps, web-apps, qutebrowser, scripts.
   - `laptop/` — power-monitor user service, kanata XDG link, swww wallpaper daemon.
   - `darwin/` — macOS home directory override, Ghostty + kanata XDG links, macOS-specific packages.
-- `home/ovg/` — Raw dotfiles only. No `.nix` entry points here. Linked into XDG config by `modules/home/` via the `dotfilesDir` specialArg.
+- `home/ethel/` — Raw dotfiles only. No `.nix` entry points here. Linked into XDG config by `modules/home/` via the `dotfilesDir` specialArg.
 
 ## Host specialArgs
 
 Every host's `default.nix` defines `specialArgs` that are passed through to all modules via `extraSpecialArgs`. The full set of available specialArgs:
 
 - `inputs` — Flake inputs (nixpkgs, home-manager, niri, etc.).
-- `dotfilesDir` — Path to `../../home/ovg`. Used by all modules for `source` and `builtins.readFile` references.
+- `dotfilesDir` — Path to `../../home/ethel`. Used by all modules for `source` and `builtins.readFile` references.
 - `swapLuksUuid` — LUKS UUID for the encrypted swap partition (used by `boot.nix` for initrd LUKS entry). Laptop only.
 - `swapDevice` — Full device path for resume (e.g. `/dev/mapper/luks-<uuid>`). Used by `power.nix` for `boot.resumeDevice`. Laptop only.
 - `kanataConfig` — Path to kanata.kbd resolved from the flake root.
@@ -45,10 +45,10 @@ Every host's `default.nix` defines `specialArgs` that are passed through to all 
 - **System vs User split is strict.** System daemons and hardware config go in `modules/system/` or `hosts/`. User apps, dotfiles, and shell config go in `modules/home/`.
 - **No duplication.** Before adding a package or option, read the relevant file to confirm it is not already declared.
 - **Explicit imports only.** Do not use `*` or catch-all imports. Every module must be explicitly listed.
-- **XDG linkage.** Dotfiles live in `home/ovg/` and are linked via `xdg.configFile."<name>".source = dotfilesDir + "/<path>";`. Do not write config directly into the Nix store unless using the hybrid `runCommand` pattern (see below).
+- **XDG linkage.** Dotfiles live in `home/ethel/` and are linked via `xdg.configFile."<name>".source = dotfilesDir + "/<path>";`. Do not write config directly into the Nix store unless using the hybrid `runCommand` pattern (see below).
 - **Hybrid `runCommand` pattern.** When Nix needs to inject generated files alongside raw dotfiles (e.g. Neovim `langmap.lua`, QuickShell `Scripts.qml`/`KeyMap.qml`), use `pkgs.runCommand` to copy the raw dotfile tree and add generated files. This is used by `keymap.nix` (Neovim) and `quickshell.nix`.
-- **`dotfilesDir` specialArg.** Every module receives the `dotfilesDir` path (`../../home/ovg`) via `extraSpecialArgs`. Use it for all `source` and `builtins.readFile` references — never use relative paths inside modules.
-- **Script wrapping pattern.** Shell scripts in `home/ovg/scripts/` and `home/ovg/wofi/scripts/` are wrapped via `pkgs.writeShellApplication` with explicit `runtimeInputs`. This makes scripts PATH-independent and reproducible. See `modules/home/desktop/scripts.nix` and `modules/home/desktop/quickshell.nix` for examples.
+- **`dotfilesDir` specialArg.** Every module receives the `dotfilesDir` path (`../../home/ethel`) via `extraSpecialArgs`. Use it for all `source` and `builtins.readFile` references — never use relative paths inside modules.
+- **Script wrapping pattern.** Shell scripts in `home/ethel/scripts/` and `home/ethel/wofi/scripts/` are wrapped via `pkgs.writeShellApplication` with explicit `runtimeInputs`. This makes scripts PATH-independent and reproducible. See `modules/home/desktop/scripts.nix` and `modules/home/desktop/quickshell.nix` for examples.
 
 ## Suckless Philosophy
 
@@ -78,12 +78,12 @@ The system uses multiple XKB layouts (`us,ru` — defined in `modules/system/des
 Wallpaper-based Material Design 3 color generation via `matugen`. A single wallpaper image (`~/.config/wallpaper.jpg`) generates a consistent color scheme across all applications.
 
 - **`modules/home/desktop/matugen.nix`** — Installs matugen, links config + templates, runs an HM activation hook to regenerate colors on every `nixos-rebuild switch`.
-- **`home/ovg/matugen/config.toml`** — Matugen configuration with template paths and per-template post-hooks for live reloading.
-- **`home/ovg/matugen/templates/`** — 11 templates generating colors for: Ghostty, mako, wofi, niri, QuickShell, GTK3, GTK4, swaylock, qutebrowser, Neovim highlights, and Neovim lualine theme.
+- **`home/ethel/matugen/config.toml`** — Matugen configuration with template paths and per-template post-hooks for live reloading.
+- **`home/ethel/matugen/templates/`** — 11 templates generating colors for: Ghostty, mako, wofi, niri, QuickShell, GTK3, GTK4, swaylock, qutebrowser, Neovim highlights, and Neovim lualine theme.
 - **Live reloading** — Post-hooks in `config.toml` handle: OSC sequences for Ghostty, `makoctl reload`, `niri msg action reload-config-noanim`, `pkill -USR1 nvim`.
 - **`modules/home/desktop/quickshell.nix`** — Defines the `update-colors` and `set-wallpaper` helper scripts that call matugen and swww.
 
-**To add a new app to the theming system:** Create a template in `home/ovg/matugen/templates/`, add it to `config.toml`, and add a post-hook for live reloading if supported by the app.
+**To add a new app to the theming system:** Create a template in `home/ethel/matugen/templates/`, add it to `config.toml`, and add a post-hook for live reloading if supported by the app.
 
 **`notifications.nix` is a stub** — mako's config is entirely generated by matugen; the module exists only as documentation.
 
