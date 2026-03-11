@@ -6,7 +6,7 @@
 
 set -euo pipefail
 
-REPO_PATH="/home/ethel/dotfiles/nix"
+REPO_PATH="/home/ethel/dotfiles/nix-config"
 HOSTNAME="$(hostname -s)"
 
 cd "$REPO_PATH" || {

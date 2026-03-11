@@ -61,7 +61,7 @@ binds {
     XF86WLAN             { spawn-sh "nmcli radio wifi | grep -q enabled && nmcli radio wifi off || nmcli radio wifi on"; }
     XF86Bluetooth        { spawn-sh "bluetoothctl show | grep -q 'Powered: yes' && bluetoothctl power off || bluetoothctl power on"; }
     XF86Display          { spawn "niri" "msg" "action" "focus-monitor-next"; }
-    XF86Keyboard         { spawn-sh "ghostty -e nvim ~/dotfiles/nix/home/ethel/kanata.kbd"; } // Mapping keyboard icon to config
+    XF86Keyboard         { spawn-sh "ghostty -e nvim ~/dotfiles/nix-config/home/ethel/kanata.kbd"; } // Mapping keyboard icon to config
     XF86Messenger        { spawn "ghostty"; } // Often the "star" or "flower" key maps to this or Favorite
     XF86Favorites        { spawn "wofi" "--show" "drun"; }
 

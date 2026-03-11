@@ -6,7 +6,7 @@
 
 set -e
 
-REPO_PATH="/home/ethel/dotfiles/nix"
+REPO_PATH="/home/ethel/dotfiles/nix-config"
 SCRIPT_NAME="NixOS Rebuild with Git"
 
 echo "=== $SCRIPT_NAME ==="

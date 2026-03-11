@@ -33,7 +33,7 @@
     name = "opencode-dotfiles";
     runtimeInputs = [pkgs.opencode];
     text = ''
-      cd "$HOME/dotfiles/nix"
+      cd "$HOME/dotfiles/nix-config"
       exec opencode
     '';
   };

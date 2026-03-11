@@ -7,7 +7,6 @@ c.auto_save.session = False
 c.downloads.location.directory = "~/Downloads"
 c.downloads.location.prompt = False
 c.editor.command = ["ghostty", "-e", "nvim", "{file}"]
-c.spellcheck.languages = ["en-US"]
 c.tabs.last_close = "close"
 c.url.default_page = "about:blank"
 c.url.start_pages = "about:blank"
