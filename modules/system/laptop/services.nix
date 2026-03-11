@@ -12,6 +12,9 @@
   # Firmware update service
   services.fwupd.enable = true;
 
+  # Thunderbolt device authorization
+  services.hardware.bolt.enable = true;
+
   # SSD maintenance
   services.fstrim.enable = true;
 
