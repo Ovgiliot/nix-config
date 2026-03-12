@@ -26,5 +26,8 @@
     useUserPackages = true;
     backupFileExtension = "bak";
     extraSpecialArgs = {inherit inputs dotfilesDir;};
+    users.ethel.imports = [
+      ../../home/core
+    ];
   };
 }

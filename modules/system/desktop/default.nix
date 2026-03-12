@@ -8,4 +8,8 @@
     ./display.nix
     ./input.nix
   ];
+
+  home-manager.users.ethel.imports = [
+    ../../home/desktop
+  ];
 }

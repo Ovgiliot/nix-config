@@ -7,4 +7,8 @@
     ./power.nix
     ./services.nix
   ];
+
+  home-manager.users.ethel.imports = [
+    ../../home/laptop
+  ];
 }

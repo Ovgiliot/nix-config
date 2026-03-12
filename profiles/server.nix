@@ -3,10 +3,7 @@
 # No display server, audio, or desktop environment.
 {...}: {
   imports = [
-    ../modules/system/core
-  ];
-
-  home-manager.users.ethel.imports = [
-    ../modules/home/core
+    ../modules/system/server
+    ../modules/system/workflows/development.nix
   ];
 }
