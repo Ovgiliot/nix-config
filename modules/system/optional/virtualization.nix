@@ -26,6 +26,22 @@
   # on first launch or loses configuration between sessions.
   programs.dconf.enable = true;
 
+  # Allow VM traffic through the host firewall without opening individual ports.
+  networking.firewall.trustedInterfaces = ["virbr0"];
+
+  # libvirt's built-in NAT relies on iptables, which is silently ignored when the
+  # host uses nftables. Provide an explicit nftables masquerade rule so VMs on the
+  # default network (192.168.122.0/24) can reach the internet via the host.
+  networking.nftables.tables.libvirt-nat = {
+    family = "ip";
+    content = ''
+      chain postrouting {
+        type nat hook postrouting priority srcnat; policy accept;
+        ip saddr 192.168.122.0/24 masquerade
+      }
+    '';
+  };
+
   # Workaround: libvirt 12.1.0 ships virt-secret-init-encryption.service with a
   # hardcoded /usr/bin/sh that doesn't exist on NixOS. Patch ExecStart to use an
   # absolute Nix store path instead.
