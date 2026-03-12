@@ -23,8 +23,6 @@
     Weekday = 0;
   };
 
-  nixpkgs.config.allowUnfree = true;
-
   home-manager = {
     useGlobalPkgs = true;
     useUserPackages = true;
