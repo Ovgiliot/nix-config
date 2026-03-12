@@ -13,6 +13,5 @@
     ./launcher.nix
     ./matugen.nix
     ./apps.nix
-    ./qutebrowser.nix
   ];
 }

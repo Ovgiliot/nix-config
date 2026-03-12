@@ -1,42 +1,10 @@
 {
-  config,
   pkgs,
   lib,
   dotfilesDir,
   ...
 }: let
-  homeLib = import ../lib.nix {inherit lib pkgs config;};
-  inherit (homeLib) stripShebang;
-
-  # ---------------------------------------------------------------------------
-  # System Maintenance
-  # Wrapped as Nix derivations so niri keybinds can call them by name rather
-  # than embedding fragile absolute paths inside the raw KDL config file.
-  # ---------------------------------------------------------------------------
-
-  nixosRebuild = pkgs.writeShellApplication {
-    name = "nixos-rebuild-dotfiles";
-    # git must resolve to the Nix-managed binary; sudo/nixos-rebuild are
-    # system tools available via the inherited system PATH.
-    runtimeInputs = [pkgs.git];
-    text = stripShebang (builtins.readFile (dotfilesDir + "/scripts/nixos-rebuild-with-git.sh"));
-  };
-
-  updateNixos = pkgs.writeShellApplication {
-    name = "update-nixos";
-    runtimeInputs = [pkgs.git];
-    text = stripShebang (builtins.readFile (dotfilesDir + "/scripts/update.sh"));
-  };
-
-  # Opens opencode in the dotfiles repo directory.
-  opencodeDotfiles = pkgs.writeShellApplication {
-    name = "opencode-dotfiles";
-    runtimeInputs = [pkgs.opencode];
-    text = ''
-      cd "$HOME/dotfiles/nix-config"
-      exec opencode
-    '';
-  };
+  stripShebang = text: lib.strings.removePrefix "#!/usr/bin/env bash\n" text;
 
   # ---------------------------------------------------------------------------
   # Idle / Session Management
@@ -57,26 +25,6 @@
         timeout 900  'niri msg action power-off-monitors' \
         timeout 1800 'systemctl hibernate' \
         before-sleep 'swaylock -f'
-    '';
-  };
-
-  # ---------------------------------------------------------------------------
-  # Web App Launchers
-  # Replaces the fragile grep/sed/xargs pipeline in binds.kdl with a
-  # declarative Nix-built script that directly invokes the correct chromium
-  # command (matching web-apps.nix exactly).
-  # ---------------------------------------------------------------------------
-
-  appleMusic = pkgs.writeShellApplication {
-    name = "apple-music";
-    runtimeInputs = [pkgs.chromium];
-    text = ''
-      exec chromium \
-        --app=https://music.apple.com \
-        --class=webapp-Apple-Music \
-        --name=webapp-Apple-Music \
-        --ozone-platform=wayland \
-        --enable-features=WaylandWindowDecorations
     '';
   };
 
@@ -109,67 +57,12 @@
     runtimeInputs = with pkgs; [pulseaudio wofi gawk];
     text = stripShebang (builtins.readFile (dotfilesDir + "/wofi/scripts/audio-switcher.sh"));
   };
-
-  # ---------------------------------------------------------------------------
-  # Hardware Toggles
-  # ---------------------------------------------------------------------------
-
-  toggleTouchpad = pkgs.writeShellApplication {
-    name = "toggle-touchpad";
-    runtimeInputs = with pkgs; [libnotify gnugrep];
-    text = ''
-      for name_file in /sys/class/input/input*/name; do
-        if grep -q "Synaptics" "$name_file"; then
-          inhibited="$(dirname "$name_file")/inhibited"
-          current=$(cat "$inhibited")
-          if [ "$current" = "0" ]; then
-            echo 1 > "$inhibited"
-            notify-send -t 2000 "Touchpad" "Disabled"
-          else
-            echo 0 > "$inhibited"
-            notify-send -t 2000 "Touchpad" "Enabled"
-          fi
-          exit 0
-        fi
-      done
-      notify-send -t 2000 "Touchpad" "Device not found"
-    '';
-  };
-
-  # ---------------------------------------------------------------------------
-  # Virtualization
-  # ---------------------------------------------------------------------------
-
-  windowsVm = pkgs.writeShellApplication {
-    name = "windows-vm";
-    runtimeInputs = with pkgs; [libvirt virt-viewer libnotify coreutils gnugrep];
-    text = stripShebang (builtins.readFile (dotfilesDir + "/scripts/windows-vm.sh"));
-  };
 in {
   home.packages = [
-    nixosRebuild
-    updateNixos
-    opencodeDotfiles
     niriIdle
-    appleMusic
     wifiMenu
     btMenu
     powerMenu
     audioMenu
-    toggleTouchpad
-    windowsVm
   ];
-
-  # .desktop entry so the VM shows up in wofi's drun launcher.
-  home.file."${config.xdg.dataHome}/applications/windows-vm.desktop".text = ''
-    [Desktop Entry]
-    Version=1.5
-    Type=Application
-    Name=Windows VM
-    Comment=Start or connect to the Windows 11 KVM virtual machine
-    Exec=windows-vm
-    Terminal=false
-    Categories=System;Emulator;
-    Icon=virt-manager
-  '';
 }

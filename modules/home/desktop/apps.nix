@@ -1,6 +1,4 @@
 {pkgs, ...}: {
-  imports = [./web-apps.nix];
-
   home.packages = with pkgs; [
     # Wayland / Desktop Utilities
     xwayland-satellite # X11 app support in Niri
@@ -15,12 +13,6 @@
     # swaylock-effects lives in theme.nix (thematically grouped with GTK/Qt theming)
     playerctl # Media control (for niri)
     pulsemixer # Audio control
-
-    # GUI Applications
-    bitwarden-cli
-    pandoc
     ghostty
-
-    musescore # Music notation software
   ];
 }
