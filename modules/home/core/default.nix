@@ -8,6 +8,7 @@
     ./packages.nix
     ./neovim.nix
     ./keymap.nix
+    ./scripts.nix
   ];
 
   # User identity — defaults for all profiles.
