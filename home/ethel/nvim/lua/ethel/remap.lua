@@ -50,18 +50,26 @@ vim.keymap.set("n", "<leader>bn", "<cmd>bnext<cr>", { desc = "Next buffer" })
 vim.keymap.set("n", "<leader>bp", "<cmd>bprevious<cr>", { desc = "Previous buffer" })
 vim.keymap.set("n", "<leader>bk", "<cmd>bdelete<cr>", { desc = "Close buffer" })
 
--- Copilot Toggle
-vim.keymap.set("n", "<leader>ac", function()
-	if vim.g.copilot_enabled == 1 or vim.g.copilot_enabled == nil then
-		vim.cmd("Copilot disable")
-		vim.g.copilot_enabled = 0
-		print("Copilot disabled")
-	else
-		vim.cmd("Copilot enable")
-		vim.g.copilot_enabled = 1
-		print("Copilot enabled")
-	end
-end, { desc = "Toggle Copilot" })
+-- Copilot Toggle (development workflow)
+-- Deferred: copilot-vim is Vimscript and loads after init.lua finishes.
+vim.api.nvim_create_autocmd("VimEnter", {
+	once = true,
+	callback = function()
+		if vim.g.loaded_copilot ~= nil then
+			vim.keymap.set("n", "<leader>ac", function()
+				if vim.g.copilot_enabled == 1 or vim.g.copilot_enabled == nil then
+					vim.cmd("Copilot disable")
+					vim.g.copilot_enabled = 0
+					print("Copilot disabled")
+				else
+					vim.cmd("Copilot enable")
+					vim.g.copilot_enabled = 1
+					print("Copilot enabled")
+				end
+			end, { desc = "Toggle Copilot" })
+		end
+	end,
+})
 
 -- File Manager (ranger-nvim)
 vim.keymap.set("n", "<leader>.", function()
@@ -88,17 +96,21 @@ vim.keymap.set("n", "<leader>wv", "<C-w>v", { desc = "Split vertical" })
 vim.keymap.set("n", "<leader>wd", "<C-w>c", { desc = "Close window" })
 vim.keymap.set("n", "<leader>w=", "<C-w>=", { desc = "Equalize window sizes" })
 
--- Git Integration
-vim.keymap.set("n", "<leader>gs", "<cmd>Neogit<cr>", { desc = "Neogit status" })
-vim.keymap.set("n", "<leader>gc", telescope_builtin("git_commits"), { desc = "Git Commits" })
-vim.keymap.set("n", "<leader>gb", telescope_builtin("git_branches"), { desc = "Git Branches" })
-vim.keymap.set("n", "<leader>gt", telescope_builtin("git_status"), { desc = "Git Status (Telescope)" })
-vim.keymap.set("n", "<leader>gp", "<cmd>Neogit push<cr>", { desc = "Neogit push" })
-vim.keymap.set("n", "<leader>gl", "<cmd>Neogit pull<cr>", { desc = "Neogit pull" })
-vim.keymap.set("n", "<leader>gd", "<cmd>DiffviewOpen<cr>", { desc = "Open Diffview" })
-vim.keymap.set("n", "<leader>gh", "<cmd>DiffviewFileHistory %<cr>", { desc = "File history" })
-vim.keymap.set("n", "<leader>gS", telescope_builtin("git_stash"), { desc = "Git Stash" })
+-- Git Integration (development workflow)
+if pcall(require, "neogit") then
+	vim.keymap.set("n", "<leader>gs", "<cmd>Neogit<cr>", { desc = "Neogit status" })
+	vim.keymap.set("n", "<leader>gc", telescope_builtin("git_commits"), { desc = "Git Commits" })
+	vim.keymap.set("n", "<leader>gb", telescope_builtin("git_branches"), { desc = "Git Branches" })
+	vim.keymap.set("n", "<leader>gt", telescope_builtin("git_status"), { desc = "Git Status (Telescope)" })
+	vim.keymap.set("n", "<leader>gp", "<cmd>Neogit push<cr>", { desc = "Neogit push" })
+	vim.keymap.set("n", "<leader>gl", "<cmd>Neogit pull<cr>", { desc = "Neogit pull" })
+	vim.keymap.set("n", "<leader>gd", "<cmd>DiffviewOpen<cr>", { desc = "Open Diffview" })
+	vim.keymap.set("n", "<leader>gh", "<cmd>DiffviewFileHistory %<cr>", { desc = "File history" })
+	vim.keymap.set("n", "<leader>gS", telescope_builtin("git_stash"), { desc = "Git Stash" })
+end
 
--- Org Mode
-vim.keymap.set("n", "<leader>oa", "<cmd>Org agenda<cr>", { desc = "Org: Open Agenda" })
-vim.keymap.set("n", "<leader>oc", "<cmd>Org capture<cr>", { desc = "Org: Capture Task" })
+-- Org Mode (notetaking workflow)
+if pcall(require, "orgmode") then
+	vim.keymap.set("n", "<leader>oa", "<cmd>Org agenda<cr>", { desc = "Org: Open Agenda" })
+	vim.keymap.set("n", "<leader>oc", "<cmd>Org capture<cr>", { desc = "Org: Capture Task" })
+end
