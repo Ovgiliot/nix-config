@@ -1,8 +1,15 @@
 {
   pkgs,
   lib,
+  inputs,
+  videoAcceleration,
+  primaryUser,
   ...
 }: {
+  # Niri overlay applied here so pkgs.niri-unstable is available system-wide
+  # and in Home Manager (useGlobalPkgs = true).
+  nixpkgs.overlays = [inputs.niri.overlays.niri];
+
   # --- Display & Window Management ---
 
   # X11 windowing system
@@ -12,10 +19,17 @@
 
   # Display Manager (Greetd)
   # Uses tuigreet as a lightweight TUI login manager.
-  # initial_session is intentionally absent: always require authentication.
+  # initial_session autologins after boot — TPM2 unlocks the disk silently,
+  # then greetd starts the Niri session directly (macOS FileVault-style flow).
+  # default_session is the fallback when the autologin session exits or fails.
+  # swaylock provides session-lock security; run `swaylock` to protect the screen.
   services.greetd = {
     enable = true;
     settings = {
+      initial_session = {
+        command = "niri-session";
+        user = primaryUser;
+      };
       default_session = {
         command = "${pkgs.tuigreet}/bin/tuigreet --greeting 'Suckless NixOS' --asterisks --remember --remember-user-session --time --cmd niri-session";
         user = "greeter";
@@ -43,7 +57,6 @@
   # --- System Utilities ---
 
   environment.systemPackages = with pkgs; [
-    git
     pciutils
     usbutils
   ];
@@ -51,7 +64,16 @@
   # Font configuration
   fonts.packages = with pkgs; [
     pkgs.nerd-fonts."symbols-only"
+    noto-fonts-cjk-sans
   ];
+
+  # Fontconfig fallback chain: FiraMono for Latin/Cyrillic, Noto Sans CJK JP
+  # for Japanese (and other CJK) glyphs that FiraMono does not cover.
+  fonts.fontconfig.defaultFonts = {
+    sansSerif = ["FiraMono Nerd Font" "Noto Sans CJK JP"];
+    serif = ["Noto Sans CJK JP"];
+    monospace = ["FiraMono Nerd Font" "Noto Sans CJK JP"];
+  };
 
   # Chromium - Kept for specific web-app support and DRM.
   programs.chromium.enable = true;
@@ -68,25 +90,31 @@
   # swaylock reads PAM to authenticate; without this entry it rejects every password.
   security.pam.services.swaylock = {};
 
-  # Hardware Acceleration (Intel)
+  # Hardware Acceleration
+  # extraPackages/extraPackages32 are only populated for Intel; other hosts get
+  # an empty list (driver packages are architecture-specific anyway).
   hardware.graphics = {
     enable = true;
     enable32Bit = true;
-    extraPackages = with pkgs; [
+    extraPackages = lib.optionals (videoAcceleration == "intel") (with pkgs; [
       intel-media-driver
       intel-vaapi-driver
       libvdpau-va-gl
       vpl-gpu-rt
-    ];
-    extraPackages32 = with pkgs.pkgsi686Linux; [
+    ]);
+    extraPackages32 = lib.optionals (videoAcceleration == "intel") (with pkgs.pkgsi686Linux; [
       intel-media-driver
       intel-vaapi-driver
       libvdpau-va-gl
-    ];
+    ]);
   };
 
   environment.sessionVariables = {
-    LIBVA_DRIVER_NAME = "iHD";
-    XDG_CONFIG_DIRS = lib.mkDefault "/etc/xdg";
+    LIBVA_DRIVER_NAME = lib.mkIf (videoAcceleration == "intel") "iHD";
+    # Force Chromium, Electron, and all Ozone-aware apps to use the native
+    # Wayland rendering path instead of falling back to XWayland.  Without
+    # this they go through xwayland-satellite, adding an extra buffer-copy
+    # step that introduces timing jitter and contributes to missed vblanks.
+    NIXOS_OZONE_WL = "1";
   };
 }

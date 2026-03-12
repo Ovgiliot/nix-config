@@ -1,0 +1,54 @@
+;; ~/.config/kanata/kanata.kbd
+(defcfg
+  process-unmapped-keys yes
+)
+
+;; Define the source layout of your physical keyboard. This is a standard QWERTY layout.
+(defsrc
+  esc  f1   f2   f3   f4   f5   f6   f7   f8   f9   f10  f11  f12
+  grv  1    2    3    4    5    6    7    8    9    0    -    =    bspc
+  tab  q    w    e    r    t    y    u    i    o    p    [    ]    \
+  caps a    s    d    f    g    h    j    k    l    ;    '    ret
+  lsft z    x    c    v    b    n    m    ,    .    /    rsft
+  lctl lmet lalt           spc            ralt rmet rctl
+)
+
+;; Define aliases for homerow modifiers.
+;; These keys act as modifiers when held, and as their original character when tapped.
+(defalias
+  a-super (tap-hold 200 200 a lmet)
+  s-ctrl  (tap-hold 200 200 s lctl)
+  d-shift (tap-hold 200 200 d lsft)
+  f-alt   (tap-hold 200 200 f lalt)
+
+  j-alt   (tap-hold 200 200 j ralt)
+  k-shift (tap-hold 200 200 k rsft)
+  l-ctrl  (tap-hold 200 200 l rctl)
+  sem-super (tap-hold 200 200 ; lmet)
+
+  ;; Caps Lock: tap = Escape, hold = media layer.
+  ;; Replaces the XKB caps:escape option — kanata owns this now.
+  caps-esc-med (tap-hold 200 200 esc (layer-while-held media))
+)
+
+;; Define your base layer with the homerow modifiers
+(deflayer base
+  esc  f1   f2   f3   f4   f5   f6   f7   f8   f9   f10  f11  f12
+  grv  1    2    3    4    5    6    7    8    9    0    -    =    bspc
+  tab  q    w    e    r    t    y    u    i    o    p    [    ]    \
+  @caps-esc-med @a-super @s-ctrl @d-shift @f-alt g    h    @j-alt @k-shift @l-ctrl @sem-super '    ret
+  lsft z    x    c    v    b    n    m    ,    .    /    rsft
+  lctl lmet lalt           spc            ralt rmet rctl
+)
+
+;; Media layer — active while Caps Lock is held.
+;; HJKL = prev/vol-down/vol-up/next (vim-directional).
+;; Emits XF86 keysyms; niri binds.kdl handles the actual commands.
+(deflayer media
+  _    _    _    _    _    _    _    _    _    _    _    _    _
+  _    _    _    _    _    _    _    _    _    _    _    _    _    _
+  _    _    _    _    _    _    _    _    _    _    _    _    _    _
+  _    _    _    _    _    _    prev vold volu next _    _    _
+  _    _    _    _    _    _    _    mute brdn brup _    _
+  _    _    _              pp             _    _    _
+)

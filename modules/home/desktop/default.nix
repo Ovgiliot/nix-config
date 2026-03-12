@@ -2,12 +2,13 @@
   imports = [
     ./theme.nix
     ./niri.nix
-    ./waybar.nix
+    ./scripts.nix
+    ./quickshell.nix
     ./ghostty.nix
     ./notifications.nix
     ./launcher.nix
+    ./matugen.nix
     ./apps.nix
+    ./qutebrowser.nix
   ];
-
-  services.network-manager-applet.enable = true;
 }

@@ -1,15 +1,9 @@
-{
-  pkgs,
-  inputs,
-  ...
-}: {
+{pkgs, ...}: {
   imports = [./web-apps.nix];
 
   home.packages = with pkgs; [
     # Wayland / Desktop Utilities
     xwayland-satellite # X11 app support in Niri
-    inputs.zen-browser.packages.${pkgs.stdenv.hostPlatform.system}.default
-    waybar
     wofi
     mako
     wl-clipboard
@@ -18,30 +12,15 @@
     kanata # Keyboard remapping (homerow mods)
     brightnessctl
     swayidle
-    playerctl # Media control (for waybar/niri)
-    linux-wallpaperengine # Live wallpapers
+    # swaylock-effects lives in theme.nix (thematically grouped with GTK/Qt theming)
+    playerctl # Media control (for niri)
+    pulsemixer # Audio control
 
     # GUI Applications
     bitwarden-cli
     pandoc
     ghostty
-    protontricks # Winetricks for Proton (Gaming)
+
+    musescore # Music notation software
   ];
-
-  # Performance HUD for Games
-  programs.mangohud = {
-    enable = true;
-    enableSessionWide = false;
-  };
-
-  # Custom Desktop Entry for Steam with Optimizations
-  xdg.desktopEntries.steam = {
-    name = "Steam";
-    exec = "steam -cef-disable-gpu -system-composer %U";
-    terminal = false;
-    icon = "steam";
-    type = "Application";
-    categories = ["Network" "FileTransfer" "Game"];
-    mimeType = ["x-scheme-handler/steam" "x-scheme-handler/steamlink"];
-  };
 }

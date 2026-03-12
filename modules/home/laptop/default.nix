@@ -3,6 +3,7 @@
   dotfilesDir,
   ...
 }: {
+  imports = [./wallpaper.nix];
   # Kanata config link (system-level kanata service reads from ~/.config/kanata/)
   xdg.configFile."kanata/kanata.kbd".source = dotfilesDir + "/kanata.kbd";
 
@@ -14,9 +15,6 @@
     powerMonitor = pkgs.writeShellApplication {
       name = "power-monitor";
       runtimeInputs = with pkgs; [
-        upower
-        gnugrep
-        gawk
         coreutils
         power-profiles-daemon
         libnotify
@@ -31,7 +29,7 @@
     Install.WantedBy = ["graphical-session.target"];
     Service = {
       ExecStart = "${powerMonitor}/bin/power-monitor";
-      Restart = "always";
+      Restart = "on-failure";
       RestartSec = 5;
     };
   };

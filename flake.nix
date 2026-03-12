@@ -21,15 +21,6 @@
 
     # Niri Window Manager (Wayland; Linux only)
     niri.url = "github:sodiboo/niri-flake";
-
-    # Zen Browser (Linux only)
-    zen-browser = {
-      url = "github:0xc000022070/zen-browser-flake";
-      inputs = {
-        nixpkgs.follows = "nixpkgs";
-        home-manager.follows = "home-manager";
-      };
-    };
   };
 
   outputs = {
@@ -38,6 +29,14 @@
     nix-darwin,
     ...
   } @ inputs: let
+    # Instantiate nixpkgs for a given system with allowUnfree enabled globally.
+    # Used for all imperative pkgs references (formatter, checks).
+    mkPkgs = system:
+      import nixpkgs {
+        inherit system;
+        config.allowUnfree = true;
+      };
+
     # Build a NixOS system from hosts/<hostname>/default.nix.
     # The host file is a function { inputs }: { system, specialArgs, modules }.
     mkNixosHost = hostname: let
@@ -58,16 +57,16 @@
   in {
     # `nix fmt` support for all platforms in use.
     formatter = {
-      x86_64-linux = nixpkgs.legacyPackages.x86_64-linux.alejandra;
-      aarch64-darwin = nixpkgs.legacyPackages.aarch64-darwin.alejandra;
-      x86_64-darwin = nixpkgs.legacyPackages.x86_64-darwin.alejandra;
+      x86_64-linux = (mkPkgs "x86_64-linux").alejandra;
+      aarch64-darwin = (mkPkgs "aarch64-darwin").alejandra;
+      x86_64-darwin = (mkPkgs "x86_64-darwin").alejandra;
     };
 
     # NixOS hosts
     # Build:  sudo nixos-rebuild switch --flake .#<hostname>
     nixosConfigurations = {
       nixos = mkNixosHost "nixos";
-      # <<NIXOS_HOSTS>>
+      nixpad = mkNixosHost "nixpad";
     };
 
     # macOS hosts (nix-darwin)
@@ -83,25 +82,33 @@
     # Quick  (seconds): *-eval, dotfiles-integrity, fmt
     # Full   (minutes): nixos-build, *-build, server-vm-test
     checks = let
-      pkgs = nixpkgs.legacyPackages.x86_64-linux;
+      pkgs = mkPkgs "x86_64-linux";
 
       # Stub specialArgs used for profile eval/build tests.
       # Real values are host-specific; these are sufficient for evaluation.
       testSpecialArgs = {
         inherit inputs;
-        dotfilesDir = ./home/ovg;
+        dotfilesDir = ./home/ethel;
         # Placeholder UUID — only consumed by laptop/boot.nix and power.nix,
         # neither of which is imported by server or workstation profiles.
         swapLuksUuid = "00000000-0000-0000-0000-000000000000";
+        # Swap resume device — empty disables hibernate (laptop profile only).
+        swapDevice = "";
         # kanata.kbd must be a real file so builtins.readFile can evaluate.
-        kanataConfig = ./home/ovg/kanata.kbd;
+        kanataConfig = ./home/ethel/kanata.kbd;
+        # Placeholder device path — consumed by input.nix (workstation + laptop).
+        kanataDevice = "/dev/input/by-path/platform-i8042-serio-0-event-kbd";
+        # No Intel hardware in test environments; skip VA-API packages.
+        videoAcceleration = "none";
+        # Placeholder primary user for greetd autologin (display.nix).
+        primaryUser = "ethel";
       };
 
       # Minimal NixOS host module shared by all profile tests.
       testHostModule = {
         networking.hostName = "test";
         system.stateVersion = "25.11";
-        users.users.ovg = {isNormalUser = true;};
+        users.users.ethel = {isNormalUser = true;};
       };
 
       # Eval-only profile check. Forces the full module graph to be evaluated
@@ -151,25 +158,51 @@
         # Nix resolves path literals at build time; a missing path fails here
         # before it can produce a broken xdg.configFile symlink at activation.
         dotfiles-integrity = pkgs.runCommand "dotfiles-integrity" {} ''
-          test -e ${./home/ovg/nvim}                           || exit 1
-          test -f ${./home/ovg/ranger/rc.conf}                 || exit 1
-          test -f ${./home/ovg/ranger/rifle.conf}              || exit 1
-          test -f ${./home/ovg/ranger/scope.sh}                || exit 1
-          test -f ${./home/ovg/opencode/agents/talk.md}        || exit 1
-          test -e ${./home/ovg/niri}                           || exit 1
-          test -f ${./home/ovg/ghostty/config}                 || exit 1
-          test -e ${./home/ovg/ghostty/shaders}                || exit 1
-          test -f ${./home/ovg/mako/config}                    || exit 1
-          test -f ${./home/ovg/waybar/config.jsonc}            || exit 1
-          test -f ${./home/ovg/waybar/style.css}               || exit 1
-          test -e ${./home/ovg/waybar/scripts}                 || exit 1
-          test -f ${./home/ovg/wofi/config}                    || exit 1
-          test -f ${./home/ovg/wofi/style.css}                 || exit 1
-          test -f ${./home/ovg/wofi/scripts/wifi-menu.sh}      || exit 1
-          test -f ${./home/ovg/wofi/scripts/bluetooth-menu.sh} || exit 1
-          test -f ${./home/ovg/wofi/scripts/power-menu.sh}     || exit 1
-          test -f ${./home/ovg/kanata.kbd}                     || exit 1
-          test -f ${./home/ovg/scripts/power-monitor.sh}       || exit 1
+          test -e ${./home/ethel/nvim}                           || exit 1
+          test -f ${./home/ethel/ranger/rc.conf}                 || exit 1
+          test -f ${./home/ethel/ranger/rifle.conf}              || exit 1
+          test -f ${./home/ethel/ranger/scope.sh}                || exit 1
+          test -f ${./home/ethel/opencode/agents/talk.md}        || exit 1
+          test -e ${./home/ethel/niri}                           || exit 1
+          test -f ${./home/ethel/ghostty/config}                 || exit 1
+          test -e ${./home/ethel/ghostty/shaders}                || exit 1
+          test -f ${./home/ethel/matugen/config.toml}                        || exit 1
+          test -f ${./home/ethel/matugen/templates/ghostty-colors.conf}      || exit 1
+          test -f ${./home/ethel/matugen/templates/mako.conf}                || exit 1
+          test -f ${./home/ethel/matugen/templates/wofi-colors.css}          || exit 1
+          test -f ${./home/ethel/matugen/templates/niri-colors.kdl}          || exit 1
+          test -f ${./home/ethel/matugen/templates/qs-colors.json}           || exit 1
+          test -f ${./home/ethel/matugen/templates/gtk3.css}                 || exit 1
+          test -f ${./home/ethel/matugen/templates/gtk4.css}                 || exit 1
+          test -f ${./home/ethel/matugen/templates/swaylock.conf}            || exit 1
+          test -f ${./home/ethel/matugen/templates/qutebrowser-colors.py}    || exit 1
+          test -f ${./home/ethel/matugen/templates/nvim-lualine.lua}         || exit 1
+          test -f ${./home/ethel/matugen/templates/nvim-highlights.lua}      || exit 1
+          test -f ${./home/ethel/qutebrowser/config.py}                      || exit 1
+          test -f ${./home/ethel/quickshell/shell.qml}                  || exit 1
+          test -f ${./home/ethel/quickshell/Clock.qml}                 || exit 1
+          test -f ${./home/ethel/quickshell/Workspaces.qml}            || exit 1
+          test -f ${./home/ethel/quickshell/CpuMem.qml}                || exit 1
+          test -f ${./home/ethel/quickshell/InfoBox.qml}               || exit 1
+          test -f ${./home/ethel/quickshell/Language.qml}              || exit 1
+          test -f ${./home/ethel/quickshell/StatusIcons.qml}           || exit 1
+          test -f ${./home/ethel/quickshell/NiriIpc.qml}               || exit 1
+          test -f ${./home/ethel/quickshell/StatusPoller.qml}          || exit 1
+          test -f ${./home/ethel/quickshell/WifiMonitor.qml}           || exit 1
+          test -f ${./home/ethel/quickshell/Colors.qml}                || exit 1
+          test -f ${./home/ethel/quickshell/Columns.qml}               || exit 1
+          test -f ${./home/ethel/quickshell/WallpaperPicker.qml}       || exit 1
+          test -f ${./home/ethel/quickshell/scripts/wifi-monitor.sh}   || exit 1
+          test -f ${./home/ethel/quickshell/scripts/system-stats.sh}   || exit 1
+          test -f ${./home/ethel/wofi/config}                     || exit 1
+          test -f ${./home/ethel/wofi/scripts/wifi-menu.sh}      || exit 1
+          test -f ${./home/ethel/wofi/scripts/bluetooth-menu.sh} || exit 1
+          test -f ${./home/ethel/wofi/scripts/power-menu.sh}     || exit 1
+          test -f ${./home/ethel/wofi/scripts/audio-switcher.sh} || exit 1
+          test -f ${./home/ethel/kanata.kbd}                     || exit 1
+          test -f ${./home/ethel/scripts/power-monitor.sh}       || exit 1
+          test -f ${./home/ethel/scripts/nixos-rebuild-with-git.sh} || exit 1
+          test -f ${./home/ethel/scripts/update.sh}              || exit 1
           touch $out
         '';
 
@@ -182,7 +215,7 @@
 
         # ── VM test ───────────────────────────────────────────────────────────
         # Boots the server profile in a QEMU VM and asserts: multi-user.target
-        # reached, user ovg exists, NetworkManager is active.
+        # reached, user ethel exists, NetworkManager is active.
         server-vm-test = pkgs.testers.runNixOSTest {
           name = "server-profile";
           nodes.server = {...}: {
@@ -192,11 +225,11 @@
             _module.args = testSpecialArgs;
             networking.hostName = "test-server";
             system.stateVersion = "25.11";
-            users.users.ovg = {isNormalUser = true;};
+            users.users.ethel = {isNormalUser = true;};
           };
           testScript = ''
             server.wait_for_unit("multi-user.target")
-            server.succeed("id ovg")
+            server.succeed("id ethel")
             server.succeed("systemctl is-active NetworkManager")
           '';
         };

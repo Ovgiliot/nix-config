@@ -8,9 +8,11 @@
 }: {
   imports = [
     inputs.home-manager.nixosModules.home-manager
+    ../modules/system/core/boot.nix
     ../modules/system/core/nix.nix
     ../modules/system/core/locale.nix
     ../modules/system/core/networking.nix
+    ../modules/system/core/security.nix
   ];
 
   nixpkgs.config.allowUnfree = true;
@@ -23,7 +25,7 @@
     useUserPackages = true;
     backupFileExtension = "bak";
     extraSpecialArgs = {inherit inputs dotfilesDir;};
-    users.ovg.imports = [
+    users.ethel.imports = [
       ../modules/home/core
     ];
   };

@@ -1,0 +1,55 @@
+// Window rules let you adjust behavior for individual windows.
+// Find more information on the wiki:
+// https://yalter.github.io/niri/Configuration:-Window-Rules
+
+// Open XDG portal file pickers as floating (on top of tiled windows).
+window-rule {
+    match app-id=r#"^xdg-desktop-portal-gtk$"#
+    match app-id=r#"^xdg-desktop-portal-gnome$"#
+    open-floating true
+}
+
+// Example: block out two password managers from screen capture.
+// (This example rule is commented out with a "/-" in front.)
+/-window-rule {
+    match app-id=r#"^org\.keepassxc\.KeePassXC$"#
+    match app-id=r#"^org\.gnome\.World\.Secrets$"#
+
+    block-out-from "screen-capture"
+
+    // Use this instead if you want them visible on third-party screenshot tools.
+    // block-out-from "screencast"
+}
+
+window-rule {
+    geometry-corner-radius 12
+    clip-to-geometry true
+}
+
+window-rule {
+    match app-id="org.nixos.rebuild"
+    open-floating true
+    default-floating-position x=0 y=6 relative-to="top"
+    default-column-width { proportion 0.6; }
+    default-window-height { proportion 0.2; }
+}
+
+window-rule {
+    match app-id="dev.opencode.opencode"
+    default-column-width { proportion 0.4; }
+}
+
+window-rule {
+    match app-id="chrome-music.apple.com__-Default"
+    default-column-width { proportion 0.3; }
+}
+
+window-rule {
+    match app-id="chrome-www.youtube.com__-Default"
+    default-column-width { proportion 1.0; }
+}
+
+window-rule {
+    match app-id="org.qutebrowser.qutebrowser"
+    default-column-width { proportion 0.7; }
+}

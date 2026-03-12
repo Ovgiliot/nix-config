@@ -3,8 +3,9 @@
   commonAliases = {
     ll = "ls -la";
     ".." = "cd ..";
-    # Delete profile generations older than 7 days (user + system), then GC.
-    clean-nix = "nix-collect-garbage --delete-older-than 7d && sudo nix-collect-garbage --delete-older-than 7d";
+    # Delete profile generations older than 14 days (user + system), then GC.
+    # Matches the 14d threshold in nix.nix gc.maxAge.
+    clean-nix = "nix-collect-garbage --delete-older-than 14d && sudo nix-collect-garbage --delete-older-than 14d";
   };
 in {
   programs.fish = {

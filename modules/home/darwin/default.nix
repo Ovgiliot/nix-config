@@ -4,7 +4,7 @@
   ...
 }: {
   # macOS home directory (standard location differs from Linux /home/<name>).
-  home.homeDirectory = "/Users/ovg";
+  home.homeDirectory = "/Users/ethel";
 
   # Terminal emulator — Ghostty is cross-platform.
   xdg.configFile."ghostty/config".source = dotfilesDir + "/ghostty/config";
