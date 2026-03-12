@@ -1,9 +1,14 @@
+# Laptop home — power monitor, kanata link, wallpaper.
+# Imports desktop as a dependency (which imports core).
 {
   pkgs,
   dotfilesDir,
   ...
 }: {
-  imports = [./wallpaper.nix];
+  imports = [
+    ../desktop
+    ./wallpaper.nix
+  ];
   # Kanata config link (system-level kanata service reads from ~/.config/kanata/)
   xdg.configFile."kanata/kanata.kbd".source = dotfilesDir + "/kanata.kbd";
 

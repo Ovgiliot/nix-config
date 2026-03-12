@@ -1,8 +1,12 @@
+# Darwin home — macOS overrides, Ghostty + kanata links, macOS packages.
+# Imports core as a dependency (HM deduplicates).
 {
   pkgs,
   dotfilesDir,
   ...
 }: {
+  imports = [../core];
+
   # macOS home directory (standard location differs from Linux /home/<name>).
   home.homeDirectory = "/Users/ethel";
 
