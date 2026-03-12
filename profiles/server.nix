@@ -8,11 +8,7 @@
 }: {
   imports = [
     inputs.home-manager.nixosModules.home-manager
-    ../modules/system/core/boot.nix
-    ../modules/system/core/nix.nix
-    ../modules/system/core/locale.nix
-    ../modules/system/core/networking.nix
-    ../modules/system/core/security.nix
+    ../modules/system/core
   ];
 
   nixpkgs.config.allowUnfree = true;
