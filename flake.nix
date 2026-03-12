@@ -203,6 +203,7 @@
           test -f ${./home/ethel/scripts/power-monitor.sh}       || exit 1
           test -f ${./home/ethel/scripts/nixos-rebuild-with-git.sh} || exit 1
           test -f ${./home/ethel/scripts/update.sh}              || exit 1
+          test -f ${./home/ethel/scripts/windows-vm.sh}           || exit 1
           touch $out
         '';
 
