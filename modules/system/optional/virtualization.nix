@@ -18,6 +18,10 @@
   # Handles USB passthrough configuration, display, snapshots, etc.
   programs.virt-manager.enable = true;
 
+  # virt-viewer: lightweight SPICE/VNC client (provides remote-viewer).
+  # Used by the windows-vm launcher script instead of opening full virt-manager.
+  environment.systemPackages = [pkgs.virt-viewer];
+
   # virt-manager stores its settings via dconf; without this it fails silently
   # on first launch or loses configuration between sessions.
   programs.dconf.enable = true;

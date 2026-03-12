@@ -1,4 +1,5 @@
 {
+  config,
   pkgs,
   lib,
   dotfilesDir,
@@ -134,6 +135,16 @@
       notify-send -t 2000 "Touchpad" "Device not found"
     '';
   };
+
+  # ---------------------------------------------------------------------------
+  # Virtualization
+  # ---------------------------------------------------------------------------
+
+  windowsVm = pkgs.writeShellApplication {
+    name = "windows-vm";
+    runtimeInputs = with pkgs; [libvirt virt-viewer libnotify coreutils gnugrep];
+    text = stripShebang (builtins.readFile (dotfilesDir + "/scripts/windows-vm.sh"));
+  };
 in {
   home.packages = [
     nixosRebuild
@@ -146,5 +157,19 @@ in {
     powerMenu
     audioMenu
     toggleTouchpad
+    windowsVm
   ];
+
+  # .desktop entry so the VM shows up in wofi's drun launcher.
+  home.file."${config.xdg.dataHome}/applications/windows-vm.desktop".text = ''
+    [Desktop Entry]
+    Version=1.5
+    Type=Application
+    Name=Windows VM
+    Comment=Start or connect to the Windows 11 KVM virtual machine
+    Exec=windows-vm
+    Terminal=false
+    Categories=System;Emulator;
+    Icon=virt-manager
+  '';
 }
