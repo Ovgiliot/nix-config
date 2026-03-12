@@ -8,7 +8,7 @@
     alsa.enable = true;
     alsa.support32Bit = true;
     pulse.enable = true;
-    jack.enable = true;
+    # JACK support is added by the music workflow when needed.
     # wireplumber is the default session manager since NixOS 23.05; no need to declare it.
   };
 }

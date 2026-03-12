@@ -75,8 +75,8 @@
     monospace = ["FiraMono Nerd Font" "Noto Sans CJK JP"];
   };
 
-  # Chromium - Kept for specific web-app support and DRM.
-  programs.chromium.enable = true;
+  # Chromium is enabled by the browsing workflow.
+  # programs.chromium.enable = true;
 
   # --- Legacy & Hardware Services ---
 
