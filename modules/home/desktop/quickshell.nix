@@ -1,10 +1,12 @@
 {
   pkgs,
   lib,
+  config,
   dotfilesDir,
   ...
 }: let
-  stripShebang = text: lib.strings.removePrefix "#!/usr/bin/env bash\n" text;
+  homeLib = import ../lib.nix {inherit lib;};
+  inherit (homeLib) stripShebang;
 
   # ── Keyboard layout: KeyMap.qml ────────────────────────────────────────
   # Generated from the centralized layout data so QML key handlers work
@@ -199,7 +201,7 @@
         // Absolute store path avoids relying on PATH in the systemd user service
         // environment — used by Workspaces to dispatch focus-workspace actions.
         readonly property string niri:                  "${pkgs.niri}/bin/niri"
-        readonly property string qsColors:              "file:///home/ethel/.cache/matugen/qs-colors.json"
+        readonly property string qsColors:              "file://${config.home.homeDirectory}/.cache/matugen/qs-colors.json"
         readonly property string setWallpaper:          "${setWallpaper}/bin/set-wallpaper"
         readonly property string listWallpapers:        "${listWallpapers}/bin/list-wallpapers"
         readonly property string hideWallpaperPicker:   "${hideWallpaperPicker}/bin/hide-wallpaper-picker"

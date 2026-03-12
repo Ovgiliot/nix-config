@@ -1,7 +1,6 @@
 {
   config,
   lib,
-  swapLuksUuid,
   swapDevice,
   ...
 }: {
@@ -23,7 +22,7 @@
     ++ lib.optionals (swapDevice != "") ["resume=${swapDevice}"];
 
   # Hibernate resume device.
-  # swapDevice is set by install.sh:
+  # swapDevice is set per-host in hosts/<hostname>/default.nix:
   #   encrypted swap → "/dev/mapper/cryptswap"
   #   unencrypted swap → "/dev/disk/by-uuid/<partUuid>"
   #   no swap / non-laptop → ""  (this module is not imported in that case)

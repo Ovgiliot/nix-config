@@ -4,9 +4,8 @@
   dotfilesDir,
   ...
 }: let
-  # Strip the shebang line produced by shellcheck-compliant scripts so that
-  # writeShellApplication can supply its own (strict-mode) header instead.
-  stripShebang = text: lib.strings.removePrefix "#!/usr/bin/env bash\n" text;
+  homeLib = import ../lib.nix {inherit lib;};
+  inherit (homeLib) stripShebang;
 
   # ---------------------------------------------------------------------------
   # System Maintenance

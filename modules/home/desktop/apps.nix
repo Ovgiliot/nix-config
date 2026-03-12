@@ -12,8 +12,7 @@
     kanata # Keyboard remapping (homerow mods)
     brightnessctl
     swayidle
-    # swaylock-effects: same binary/PAM name as swaylock, adds fractional-scale support
-    swaylock-effects
+    # swaylock-effects lives in theme.nix (thematically grouped with GTK/Qt theming)
     playerctl # Media control (for niri)
     pulsemixer # Audio control
 

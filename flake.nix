@@ -21,12 +21,6 @@
 
     # Niri Window Manager (Wayland; Linux only)
     niri.url = "github:sodiboo/niri-flake";
-
-    # Declarative disk partitioning — used by install.sh on fresh installs.
-    disko = {
-      url = "github:nix-community/disko";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
   };
 
   outputs = {
@@ -36,7 +30,7 @@
     ...
   } @ inputs: let
     # Instantiate nixpkgs for a given system with allowUnfree enabled globally.
-    # Used for all imperative pkgs references (formatter, checks, apps, installer).
+    # Used for all imperative pkgs references (formatter, checks).
     mkPkgs = system:
       import nixpkgs {
         inherit system;
@@ -60,102 +54,6 @@
       nix-darwin.lib.darwinSystem {
         inherit (cfg) system specialArgs modules;
       };
-
-    # Build a headless NixOS installer ISO for a given system architecture.
-    # Includes NetworkManager (nmtui), disko, alejandra, a full diagnostic
-    # toolset, and a bootstrap script that clones the dotfiles repo and runs
-    # install.sh.
-    # Usage: nix build .#installMedia-x86_64
-    mkInstaller = system:
-      nixpkgs.lib.nixosSystem {
-        inherit system;
-        modules = [
-          "${nixpkgs}/nixos/modules/installer/cd-dvd/installation-cd-minimal.nix"
-          {nixpkgs.config.allowUnfree = true;}
-          ({
-            pkgs,
-            lib,
-            ...
-          }: {
-            # Enable flakes + nix command so the live env can run `nix build .#…`
-            # without extra flags. The minimal installer image does not set this.
-            nix.settings.experimental-features = ["nix-command" "flakes"];
-
-            # The base installer profile (installation-device.nix) already
-            # enables NetworkManager. The NM module itself sets
-            # networking.wireless.enable = true with dbusControlled = true,
-            # which is how it registers and manages its own wpa_supplicant
-            # backend. Do NOT override wireless.enable — doing so breaks WiFi.
-
-            environment.systemPackages = with pkgs; [
-              # ── installer essentials ──────────────────────────────────────
-              alejandra
-              inputs.disko.packages.${system}.default
-              whois # provides mkpasswd (used by install.sh for password hashing)
-
-              # ── WiFi ─────────────────────────────────────────────────────
-              # wpa_supplicant is NM's WiFi backend (default). NM's module
-              # enables it via networking.wireless with dbusControlled = true.
-              # Listed here explicitly for clarity; NM adds it automatically.
-              wpa_supplicant
-              iw # show / configure wireless interfaces
-              wirelesstools # iwconfig, iwlist, iwpriv
-
-              # ── network diagnostics ───────────────────────────────────────
-              ethtool # NIC statistics and low-level settings
-              nmap # network scanner + host discovery
-              wget
-              curl
-              lsof # open files / sockets per process
-
-              # ── disk / partitioning ───────────────────────────────────────
-              lvm2 # LVM volume management
-              e2fsprogs # mkfs.ext4, e2fsck, tune2fs
-              btrfs-progs # mkfs.btrfs, btrfs subvolume …
-              dosfstools # mkfs.fat, fsck.fat
-              xfsprogs # mkfs.xfs, xfs_repair
-              f2fs-tools # mkfs.f2fs
-
-              # ── hardware info ─────────────────────────────────────────────
-              dmidecode # SMBIOS / DMI (board, memory, BIOS)
-              lshw # comprehensive hardware lister
-              lm_sensors # CPU / board temps and voltages
-              inxi # system info summary
-
-              # ── UEFI ──────────────────────────────────────────────────────
-              efitools # inspect and sign EFI binaries
-
-              # ── system / debug ────────────────────────────────────────────
-              htop
-              btop
-              strace # syscall tracer
-              file # identify file types by magic bytes
-              tree # directory listing
-              nano # second editor alongside vim (already in base)
-
-              # ── one-shot install helper ───────────────────────────────────
-              # Clone dotfiles from GitHub then hand off to install.sh.
-              (writeShellScriptBin "bootstrap" ''
-                set -euo pipefail
-                DEST="/home/ethel/dotfiles/nix"
-                if [ ! -d "$DEST" ]; then
-                  mkdir -p /home/ethel/dotfiles
-                  git clone https://github.com/Ovgiliot/nix-config.git "$DEST"
-                else
-                  git -C "$DEST" pull
-                fi
-                cd "$DEST"
-                bash install.sh
-              '')
-            ];
-
-            # Hint displayed at the login prompt after boot.
-            services.getty.helpLine =
-              lib.mkForce
-              "\nRun 'bootstrap' to clone the config and start installation.";
-          })
-        ];
-      };
   in {
     # `nix fmt` support for all platforms in use.
     formatter = {
@@ -169,8 +67,6 @@
     nixosConfigurations = {
       nixos = mkNixosHost "nixos";
       nixpad = mkNixosHost "nixpad";
-      installer-x86_64 = mkInstaller "x86_64-linux";
-      # <<NIXOS_HOSTS>>
     };
 
     # macOS hosts (nix-darwin)
@@ -178,39 +74,6 @@
     # Subsequent:  darwin-rebuild switch --flake .#<hostname>
     darwinConfigurations = {
       # <<DARWIN_HOSTS>>
-    };
-
-    # Installer USB images.
-    # Build:  nix build .#installMedia-x86_64
-    # Flash:  nix run .#flash -- /dev/sdX  (installs Ventoy + copies ISO)
-    packages = {
-      x86_64-linux = {
-        installMedia-x86_64 =
-          self.nixosConfigurations.installer-x86_64.config.system.build.isoImage;
-      };
-    };
-
-    # Flash helper: writes the installer ISO directly to a USB drive with dd.
-    # Usage: nix run .#flash -- /dev/sdX
-    apps = let
-      pkgs = mkPkgs "x86_64-linux";
-      x86_iso = self.nixosConfigurations.installer-x86_64.config.system.build.isoImage;
-    in {
-      x86_64-linux.flash = {
-        type = "app";
-        program = toString (pkgs.writeShellScript "flash-usb" ''
-          set -euo pipefail
-          DEVICE=''${1:?Usage: nix run .#flash -- /dev/sdX}
-          echo "==> This will ERASE $DEVICE. Continue? [y/N]"
-          read -r yn
-          [[ "$yn" =~ ^[Yy]$ ]] || exit 1
-          ISO=$(ls ${x86_iso}/iso/*.iso | head -1)
-          [[ -f "$ISO" ]] || { echo "err: no ISO found in ${x86_iso}/iso/"; exit 1; }
-          echo "==> Writing $(basename "$ISO") to $DEVICE..."
-          sudo dd if="$ISO" of="$DEVICE" bs=4M status=progress conv=fsync
-          echo "==> Done. Boot from $DEVICE on any x86_64 UEFI machine."
-        '');
-      };
     };
 
     # `nix flake check` targets — run all with `nix flake check`, or target
@@ -327,6 +190,8 @@
           test -f ${./home/ethel/quickshell/StatusPoller.qml}          || exit 1
           test -f ${./home/ethel/quickshell/WifiMonitor.qml}           || exit 1
           test -f ${./home/ethel/quickshell/Colors.qml}                || exit 1
+          test -f ${./home/ethel/quickshell/Columns.qml}               || exit 1
+          test -f ${./home/ethel/quickshell/WallpaperPicker.qml}       || exit 1
           test -f ${./home/ethel/quickshell/scripts/wifi-monitor.sh}   || exit 1
           test -f ${./home/ethel/quickshell/scripts/system-stats.sh}   || exit 1
           test -f ${./home/ethel/wofi/config}                     || exit 1
@@ -366,77 +231,6 @@
             server.wait_for_unit("multi-user.target")
             server.succeed("id ethel")
             server.succeed("systemctl is-active NetworkManager")
-          '';
-        };
-
-        # ── Install pipeline test ────────────────────────────────────────────
-        # Runs install.sh --unattended --skip-disko inside a VM.
-        # Exercises: template generation for disko.nix / default.nix,
-        # flake.nix patching, passwordFile stripping, and alejandra formatting.
-        # Disko partitioning is skipped (requires internet in the VM to build
-        # the partitioning script).  Actual partitioning is implicitly tested
-        # by server-build.
-        install-server-test = pkgs.testers.runNixOSTest {
-          name = "install-server";
-          nodes.installer = {pkgs, ...}: {
-            environment.systemPackages = with pkgs; [
-              alejandra
-              whois # provides mkpasswd (used by install.sh for password hashing)
-            ];
-            # Copy the flake source tree into the VM (read-only in nix store).
-            environment.etc."test-flake".source = ./.;
-            virtualisation.memorySize = 2048;
-          };
-          testScript = ''
-            installer.wait_for_unit("multi-user.target")
-
-            # Copy flake to a writable location.
-            # -L dereferences symlinks (environment.etc creates symlink trees
-            # pointing into the read-only nix store).
-            # --no-preserve=all ensures copies get default writable permissions.
-            installer.succeed("cp -rL --no-preserve=all /etc/test-flake /tmp/test-flake")
-
-            # Run install.sh in unattended mode, skipping disko + install.
-            installer.succeed(
-                "cd /tmp/test-flake && "
-                "PROFILE=server "
-                "TARGET_HOST=installtest "
-                "SYSTEM_DISK=/dev/vda "
-                "SEPARATE_HOME=false "
-                "ROOT_SIZE=4G "
-                "LUKS_PASSPHRASE=testpassword "
-                "INITIAL_PASSWORD=testpass123 "
-                "bash install.sh --unattended --skip-disko"
-            )
-
-            # ── Verify generated files exist ───────────────────────────────
-            installer.succeed("test -f /tmp/test-flake/hosts/installtest/disko.nix")
-            installer.succeed("test -f /tmp/test-flake/hosts/installtest/hardware.nix")
-            installer.succeed("test -f /tmp/test-flake/hosts/installtest/default.nix")
-
-            # ── Verify formatting is clean ─────────────────────────────────
-            installer.succeed("alejandra --check /tmp/test-flake/hosts/installtest/")
-
-            # ── Verify flake.nix was patched with new host ─────────────────
-            installer.succeed("grep -q 'installtest = mkNixosHost' /tmp/test-flake/flake.nix")
-
-            # ── Verify passwordFile lines were stripped from disko.nix ─────
-            installer.succeed("! grep -q 'passwordFile' /tmp/test-flake/hosts/installtest/disko.nix")
-
-            # ── Verify disko.nix has a disk device configured ──────────────
-            installer.succeed("grep -q 'device =' /tmp/test-flake/hosts/installtest/disko.nix")
-
-            # ── Verify default.nix imports disko module and disko.nix ──────
-            installer.succeed("grep -q 'disko.nixosModules.disko' /tmp/test-flake/hosts/installtest/default.nix")
-            installer.succeed("grep -q './disko.nix' /tmp/test-flake/hosts/installtest/default.nix")
-
-            # ── Verify default.nix has correct profile and hostname ────────
-            installer.succeed("grep -q 'server.nix' /tmp/test-flake/hosts/installtest/default.nix")
-            installer.succeed("grep -q 'installtest' /tmp/test-flake/hosts/installtest/default.nix")
-
-            # ── Verify password is hashed (no plaintext initialPassword) ───
-            installer.succeed("grep -q 'initialHashedPassword' /tmp/test-flake/hosts/installtest/default.nix")
-            installer.succeed("! grep -q 'initialPassword' /tmp/test-flake/hosts/installtest/default.nix")
           '';
         };
       };

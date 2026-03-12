@@ -25,6 +25,7 @@
   # Workaround: libvirt 12.1.0 ships virt-secret-init-encryption.service with a
   # hardcoded /usr/bin/sh that doesn't exist on NixOS. Patch ExecStart to use an
   # absolute Nix store path instead.
+  # TODO: remove once upstream ships a fixed service file (check after libvirt >12.1.0).
   systemd.services.virt-secret-init-encryption = {
     serviceConfig.ExecStart = let
       script = pkgs.writeShellScript "virt-secret-init-encryption" ''
