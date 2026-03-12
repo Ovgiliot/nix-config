@@ -1,4 +1,8 @@
-{dotfilesDir, ...}: {
+{
+  lib,
+  dotfilesDir,
+  ...
+}: {
   imports = [
     ./shell.nix
     ./packages.nix
@@ -6,13 +10,12 @@
     ./keymap.nix
   ];
 
-  # User identity — common across all Linux profiles.
-  # Darwin profile overrides home.homeDirectory.
-  # stateVersion is also set in hosts/nixos/default.nix; kept here so profile
-  # eval tests (which use a minimal testHostModule) have a valid value.
-  home.username = "ethel";
-  home.homeDirectory = "/home/ethel";
-  home.stateVersion = "25.11";
+  # User identity — defaults for all profiles.
+  # Darwin overrides homeDirectory; hosts can override stateVersion.
+  # mkDefault allows higher-priority overrides without conflict.
+  home.username = lib.mkDefault "ethel";
+  home.homeDirectory = lib.mkDefault "/home/ethel";
+  home.stateVersion = lib.mkDefault "25.11";
 
   programs.home-manager.enable = true;
   xdg.enable = true;
