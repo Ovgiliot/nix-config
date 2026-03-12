@@ -5,7 +5,7 @@
   dotfilesDir,
   ...
 }: let
-  homeLib = import ../lib.nix {inherit lib;};
+  homeLib = import ../lib.nix {inherit lib pkgs config;};
   inherit (homeLib) stripShebang;
 
   # ---------------------------------------------------------------------------

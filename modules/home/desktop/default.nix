@@ -3,6 +3,7 @@
 {...}: {
   imports = [
     ../core
+    ./ranger.nix
     ./theme.nix
     ./niri.nix
     ./scripts.nix
