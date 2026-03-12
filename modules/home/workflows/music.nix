@@ -18,7 +18,8 @@
 in {
   home.packages = with pkgs; [
     musescore
-    helvum # PipeWire patchbay GUI
+    # helvum removed from nixpkgs (unmaintained, vulnerable dep).
+    # TODO: evaluate crosspipe as replacement PipeWire patchbay.
     # TODO: carla, reaper (scaffold — check nixpkgs availability)
   ];
 

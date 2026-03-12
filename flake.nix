@@ -109,6 +109,12 @@
         networking.hostName = "test";
         system.stateVersion = "25.11";
         users.users.ethel = {isNormalUser = true;};
+        # Stub root filesystem — suppresses the NixOS assertion that fileSystems."/"
+        # must be defined. Real hosts get this from hardware.nix.
+        fileSystems."/" = {
+          device = "/dev/null";
+          fsType = "tmpfs";
+        };
       };
 
       # Eval-only profile check. Forces the full module graph to be evaluated
@@ -219,14 +225,23 @@
         # reached, user ethel exists, NetworkManager is active.
         server-vm-test = pkgs.testers.runNixOSTest {
           name = "server-profile";
-          nodes.server = {...}: {
+          node.specialArgs = testSpecialArgs;
+          # Our core/nix.nix sets nixpkgs.config.allowUnfree, which conflicts
+          # with the test framework's read-only nixpkgs module. Passing node.pkgs
+          # ensures the test uses our pkgs (which already has allowUnfree), and
+          # pkgsReadOnly = false re-enables the standard nixpkgs module so our
+          # module's nixpkgs.config definition merges normally.
+          node.pkgs = pkgs;
+          node.pkgsReadOnly = false;
+          nodes.server = {
             imports = [./profiles/server.nix];
-            # Inject testSpecialArgs so profile modules receive inputs,
-            # dotfilesDir, etc. as function arguments via the module system.
-            _module.args = testSpecialArgs;
-            networking.hostName = "test-server";
+            networking.hostName = "server";
             system.stateVersion = "25.11";
             users.users.ethel = {isNormalUser = true;};
+            fileSystems."/" = {
+              device = "/dev/null";
+              fsType = "tmpfs";
+            };
           };
           testScript = ''
             server.wait_for_unit("multi-user.target")
