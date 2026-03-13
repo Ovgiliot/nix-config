@@ -6,6 +6,8 @@
   dotfilesDir,
   ...
 }: let
+  glavaShaders = "${pkgs.glava}/etc/xdg/glava";
+
   toggleGlava = pkgs.writeShellApplication {
     name = "toggle-glava";
     runtimeInputs = with pkgs; [libnotify procps glava];
@@ -26,9 +28,21 @@ in {
     toggleGlava
   ];
 
-  # Static main config — module selection, window behavior, audio source.
+  # Custom entry point — module selection, window behavior, audio source.
   xdg.configFile."glava/rc.glsl".source = dotfilesDir + "/glava/rc.glsl";
 
   # bars.glsl is written by matugen to ~/.config/glava/bars.glsl (see config.toml).
-  # Linking individual files (not the whole dir) so matugen can write alongside.
+  # We link individual files (not the whole dir) so matugen can write alongside.
+
+  # Shader module directories — GLava needs these next to rc.glsl or it segfaults.
+  xdg.configFile."glava/bars".source = "${glavaShaders}/bars";
+  xdg.configFile."glava/circle".source = "${glavaShaders}/circle";
+  xdg.configFile."glava/graph".source = "${glavaShaders}/graph";
+  xdg.configFile."glava/radial".source = "${glavaShaders}/radial";
+  xdg.configFile."glava/wave".source = "${glavaShaders}/wave";
+  xdg.configFile."glava/util".source = "${glavaShaders}/util";
+
+  # Shared shader includes.
+  xdg.configFile."glava/env_default.glsl".source = "${glavaShaders}/env_default.glsl";
+  xdg.configFile."glava/smooth_parameters.glsl".source = "${glavaShaders}/smooth_parameters.glsl";
 }
