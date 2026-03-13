@@ -112,8 +112,6 @@
       ; Disable auto-sensitivity for consistent levels.
       autosens = 0
       sensitivity = 350
-      ; Low gravity so bars fall slowly and hold their shape.
-      gravity = 0.1
 
       [output]
       method = raw

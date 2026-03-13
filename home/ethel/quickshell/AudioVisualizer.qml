@@ -34,6 +34,11 @@ PanelWindow {
     // ── Bar data from cava ───────────────────────────────────────────────────
     property var barValues: []
 
+    // Decay rate per frame: how much a bar drops each cava frame when the new
+    // value is lower than the displayed value.  At 60 fps and max range 1000,
+    // decayPerFrame 15 → full decay in ~1.1 s.
+    readonly property real decayPerFrame: 15
+
     // ── Layer-shell geometry ─────────────────────────────────────────────────
     anchors {
         bottom: true
@@ -82,10 +87,15 @@ PanelWindow {
             splitMarker: "\n"
             onRead: (line) => {
                 const parts = line.split(";")
+                const prev = root.barValues
+                const decay = root.decayPerFrame
                 const vals = new Array(parts.length)
                 for (let i = 0; i < parts.length; i++) {
                     const n = parseInt(parts[i])
-                    vals[i] = isNaN(n) ? 0 : n
+                    const raw = isNaN(n) ? 0 : n
+                    const old = (prev && i < prev.length) ? prev[i] : 0
+                    // Fast rise, slow fall.
+                    vals[i] = raw >= old ? raw : Math.max(raw, old - decay)
                 }
                 root.barValues = vals
             }
@@ -154,10 +164,6 @@ PanelWindow {
                         Colors.vizColorHigh,
                         Math.min(1.0, targetHeight / root.maxBarHeight)
                     )
-
-                    Behavior on height {
-                        NumberAnimation { duration: 50 }
-                    }
                 }
             }
         }
