@@ -14,6 +14,6 @@
   "selectionBg":         "{{colors.secondary_container.default.hex}}",
   "selectionText":       "{{colors.on_secondary_container.default.hex}}",
   "outlineVariant":      "{{colors.outline_variant.default.hex}}",
-  "vizColorLow":         "{{colors.surface_container_highest.default.hex}}",
-  "vizColorHigh":        "{{colors.tertiary_container.default.hex}}"
+  "vizColorLow":         "{{colors.surface_container_low.default.hex}}",
+  "vizColorHigh":        "{{colors.primary_container.default.hex}}"
 }
