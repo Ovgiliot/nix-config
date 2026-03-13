@@ -24,9 +24,9 @@ Singleton {
     property color selectionBg:       "#4a4458"
     property color selectionText:     "#ccc2dc"
     property color outlineVariant:    "#49454f"
-    // Visualizer gradient: surface_container_lowest (quiet) → surface_container (loud)
-    property color vizColorLow:       "#404040"
-    property color vizColorHigh:      "#211e24"
+    // Visualizer gradient: surface_container_highest (quiet) → tertiary_container (peak)
+    property color vizColorLow:       "#534b52"
+    property color vizColorHigh:      "#4d2532"
 
     FileView {
         id: colorFile
