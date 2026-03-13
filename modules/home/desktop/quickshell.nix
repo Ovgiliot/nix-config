@@ -111,9 +111,9 @@
       framerate = 60
       ; Disable auto-sensitivity for consistent levels.
       autosens = 0
-      sensitivity = 250
+      sensitivity = 350
       ; Low gravity so bars fall slowly and hold their shape.
-      gravity = 350
+      gravity = 0.1
 
       [output]
       method = raw
