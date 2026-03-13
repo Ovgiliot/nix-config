@@ -121,6 +121,19 @@
       [smoothing]
       monstercat = 0
       noise_reduction = 0.77
+
+      [eq]
+      ; 10 bands, low → high. Boost sub-bass and bass, cut low-mids and mids.
+      1 = 2.0
+      2 = 1.7
+      3 = 1.4
+      4 = 1.0
+      5 = 0.7
+      6 = 0.6
+      7 = 0.7
+      8 = 0.8
+      9 = 0.9
+      10 = 1.0
       EOF
       exec cava -p "$CONFIG"
     '';
