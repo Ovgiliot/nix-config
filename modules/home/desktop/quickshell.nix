@@ -109,6 +109,11 @@
       [general]
       bars = $BARS
       framerate = 60
+      ; Disable auto-sensitivity for consistent levels.
+      autosens = 0
+      sensitivity = 150
+      ; Low gravity so bars fall slowly and hold their shape.
+      gravity = 30
 
       [output]
       method = raw
@@ -116,8 +121,8 @@
       ascii_max_range = 1000
 
       [smoothing]
-      monstercat = 1
-      noise_reduction = 0.88
+      monstercat = 0
+      noise_reduction = 0.77
       EOF
       exec cava -p "$CONFIG"
     '';
