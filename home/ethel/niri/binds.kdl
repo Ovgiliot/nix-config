@@ -24,6 +24,7 @@ binds {
     Mod+Ctrl+B hotkey-overlay-title="Bluetooth Menu" { spawn "bluetooth-menu"; }
     Mod+Ctrl+S hotkey-overlay-title="Audio Output Menu" { spawn "audio-menu"; }
     Mod+Ctrl+T hotkey-overlay-title="Toggle Touchpad" { spawn "toggle-touchpad"; }
+    Mod+Ctrl+G hotkey-overlay-title="Toggle GLava" { spawn "toggle-glava"; }
     Mod+B hotkey-overlay-title="qutebrowser" { spawn "qutebrowser"; }
 
     // NixOS maintenance — scripts are Nix-built derivations (scripts.nix) in PATH.
