@@ -24,8 +24,8 @@ The architecture is split into **infrastructure layers** (composable foundations
 - `modules/home/` — Home Manager modules.
   - `lib.nix` — Shared helpers: `stripShebang` (removes shebangs for `writeShellApplication`), `mkDesktopFile` (Chromium app-mode `.desktop` files). Import with `homeLib = import ../lib.nix {inherit lib pkgs config;};`.
   - `core/` — Shell, Neovim (base), CLI packages, keyboard layout mapping, git/gh, ranger (no preview deps), scripts, opencode.
-  - `desktop/` — Theme, Niri, QuickShell (status bar), Ghostty, notifications (mako stub), launcher (wofi), matugen (color theming), apps, ranger preview deps, scripts.
-  - `laptop/` — Power-monitor user service, kanata XDG link, swww wallpaper daemon, toggle-touchpad script.
+  - `desktop/` — Theme, Niri, QuickShell (status bar), Ghostty, notifications (mako stub), launcher (wofi), matugen (color theming), swww wallpaper daemon, apps, ranger preview deps, scripts.
+  - `laptop/` — Power-monitor user service, kanata XDG link, toggle-touchpad script.
   - `darwin/` — macOS home directory override, Ghostty + kanata XDG links, macOS-specific packages.
   - `workflows/` — 11 home workflow modules (see Workflow Modules below).
 - `home/ethel/` — Raw dotfiles only. No `.nix` entry points here. Linked into XDG config by `modules/home/` via the `dotfilesDir` specialArg.
@@ -47,12 +47,12 @@ Each layer imports its own dependencies — the NixOS module system deduplicates
 ### Desktop (Wayland compositor, requires Core)
 
 - **System** (`modules/system/desktop/default.nix`): imports core + niri nixosModule. Audio (PipeWire + ALSA + PulseWire, no JACK), display (greetd, niri, XDG portal, system fonts, hardware acceleration, rtkit, polkit, pam.swaylock), input (kanata, uinput, XKB). Auto-imports `modules/home/desktop`.
-- **Home** (`modules/home/desktop/default.nix`): imports core (defense in depth) + ranger preview deps, theme (GTK/Qt/swaylock-effects), niri config, ghostty, QuickShell + helpers, matugen, launcher (wofi), notifications (mako), desktop packages (xwayland-satellite, wl-clipboard, grim, slurp, brightnessctl, swayidle, playerctl, pulsemixer), scripts (niri-idle, power-menu, audio-menu, wifi-menu, bluetooth-menu).
+- **Home** (`modules/home/desktop/default.nix`): imports core (defense in depth) + ranger preview deps, theme (GTK/Qt/swaylock-effects), niri config, ghostty, QuickShell + helpers, matugen, swww wallpaper daemon, launcher (wofi), notifications (mako), desktop packages (xwayland-satellite, wl-clipboard, grim, slurp, brightnessctl, swayidle, playerctl, pulsemixer), scripts (niri-idle, power-menu, audio-menu, wifi-menu, bluetooth-menu).
 
 ### Laptop (ThinkPad, requires Desktop)
 
 - **System** (`modules/system/laptop/default.nix`): imports desktop. Boot (zen kernel, LUKS swap, PSR fix), power (thermald, thinkfan, powertop, hibernate), services (bluetooth, fwupd, bolt, fstrim, zram). Auto-imports `modules/home/laptop`.
-- **Home** (`modules/home/laptop/default.nix`): imports desktop (defense in depth) + kanata XDG link, power-monitor user service, swww wallpaper daemon, toggle-touchpad script.
+- **Home** (`modules/home/laptop/default.nix`): imports desktop (defense in depth) + kanata XDG link, power-monitor user service, toggle-touchpad script.
 
 ## Workflow Modules
 

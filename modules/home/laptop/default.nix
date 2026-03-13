@@ -1,4 +1,4 @@
-# Laptop home — power monitor, kanata link, wallpaper, touchpad toggle.
+# Laptop home — power monitor, kanata link, touchpad toggle.
 # Imports desktop as a dependency (which imports core).
 {
   pkgs,
@@ -30,7 +30,6 @@
 in {
   imports = [
     ../desktop
-    ./wallpaper.nix
   ];
   home.packages = [toggleTouchpad];
 

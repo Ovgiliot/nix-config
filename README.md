@@ -22,8 +22,8 @@ Core  ←  Desktop  ←  Laptop
 
 - **Core** — Boot, nix settings, locale, networking, security, Home Manager base (shell, neovim, CLI tools, git).
 - **Server** — Imports core. Adds hardened kernel.
-- **Desktop** — Imports core. Adds Niri, PipeWire, greetd, kanata, theming, desktop apps.
-- **Laptop** — Imports desktop. Adds ThinkPad power management, bluetooth, zram, wallpaper.
+- **Desktop** — Imports core. Adds Niri, PipeWire, greetd, kanata, theming, wallpaper, desktop apps.
+- **Laptop** — Imports desktop. Adds ThinkPad power management, bluetooth, zram.
 
 **Workflow modules** are composable feature sets that declare what infrastructure they need and bring both system and home config through a single entry point.
 
@@ -62,8 +62,8 @@ modules/system/
   workflows/                 # 14 workflow entry points
 modules/home/
   core/                      # Shell, neovim (base), CLI, git, keymap
-  desktop/                   # Theme, niri, quickshell, ghostty, apps
-  laptop/                    # Power monitor, wallpaper, touchpad
+  desktop/                   # Theme, niri, quickshell, ghostty, wallpaper, apps
+  laptop/                    # Power monitor, touchpad
   darwin/                    # macOS overrides
   workflows/                 # 11 home workflow modules
   lib.nix                    # Shared helpers (stripShebang, mkDesktopFile)

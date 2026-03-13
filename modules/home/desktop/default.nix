@@ -1,4 +1,4 @@
-# Desktop home — Wayland compositor, status bar, theming, apps.
+# Desktop home — Wayland compositor, status bar, theming, wallpaper, apps.
 # Imports core as a dependency (HM deduplicates).
 {...}: {
   imports = [
@@ -12,6 +12,7 @@
     ./notifications.nix
     ./launcher.nix
     ./matugen.nix
+    ./wallpaper.nix
     ./apps.nix
   ];
 }
