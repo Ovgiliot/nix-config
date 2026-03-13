@@ -5,9 +5,6 @@
 /* Visualizer module — bars is a classic spectrum analyzer. */
 #request mod bars
 
-/* Use PulseAudio (PipeWire compat layer) as the audio source. */
-#request setpulseaudio
-
 /* Transparent background — composited by niri. */
 #request setopacity "native"
 #request setdecorate false
