@@ -60,9 +60,3 @@ input_path  = "~/.config/matugen/templates/nvim-highlights.lua"
 output_path = "~/.cache/matugen/nvim-highlights.lua"
 post_hook   = "pkill -USR1 nvim 2>/dev/null || true"
 
-[templates.glava-colors]
-input_path  = "~/.config/matugen/templates/glava-colors.glsl"
-output_path = "~/.config/glava/bars.glsl"
-# Restart GLava with new colors if it is running.
-post_hook   = "pkill -x glava && glava & disown || true"
-

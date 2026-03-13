@@ -13,5 +13,7 @@
   "onSurface":           "{{colors.on_surface.default.hex}}",
   "selectionBg":         "{{colors.secondary_container.default.hex}}",
   "selectionText":       "{{colors.on_secondary_container.default.hex}}",
-  "outlineVariant":      "{{colors.outline_variant.default.hex}}"
+  "outlineVariant":      "{{colors.outline_variant.default.hex}}",
+  "vizColorLow":         "{{colors.surface_container_lowest.default.hex}}",
+  "vizColorHigh":        "{{colors.surface_container.default.hex}}"
 }

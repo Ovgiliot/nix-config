@@ -24,6 +24,9 @@ Singleton {
     property color selectionBg:       "#4a4458"
     property color selectionText:     "#ccc2dc"
     property color outlineVariant:    "#49454f"
+    // Visualizer gradient: surface_container_lowest (quiet) → surface_container (loud)
+    property color vizColorLow:       "#404040"
+    property color vizColorHigh:      "#211e24"
 
     FileView {
         id: colorFile
@@ -48,6 +51,8 @@ Singleton {
                 if (d.selectionBg)      selectionBg      = d.selectionBg
                 if (d.selectionText)    selectionText    = d.selectionText
                 if (d.outlineVariant)   outlineVariant   = d.outlineVariant
+                if (d.vizColorLow)      vizColorLow      = d.vizColorLow
+                if (d.vizColorHigh)     vizColorHigh     = d.vizColorHigh
             } catch (_) {}
         }
     }

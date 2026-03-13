@@ -23,6 +23,11 @@ ShellRoot {
     // Toggle externally with toggle-wallpaper-picker (Mod+Shift+W).
     WallpaperPicker {}
 
+    // Audio visualizer — layer-shell panel on Bottom layer (below all windows).
+    // Visibility driven by ~/.cache/qs-visualizer-show.
+    // Toggle externally with toggle-visualizer (Mod+Ctrl+G).
+    AudioVisualizer {}
+
     PanelWindow {
         id: bar
 

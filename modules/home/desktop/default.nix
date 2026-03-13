@@ -14,6 +14,5 @@
     ./matugen.nix
     ./wallpaper.nix
     ./apps.nix
-    ./glava.nix
   ];
 }

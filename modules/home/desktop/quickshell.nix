@@ -93,6 +93,49 @@
   };
 
   # ---------------------------------------------------------------------------
+  # Audio visualizer helpers (cava + toggle)
+  # ---------------------------------------------------------------------------
+
+  # cava-wrapper: takes bar count as $1, generates a temp config, execs cava.
+  # Called by AudioVisualizer.qml with the dynamically computed bar count.
+  cavaWrapper = pkgs.writeShellApplication {
+    name = "cava-wrapper";
+    runtimeInputs = [pkgs.cava pkgs.coreutils];
+    text = ''
+      BARS="''${1:-160}"
+      CONFIG="$(mktemp)"
+      trap 'rm -f "$CONFIG"' EXIT
+      cat > "$CONFIG" << EOF
+      [general]
+      bars = $BARS
+      framerate = 60
+
+      [output]
+      method = raw
+      data_format = ascii
+      ascii_max_range = 1000
+      EOF
+      exec cava -p "$CONFIG"
+    '';
+  };
+
+  toggleVisualizer = pkgs.writeShellApplication {
+    name = "toggle-visualizer";
+    runtimeInputs = [pkgs.coreutils];
+    text = ''
+      FILE="$HOME/.cache/qs-visualizer-show"
+      mkdir -p "$(dirname "$FILE")"
+      CURRENT=""
+      [ -f "$FILE" ] && CURRENT=$(< "$FILE")
+      if [ "$CURRENT" = '{"show":false}' ]; then
+        printf '{"show":true}\n' > "$FILE"
+      else
+        printf '{"show":false}\n' > "$FILE"
+      fi
+    '';
+  };
+
+  # ---------------------------------------------------------------------------
   # Color Theming
   # Defined here (not in scripts.nix) so setWallpaper can reference it as a
   # runtimeInputs entry, which embeds the correct store path in the wrapper's
@@ -205,6 +248,7 @@
         readonly property string setWallpaper:          "${setWallpaper}/bin/set-wallpaper"
         readonly property string listWallpapers:        "${listWallpapers}/bin/list-wallpapers"
         readonly property string hideWallpaperPicker:   "${hideWallpaperPicker}/bin/hide-wallpaper-picker"
+        readonly property string cavaWrapper:            "${cavaWrapper}/bin/cava-wrapper"
     }
   '';
 
@@ -226,6 +270,7 @@
     cp ${dotfilesDir}/quickshell/WifiMonitor.qml        $out/WifiMonitor.qml
     cp ${dotfilesDir}/quickshell/Colors.qml             $out/Colors.qml
     cp ${dotfilesDir}/quickshell/WallpaperPicker.qml    $out/WallpaperPicker.qml
+    cp ${dotfilesDir}/quickshell/AudioVisualizer.qml   $out/AudioVisualizer.qml
     cp ${pkgs.writeText "Scripts.qml" scriptsQml}       $out/Scripts.qml
     cp ${pkgs.writeText "KeyMap.qml" keymapQml}         $out/KeyMap.qml
   '';
@@ -237,6 +282,7 @@ in {
     updateColors
     setWallpaper
     toggleWallpaperPicker
+    toggleVisualizer
     ghosttyPushColors
   ];
 
