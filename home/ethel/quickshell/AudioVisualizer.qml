@@ -27,7 +27,7 @@ PanelWindow {
 
     // ── Bar geometry ─────────────────────────────────────────────────────────
     readonly property int barWidth: 6
-    readonly property int barGap: 6
+    readonly property int barGap: 3
     readonly property int barCount: Math.max(1, Math.floor(width / (barWidth + barGap)))
     readonly property real maxBarHeight: height
 
@@ -40,7 +40,7 @@ PanelWindow {
         left:   true
         right:  true
     }
-    implicitHeight: screen.height * 0.5
+    implicitHeight: screen.height * 0.4
     color: "transparent"
 
     WlrLayershell.layer:         WlrLayer.Bottom
@@ -119,7 +119,7 @@ PanelWindow {
             c1.r + (c2.r - c1.r) * t,
             c1.g + (c2.g - c1.g) * t,
             c1.b + (c2.b - c1.b) * t,
-            c1.a + (c2.a - c1.a) * t
+            0.8
         )
     }
 

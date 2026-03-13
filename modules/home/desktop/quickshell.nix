@@ -114,6 +114,10 @@
       method = raw
       data_format = ascii
       ascii_max_range = 1000
+
+      [smoothing]
+      monstercat = 1
+      noise_reduction = 0.88
       EOF
       exec cava -p "$CONFIG"
     '';
