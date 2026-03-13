@@ -37,7 +37,7 @@ PanelWindow {
     // Decay rate per frame: how much a bar drops each cava frame when the new
     // value is lower than the displayed value.  At 60 fps and max range 1000,
     // decayPerFrame 15 → full decay in ~1.1 s.
-    readonly property real decayPerFrame: 15
+    readonly property real decayPerFrame: 25
 
     // ── Layer-shell geometry ─────────────────────────────────────────────────
     anchors {
