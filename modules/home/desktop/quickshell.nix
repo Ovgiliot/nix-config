@@ -113,7 +113,7 @@
       autosens = 0
       sensitivity = 250
       ; Low gravity so bars fall slowly and hold their shape.
-      gravity = 150
+      gravity = 350
 
       [output]
       method = raw
