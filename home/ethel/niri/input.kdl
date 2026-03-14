@@ -41,13 +41,10 @@ input {
         // middle-emulation
     }
 
-    // Focus windows and outputs automatically when moving the mouse into them.
-    // Setting max-scroll-amount="0%" makes it work only on windows already fully on screen.
-    focus-follows-mouse max-scroll-amount="20%"
-
-    // Disabled: warping the mouse on focus change disrupts popup menus
-    // in XWayland apps (xwayland-satellite presents popups as separate
-    // surfaces; the warp breaks the popup grab cycle causing flicker).
+    // Disabled: focus-follows-mouse and warp-mouse-to-focus both disrupt
+    // popup menus in XWayland apps — xwayland-satellite presents popups
+    // as separate surfaces, and automatic focus changes break the grab.
+    // focus-follows-mouse max-scroll-amount="20%"
     // warp-mouse-to-focus
 }
 
