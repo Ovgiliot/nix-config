@@ -1,17 +1,16 @@
 # Desktop infrastructure — Wayland compositor, audio, input.
 # Imports core as a dependency (NixOS module system deduplicates).
-{
-  inputs,
-  pkgs,
-  ...
-}: {
+# Compositor modules (niri, hyprland) are imported separately — each adds its
+# own system config and HM imports. Both coexist; greetd/tuigreet shows all
+# available Wayland sessions.
+{pkgs, ...}: {
   imports = [
-    inputs.niri.nixosModules.niri
     ../core
     ./audio.nix
     ./display.nix
     ./input.nix
     ./storage.nix
+    ./compositors/niri.nix
   ];
 
   environment.systemPackages = [

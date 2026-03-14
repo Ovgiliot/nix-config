@@ -1,7 +1,6 @@
 {pkgs, ...}: {
   home.packages = with pkgs; [
     # Wayland / Desktop Utilities
-    xwayland-satellite # X11 app support in Niri
     wofi
     mako
     wl-clipboard
@@ -9,11 +8,11 @@
     slurp # Screen area selector
     kanata # Keyboard remapping (homerow mods)
     brightnessctl
-    swayidle
-    # swaylock-effects lives in theme.nix (thematically grouped with GTK/Qt theming)
-    playerctl # Media control (for niri)
+    playerctl # Media control
     pulsemixer # Audio control
     ghostty
     pcmanfm # Lightweight file manager / file picker
+    # Compositor-specific packages (xwayland-satellite, swayidle, hyprlock, etc.)
+    # live in their respective compositor modules under compositors/.
   ];
 }

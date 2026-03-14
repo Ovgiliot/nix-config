@@ -1,38 +1,15 @@
 {
   pkgs,
   lib,
+  config,
   dotfilesDir,
   ...
 }: let
-  stripShebang = text: lib.strings.removePrefix "#!/usr/bin/env bash\n" text;
+  homeLib = import ../lib.nix {inherit lib pkgs config;};
+  inherit (homeLib) stripShebang;
 
-  # ---------------------------------------------------------------------------
-  # Idle / Session Management
-  # Extracted from the niri config.kdl spawn-sh-at-startup one-liner so the
-  # idle policy is readable, diffable, and has declared runtime dependencies.
-  # ---------------------------------------------------------------------------
-
-  niriIdle = pkgs.writeShellApplication {
-    name = "niri-idle";
-    # swaylock, niri, and systemctl are provided by home-manager / the system
-    # profile and inherit via the prefixed PATH; only non-obvious deps listed.
-    runtimeInputs = with pkgs; [swayidle brightnessctl];
-    text = ''
-      exec swayidle -w \
-        timeout 300  'brightnessctl -s set 10%' \
-        resume       'brightnessctl -r' \
-        timeout 600  'swaylock -f' \
-        timeout 900  'niri msg action power-off-monitors' \
-        timeout 1800 'systemctl hibernate' \
-        before-sleep 'swaylock -f'
-    '';
-  };
-
-  # ---------------------------------------------------------------------------
-  # Menu Scripts (previously coupled to quickshell.nix)
-  # Moved here so the niri keybind dependency is explicit: removing quickshell
-  # no longer silently breaks the Mod+Ctrl+{N,B,S} and Mod+P binds.
-  # ---------------------------------------------------------------------------
+  # ── Menu Scripts ─────────────────────────────────────────────────────────
+  # Idle scripts live in compositor modules (niri-idle, hypridle, etc.).
 
   wifiMenu = pkgs.writeShellApplication {
     name = "wifi-menu";
@@ -59,7 +36,6 @@
   };
 in {
   home.packages = [
-    niriIdle
     wifiMenu
     btMenu
     powerMenu

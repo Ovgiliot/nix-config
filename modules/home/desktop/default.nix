@@ -5,7 +5,6 @@
     ../core
     ./ranger.nix
     ./theme.nix
-    ./niri.nix
     ./scripts.nix
     ./quickshell.nix
     ./ghostty.nix

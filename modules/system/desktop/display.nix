@@ -1,16 +1,11 @@
 {
   pkgs,
   lib,
-  inputs,
   videoAcceleration,
   primaryUser,
   ...
 }: {
-  # Niri overlay applied here so pkgs.niri-unstable is available system-wide
-  # and in Home Manager (useGlobalPkgs = true).
-  nixpkgs.overlays = [inputs.niri.overlays.niri];
-
-  # --- Display & Window Management ---
+  # ── Display & Window Management ──────────────────────────────────────────
 
   # X11 windowing system
   # Disabled for a minimal, Wayland-native setup.
@@ -19,42 +14,40 @@
 
   # Display Manager (Greetd)
   # Uses tuigreet as a lightweight TUI login manager.
+  # --sessions reads .desktop files from /share/wayland-sessions so greetd
+  # discovers all installed compositors (niri, hyprland, etc.) automatically.
   # initial_session autologins after boot — TPM2 unlocks the disk silently,
-  # then greetd starts the Niri session directly (macOS FileVault-style flow).
+  # then greetd starts the default compositor (macOS FileVault-style flow).
   # default_session is the fallback when the autologin session exits or fails.
-  # swaylock provides session-lock security; run `swaylock` to protect the screen.
+  # Session-lock security is per-compositor (swaylock, hyprlock, etc.).
   services.greetd = {
     enable = true;
     settings = {
       initial_session = {
-        command = "niri-session";
+        command = lib.mkDefault "niri-session";
         user = primaryUser;
       };
       default_session = {
-        command = "${pkgs.tuigreet}/bin/tuigreet --greeting 'Suckless NixOS' --asterisks --remember --remember-user-session --time --cmd niri-session";
+        command = "${pkgs.tuigreet}/bin/tuigreet --greeting 'Suckless NixOS' --asterisks --remember --remember-user-session --time --sessions /run/current-system/sw/share/wayland-sessions";
         user = "greeter";
       };
     };
   };
 
-  # Niri Window Manager
-  # A scrollable-tiling Wayland compositor.
-  programs.niri = {
-    enable = true;
-    package = pkgs.niri-unstable;
-  };
+  # Expose wayland-sessions .desktop files so tuigreet --sessions can find them.
+  environment.pathsToLink = ["/share/wayland-sessions"];
 
-  # XDG desktop portal
-  # Essential for Wayland features like screen sharing and file pickers.
-  # xdg-desktop-portal-gnome handles screen share/cast on niri.
-  # xdg-desktop-portal-wlr is wlroots-only and does not work with niri.
+  # XDG desktop portal — base layer.
+  # portal-gtk provides file-picker and common portals.
+  # Compositor-specific portals (portal-gnome, portal-hyprland) are added by
+  # each compositor module. Per-desktop portal routing is set there too.
   xdg.portal = {
     enable = true;
-    extraPortals = with pkgs; [xdg-desktop-portal-gtk xdg-desktop-portal-gnome];
-    config.common.default = ["gnome" "gtk"];
+    extraPortals = [pkgs.xdg-desktop-portal-gtk];
+    config.common.default = ["gtk"];
   };
 
-  # --- System Utilities ---
+  # ── System Utilities ─────────────────────────────────────────────────────
 
   environment.systemPackages = with pkgs; [
     pciutils
@@ -78,7 +71,7 @@
   # Chromium is enabled by the browsing workflow.
   # programs.chromium.enable = true;
 
-  # --- Legacy & Hardware Services ---
+  # ── Legacy & Hardware Services ────────────────────────────────────────────
 
   # Printing support (CUPS)
   # Disabled to reduce background services.
@@ -87,8 +80,7 @@
   # Security and session management
   security.rtkit.enable = true;
   security.polkit.enable = true;
-  # swaylock reads PAM to authenticate; without this entry it rejects every password.
-  security.pam.services.swaylock = {};
+  # PAM entries for screen lockers live in compositor modules (swaylock, hyprlock).
 
   # Hardware Acceleration
   # extraPackages/extraPackages32 are only populated for Intel; other hosts get
