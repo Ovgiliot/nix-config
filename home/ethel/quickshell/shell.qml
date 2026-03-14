@@ -1,15 +1,63 @@
 // Bar entry point: transparent layer-shell window + full layout.
 // Layout uses QML anchors to achieve info-box fill between clock and right section —
 // the feature that made Waybar unusable for this design.
+// Compositor-agnostic: instantiates NiriIpc or HyprlandIpc based on environment.
 
 import Quickshell
+import Quickshell.Io
 import Quickshell.Wayland
 import QtQuick
 
 ShellRoot {
-    // Single Niri IPC object — owns the one EventStream socket for the whole bar.
-    // Workspaces and Language bind to its reactive properties.
-    NiriIpc { id: niriIpc }
+    id: shellRoot
+
+    // Detect compositor at startup via environment variable.
+    property string _compositorType: ""
+
+    // IPC object — assigned after compositor detection.
+    property var compositorIpc: null
+
+    Process {
+        id: detectCompositor
+        command: ["sh", "-c", "[ -n \"$NIRI_SOCKET\" ] && echo niri || ([ -n \"$HYPRLAND_INSTANCE_SIGNATURE\" ] && echo hyprland || echo unknown)"]
+        stdout: StdioCollector {
+            onStreamFinished: {
+                shellRoot._compositorType = text.trim()
+            }
+        }
+        Component.onCompleted: running = true
+    }
+
+    // Instantiate the correct IPC singleton based on compositor.
+    NiriIpc {
+        id: niriIpc
+        Component.onCompleted: {
+            if (shellRoot._compositorType === "" || shellRoot._compositorType === "niri") {
+                shellRoot.compositorIpc = niriIpc
+            }
+        }
+    }
+
+    HyprlandIpc {
+        id: hyprlandIpc
+        Component.onCompleted: {
+            if (shellRoot._compositorType === "hyprland") {
+                shellRoot.compositorIpc = hyprlandIpc
+            }
+        }
+    }
+
+    // Re-evaluate IPC binding once compositor is detected (async).
+    on_compositorTypeChanged: {
+        if (_compositorType === "niri") {
+            compositorIpc = niriIpc
+        } else if (_compositorType === "hyprland") {
+            compositorIpc = hyprlandIpc
+        } else {
+            // Fallback to niri
+            compositorIpc = niriIpc
+        }
+    }
 
     // Single system stats + power-profile poller — owns both poll processes.
     // CpuMem, InfoBox, and StatusIcons bind to its reactive properties.
@@ -37,8 +85,8 @@ ShellRoot {
             right: true
         }
         // Window is taller than the bar so MultiEffect shadows can render below the pills.
-        // exclusiveZone stays at 24 — Niri only reserves 24px; the extra 20px overlap the
-        // desktop transparently and carry the drop shadows.
+        // exclusiveZone stays at 24 — compositor only reserves 24px; the extra 20px overlap
+        // the desktop transparently and carry the drop shadows.
         implicitHeight: 44
         color: "transparent"
 
@@ -62,7 +110,7 @@ ShellRoot {
                     cpuPct: statusPoller.cpuPct
                     memPct: statusPoller.memPct
                 }
-                Workspaces { workspaceModel: niriIpc.workspaces }
+                Workspaces { workspaceModel: shellRoot.compositorIpc ? shellRoot.compositorIpc.workspaces : [] }
             }
 
             // ── CENTER: Clock ────────────────────────────────────────────────
@@ -75,7 +123,7 @@ ShellRoot {
             // ── COLUMNS: left of clock, grows left ──────────────────────────
             Columns {
                 id: columnsWidget
-                columnModel: niriIpc.columns
+                columnModel: shellRoot.compositorIpc ? shellRoot.compositorIpc.columns : []
                 anchors.right: clockWidget.left
                 anchors.rightMargin: 6
                 anchors.verticalCenter: parent.verticalCenter
@@ -105,8 +153,8 @@ ShellRoot {
                 spacing: 6
 
                 Language {
-                    langText:  niriIpc.languageText
-                    langClass: niriIpc.languageClass
+                    langText:  shellRoot.compositorIpc ? shellRoot.compositorIpc.languageText : "EN"
+                    langClass: shellRoot.compositorIpc ? shellRoot.compositorIpc.languageClass : "en"
                 }
                 StatusIcons {
                     wifiState:    wifiMonitor.wifiState

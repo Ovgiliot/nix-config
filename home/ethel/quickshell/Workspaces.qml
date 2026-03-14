@@ -1,8 +1,8 @@
-// Workspaces widget driven by Niri IPC EventStream via NiriIpc in shell.qml.
+// Workspaces widget driven by compositor IPC (NiriIpc or HyprlandIpc) via shell.qml.
 // workspaceModel is bound from the parent — no socket logic here.
 // Bullet style: ● focused = purple full opacity, unfocused = 28% opacity.
 // Scroll to switch workspace.
-// Shadow: offset y=5, blur 0.7, #00000077 — matches Niri window shadow config.
+// Shadow: offset y=5, blur 0.7, #00000077 — matches window shadow config.
 
 import Quickshell.Io
 import QtQuick
@@ -15,9 +15,9 @@ Item {
 
     property var workspaceModel: []
 
-    // ── Action processes ─────────────────────────────────────────────────────
-    Process { id: focusUpProc;   command: [Scripts.niri, "msg", "action", "focus-workspace-up"]   }
-    Process { id: focusDownProc; command: [Scripts.niri, "msg", "action", "focus-workspace-down"] }
+    // ── Action processes (compositor-agnostic via Scripts) ────────────────────
+    Process { id: focusUpProc;   command: Scripts.focusWorkspaceUp   }
+    Process { id: focusDownProc; command: Scripts.focusWorkspaceDown }
 
     // ── Pill background (hidden — MultiEffect renders it with shadow) ─────────
     Rectangle {

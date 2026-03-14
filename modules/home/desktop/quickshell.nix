@@ -51,9 +51,7 @@
     text = "powerprofilesctl get";
   };
 
-  # ---------------------------------------------------------------------------
-  # Wallpaper picker helpers
-  # ---------------------------------------------------------------------------
+  # ── Wallpaper picker helpers ──────────────────────────────────────────────
 
   listWallpapers = pkgs.writeShellApplication {
     name = "list-wallpapers";
@@ -92,9 +90,7 @@
     '';
   };
 
-  # ---------------------------------------------------------------------------
-  # Audio visualizer helpers (cava + toggle)
-  # ---------------------------------------------------------------------------
+  # ── Audio visualizer helpers (cava + toggle) ─────────────────────────────
 
   # cava-wrapper: takes bar count as $1, generates a temp config, execs cava.
   # Called by AudioVisualizer.qml with the dynamically computed bar count.
@@ -155,12 +151,10 @@
     '';
   };
 
-  # ---------------------------------------------------------------------------
-  # Color Theming
+  # ── Color Theming ────────────────────────────────────────────────────────
   # Defined here (not in scripts.nix) so setWallpaper can reference it as a
   # runtimeInputs entry, which embeds the correct store path in the wrapper's
   # PATH prefix — avoiding the fragile ~/.nix-profile/bin/ hardcode.
-  # ---------------------------------------------------------------------------
 
   # ghostty-push-colors: invoked as a matugen post_hook (config.toml) so it
   # runs in matugen's process context, not as a QS subprocess. Installed into
@@ -257,13 +251,23 @@
 
     // Singleton so there is one instance shared across all components.
     // All paths are absolute Nix store paths — no PATH dependency at runtime.
+    // Compositor-agnostic: workspace commands detect niri/hyprland at runtime.
     Singleton {
         readonly property string wifiMonitor: "${wifiMonitor}/bin/wifi-monitor"
         readonly property string status:      "${status}/bin/status"
         readonly property string getPower:    "${getPower}/bin/get-power-profile"
-        // Absolute store path avoids relying on PATH in the systemd user service
-        // environment — used by Workspaces to dispatch focus-workspace actions.
+        // Compositor tools — both installed, IPC singletons use the right one.
         readonly property string niri:                  "${pkgs.niri}/bin/niri"
+        readonly property string hyprctl:               "${pkgs.hyprland}/bin/hyprctl"
+        // Workspace focus commands — array form for Process.command binding.
+        // Runtime detection: if NIRI_SOCKET is set, use niri; otherwise hyprctl.
+        readonly property var focusWorkspaceUp:   _isNiri
+            ? ["${pkgs.niri}/bin/niri", "msg", "action", "focus-workspace-up"]
+            : ["${pkgs.hyprland}/bin/hyprctl", "dispatch", "workspace", "-1"]
+        readonly property var focusWorkspaceDown: _isNiri
+            ? ["${pkgs.niri}/bin/niri", "msg", "action", "focus-workspace-down"]
+            : ["${pkgs.hyprland}/bin/hyprctl", "dispatch", "workspace", "+1"]
+        readonly property bool _isNiri: Qt.getenv("NIRI_SOCKET") !== ""
         readonly property string qsColors:              "file://${config.home.homeDirectory}/.cache/matugen/qs-colors.json"
         readonly property string setWallpaper:          "${setWallpaper}/bin/set-wallpaper"
         readonly property string listWallpapers:        "${listWallpapers}/bin/list-wallpapers"
@@ -286,6 +290,7 @@
     cp ${dotfilesDir}/quickshell/Language.qml           $out/Language.qml
     cp ${dotfilesDir}/quickshell/StatusIcons.qml        $out/StatusIcons.qml
     cp ${dotfilesDir}/quickshell/NiriIpc.qml            $out/NiriIpc.qml
+    cp ${dotfilesDir}/quickshell/HyprlandIpc.qml       $out/HyprlandIpc.qml
     cp ${dotfilesDir}/quickshell/StatusPoller.qml       $out/StatusPoller.qml
     cp ${dotfilesDir}/quickshell/WifiMonitor.qml        $out/WifiMonitor.qml
     cp ${dotfilesDir}/quickshell/Colors.qml             $out/Colors.qml
