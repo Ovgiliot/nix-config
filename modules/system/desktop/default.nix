@@ -14,8 +14,10 @@
     ./storage.nix
   ];
 
-  # Disk partition editor — system-level since it requires root for disk ops.
-  environment.systemPackages = [pkgs.gparted];
+  environment.systemPackages = [
+    pkgs.gparted # Disk partition editor — system-level since it requires root for disk ops.
+    pkgs.zenity # GTK dialog tool — used by Flutter and other apps for native file pickers.
+  ];
 
   home-manager.users.ethel.imports = [
     ../../home/desktop
