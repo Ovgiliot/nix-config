@@ -45,8 +45,10 @@ input {
     // Setting max-scroll-amount="0%" makes it work only on windows already fully on screen.
     focus-follows-mouse max-scroll-amount="20%"
 
-    // Uncomment this to make the mouse warp to the center of newly focused windows.
-    warp-mouse-to-focus
+    // Disabled: warping the mouse on focus change disrupts popup menus
+    // in XWayland apps (xwayland-satellite presents popups as separate
+    // surfaces; the warp breaks the popup grab cycle causing flicker).
+    // warp-mouse-to-focus
 }
 
 cursor {

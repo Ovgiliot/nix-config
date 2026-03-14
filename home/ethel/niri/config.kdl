@@ -10,9 +10,6 @@ include "binds.kdl"
 // Absolute path required: niri does not expand ~ in include paths.
 include "/home/ethel/.cache/matugen/niri-colors.kdl"
 
-// Start XWayland satellite
-spawn-at-startup "xwayland-satellite"
-
 // Idle management (timeouts, screen-dim, lock, hibernate).
 // Logic lives in scripts.nix as a writeShellApplication with declared deps.
 spawn-at-startup "niri-idle"

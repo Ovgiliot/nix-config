@@ -9,6 +9,8 @@
     qemu = {
       # Software TPM — Windows 11 requires a TPM 2.0 device.
       swtpm.enable = true;
+      # virtiofs — share host directories with guests.
+      vhostUserPackages = [pkgs.virtiofsd];
     };
   };
 
