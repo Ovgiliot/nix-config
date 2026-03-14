@@ -2,8 +2,9 @@
 #
 # This file is a pure data definition with no NixOS/HM module logic.
 # It is imported by:
-#   - modules/home/core/keymap.nix    (Neovim langmap, Qutebrowser key_mappings)
-#   - modules/home/desktop/quickshell.nix (QuickShell KeyMap.qml)
+#   - modules/home/core/keymap.nix         (Neovim langmap)
+#   - modules/home/workflows/browsing.nix  (Qutebrowser key_mappings)
+#   - modules/home/desktop/quickshell.nix  (QuickShell KeyMap.qml)
 #
 # To add a new language:  add an entry under `layouts` below, rebuild.
 #                          All consuming modules pick it up automatically.

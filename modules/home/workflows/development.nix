@@ -2,10 +2,12 @@
 {
   pkgs,
   lib,
+  config,
   dotfilesDir,
   ...
 }: let
-  stripShebang = text: lib.strings.removePrefix "#!/usr/bin/env bash\n" text;
+  homeLib = import ../lib.nix {inherit lib pkgs config;};
+  inherit (homeLib) stripShebang;
 
   # Opens opencode in the dotfiles repo directory.
   opencodeDotfiles = pkgs.writeShellApplication {

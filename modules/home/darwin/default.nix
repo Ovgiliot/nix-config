@@ -25,7 +25,6 @@
     kanata
 
     # General utilities available on macOS.
-    bitwarden-cli
     pandoc
   ];
 }

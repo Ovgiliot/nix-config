@@ -2,10 +2,12 @@
 {
   pkgs,
   lib,
+  config,
   dotfilesDir,
   ...
 }: let
-  stripShebang = text: lib.strings.removePrefix "#!/usr/bin/env bash\n" text;
+  homeLib = import ../lib.nix {inherit lib pkgs config;};
+  inherit (homeLib) stripShebang;
 
   nixosRebuild = pkgs.writeShellApplication {
     name = "nixos-rebuild-dotfiles";

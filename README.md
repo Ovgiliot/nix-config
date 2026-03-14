@@ -38,6 +38,7 @@ Active workflows: **development**, **gaming**, **browsing**, **virtualization**,
     ../modules/system/workflows/virtualization.nix
     ../modules/system/workflows/development.nix
     ../modules/system/workflows/browsing.nix
+    ../modules/system/workflows/drones.nix
     ../modules/system/workflows/music.nix
     ../modules/system/workflows/notetaking.nix
   ];
@@ -61,7 +62,7 @@ modules/system/
   laptop/                    # ThinkPad power + services
   workflows/                 # 14 workflow entry points
 modules/home/
-[/home/ethel/.config/glava/rc.glsl:11] unknown request type 'setdecorate' core/                      # Shell, neovim (base), CLI, git, keymap
+  core/                      # Shell, neovim (base), CLI, git, keymap
   desktop/                   # Theme, niri, quickshell, ghostty, wallpaper, apps
   laptop/                    # Power monitor, touchpad
   darwin/                    # macOS overrides

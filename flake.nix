@@ -205,6 +205,7 @@
           test -f ${./home/ethel/quickshell/Colors.qml}                || exit 1
           test -f ${./home/ethel/quickshell/Columns.qml}               || exit 1
           test -f ${./home/ethel/quickshell/WallpaperPicker.qml}       || exit 1
+          test -f ${./home/ethel/quickshell/AudioVisualizer.qml}      || exit 1
           test -f ${./home/ethel/quickshell/scripts/wifi-monitor.sh}   || exit 1
           test -f ${./home/ethel/quickshell/scripts/system-stats.sh}   || exit 1
           test -f ${./home/ethel/wofi/config}                     || exit 1
