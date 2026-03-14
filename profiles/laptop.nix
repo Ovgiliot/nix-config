@@ -1,5 +1,5 @@
 # Laptop profile (ThinkPad)
-# Full desktop (Niri/Wayland) + ThinkPad-specific power management.
+# Full desktop (Niri + Hyprland compositors, Wayland) + ThinkPad-specific power management.
 # Desktop, laptop, and core home modules are auto-imported by the system infrastructure.
 {...}: {
   imports = [

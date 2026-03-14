@@ -1,5 +1,5 @@
 # Workstation profile
-# Full desktop (Niri/Wayland) + gaming stack. No laptop-specific power management.
+# Full desktop (Niri + Hyprland compositors, Wayland) + gaming stack. No laptop-specific power management.
 # Desktop and core home modules are auto-imported by the system infrastructure.
 {...}: {
   imports = [

@@ -170,6 +170,10 @@
           test -f ${./home/ethel/ranger/scope.sh}                || exit 1
           test -f ${./home/ethel/opencode/agents/talk.md}        || exit 1
           test -e ${./home/ethel/niri}                           || exit 1
+          test -e ${./home/ethel/hypr}                           || exit 1
+          test -f ${./home/ethel/hypr/hyprland.conf}             || exit 1
+          test -f ${./home/ethel/hypr/hypridle.conf}             || exit 1
+          test -f ${./home/ethel/hypr/hyprlock.conf}             || exit 1
           test -f ${./home/ethel/ghostty/config}                 || exit 1
           test -e ${./home/ethel/ghostty/shaders}                || exit 1
           test -f ${./home/ethel/matugen/config.toml}                        || exit 1
@@ -177,6 +181,8 @@
           test -f ${./home/ethel/matugen/templates/mako.conf}                || exit 1
           test -f ${./home/ethel/matugen/templates/wofi-colors.css}          || exit 1
           test -f ${./home/ethel/matugen/templates/niri-colors.kdl}          || exit 1
+          test -f ${./home/ethel/matugen/templates/hyprland-colors.conf}    || exit 1
+          test -f ${./home/ethel/matugen/templates/hyprlock-colors.conf}    || exit 1
           test -f ${./home/ethel/matugen/templates/qs-colors.json}           || exit 1
           test -f ${./home/ethel/matugen/templates/gtk3.css}                 || exit 1
           test -f ${./home/ethel/matugen/templates/gtk4.css}                 || exit 1
@@ -193,6 +199,7 @@
           test -f ${./home/ethel/quickshell/Language.qml}              || exit 1
           test -f ${./home/ethel/quickshell/StatusIcons.qml}           || exit 1
           test -f ${./home/ethel/quickshell/NiriIpc.qml}               || exit 1
+          test -f ${./home/ethel/quickshell/HyprlandIpc.qml}           || exit 1
           test -f ${./home/ethel/quickshell/StatusPoller.qml}          || exit 1
           test -f ${./home/ethel/quickshell/WifiMonitor.qml}           || exit 1
           test -f ${./home/ethel/quickshell/Colors.qml}                || exit 1
