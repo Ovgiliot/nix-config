@@ -45,7 +45,7 @@ PanelWindow {
         left:   true
         right:  true
     }
-    implicitHeight: screen.height * 0.4
+    implicitHeight: screen.height * 0.3
     color: "transparent"
 
     WlrLayershell.layer:         WlrLayer.Bottom
