@@ -11,6 +11,7 @@
     ./audio.nix
     ./display.nix
     ./input.nix
+    ./storage.nix
   ];
 
   # Disk partition editor — system-level since it requires root for disk ops.
