@@ -116,5 +116,14 @@
     # this they go through xwayland-satellite, adding an extra buffer-copy
     # step that introduces timing jitter and contributes to missed vblanks.
     NIXOS_OZONE_WL = "1";
+    # Use Vulkan renderer for GTK4 apps.  The default GL renderer causes
+    # popup/menu flickering on niri (upstream niri#3162).  Vulkan avoids
+    # the compositor-side buffer-age issue that triggers mispositioned or
+    # rapidly-closing popups.
+    GSK_RENDERER = "vulkan";
+    # Force Qt apps to use native Wayland instead of falling back to
+    # XWayland via xwayland-satellite, which has known popup/grab bugs
+    # on niri (upstream xwayland-satellite#353).
+    QT_QPA_PLATFORM = "wayland";
   };
 }
