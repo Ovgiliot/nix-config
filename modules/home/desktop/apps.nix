@@ -14,5 +14,6 @@
     playerctl # Media control (for niri)
     pulsemixer # Audio control
     ghostty
+    pcmanfm # Lightweight file manager / file picker
   ];
 }
