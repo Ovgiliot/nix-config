@@ -20,6 +20,7 @@
   # Flutter/GTK bundles.
   programs.nix-ld.enable = true;
   programs.nix-ld.libraries = with pkgs; [
+    # GTK / display
     gtk3
     gdk-pixbuf
     glib
@@ -29,9 +30,21 @@
     atk
     libepoxy
     fontconfig
-    zlib
+
+    # Wayland / X11 compat (GTK3 loads these at runtime)
+    wayland
+    libxkbcommon
+    xorg.libXcursor
+    xorg.libX11
+    xorg.libXi
+    xorg.libXrandr
+
+    # Media
     gst_all_1.gstreamer
     gst_all_1.gst-plugins-base
+
+    # Base
+    zlib
     stdenv.cc.cc.lib # libstdc++
   ];
 
