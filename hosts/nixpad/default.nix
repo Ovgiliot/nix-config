@@ -36,7 +36,7 @@ in {
         isNormalUser = true;
         shell = pkgs.fish;
         description = "ethel";
-        extraGroups = ["networkmanager" "wheel" "input" "uinput" "video" "libvirtd"];
+        extraGroups = ["networkmanager" "wheel" "input" "uinput" "video" "libvirtd" "dialout"];
       };
 
       system.stateVersion = "25.11";

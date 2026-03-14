@@ -39,6 +39,10 @@ in {
       shellcheck
       nodejs # Required for many LSPs
 
+      # Hardware & Firmware
+      python3
+      dfu-util
+
       # Graphics Development
       glslang
 

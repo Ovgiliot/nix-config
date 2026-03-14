@@ -3,6 +3,7 @@
 {
   inputs,
   dotfilesDir,
+  pkgs,
   ...
 }: {
   imports = [
@@ -12,6 +13,26 @@
     ./locale.nix
     ./networking.nix
     ./security.nix
+  ];
+
+  # Allow pre-built (non-nixpkgs) binaries to find system libraries.
+  # Required for apps like MilELRS Configurator that ship as pre-compiled
+  # Flutter/GTK bundles.
+  programs.nix-ld.enable = true;
+  programs.nix-ld.libraries = with pkgs; [
+    gtk3
+    gdk-pixbuf
+    glib
+    cairo
+    pango
+    harfbuzz
+    atk
+    libepoxy
+    fontconfig
+    zlib
+    gst_all_1.gstreamer
+    gst_all_1.gst-plugins-base
+    stdenv.cc.cc.lib # libstdc++
   ];
 
   # Weekly GC via systemd timer. Set here (not nix.nix) because nix.nix is

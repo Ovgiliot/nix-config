@@ -1,7 +1,10 @@
 # Drones workflow — FPV/RC configuration tools.
-# Requires desktop (imports it as a dependency).
+# Requires desktop and development (imports them as dependencies).
 {...}: {
-  imports = [../desktop];
+  imports = [
+    ../desktop
+    ./development.nix
+  ];
 
   # TODO: joystick support (boot.kernelModules, udev rules)
 
