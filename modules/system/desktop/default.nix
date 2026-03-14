@@ -11,6 +11,7 @@
     ./input.nix
     ./storage.nix
     ./compositors/niri.nix
+    ./compositors/hyprland.nix
   ];
 
   environment.systemPackages = [
