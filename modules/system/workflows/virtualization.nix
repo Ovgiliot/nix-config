@@ -38,6 +38,24 @@
     '';
   };
 
+  # Ensure the default NAT network starts with libvirtd.
+  # libvirt defines 'default' but doesn't always autostart it on NixOS.
+  systemd.services.libvirt-default-network = {
+    description = "Autostart libvirt default NAT network";
+    wantedBy = ["multi-user.target"];
+    requires = ["libvirtd.service"];
+    after = ["libvirtd.service"];
+    serviceConfig = {
+      Type = "oneshot";
+      RemainAfterExit = true;
+    };
+    # Mark for autostart, then start if not already active.
+    script = ''
+      ${pkgs.libvirt}/bin/virsh net-autostart default || true
+      ${pkgs.libvirt}/bin/virsh net-start default || true
+    '';
+  };
+
   # Workaround: libvirt 12.1.0 ships virt-secret-init-encryption.service with a
   # hardcoded /usr/bin/sh that doesn't exist on NixOS.
   # TODO: remove once upstream ships a fixed service file (check after libvirt >12.1.0).
