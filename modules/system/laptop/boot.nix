@@ -24,5 +24,15 @@
   # Kaby Lake (HD 620, device 0x5917) has well-documented PSR2 errata on Linux.
   # Power regression is negligible — the display is never fully static at runtime
   # (linux-wallpaperengine keeps refreshing the background continuously).
-  boot.kernelParams = ["i915.enable_psr=0"];
+  #
+  # PCI hotplug resource reservation for Thunderbolt.
+  # T480 BIOS under-allocates I/O and prefetchable memory for Thunderbolt hotplug
+  # bridges. Without this, downstream PCIe devices behind a dock (xHCI USB, etc.)
+  # fail with "bridge window can't assign; no space" and the tunneled USB controller
+  # dies on resume. hpiosize/hpmmiosize/hpmmioprefsize tell the kernel to reserve
+  # enough address space for hot-added Thunderbolt PCIe endpoints.
+  boot.kernelParams = [
+    "i915.enable_psr=0"
+    "pci=hpiosize=0x4000,hpmmiosize=0x4000000,hpmmioprefsize=0x4000000"
+  ];
 }
