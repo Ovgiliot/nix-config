@@ -14,17 +14,18 @@
   ];
 
   # Disk partition editor — system-level since it requires root for disk ops.
-  # Force X11 backend: GTK3's Wayland popup implementation causes menu
-  # flickering on Niri. Routing through xwayland-satellite avoids this.
-  # Uses symlinkJoin + postBuild to wrap the binary AND patch .desktop files
-  # so the wrapper is used regardless of how GParted is launched.
-  environment.systemPackages = [
-    (pkgs.symlinkJoin {
+  # GTK3 popup menus break on Niri (tiling compositor) and xwayland-satellite
+  # alike. The Niri wiki recommends running such apps inside a nested stacking
+  # compositor. Cage (kiosk compositor) gives GParted a proper stacking env
+  # where popup menus work correctly, shown as a single window in Niri.
+  environment.systemPackages = let
+    gparted-wrapped = pkgs.symlinkJoin {
       name = "gparted";
       paths = [pkgs.gparted];
       buildInputs = [pkgs.makeWrapper];
       postBuild = ''
-        wrapProgram $out/bin/gparted --set GDK_BACKEND x11
+        wrapProgram $out/bin/gparted --prefix PATH : ${pkgs.cage}/bin \
+          --run 'if [ -z "$INSIDE_CAGE" ]; then exec env INSIDE_CAGE=1 cage -- "$0" "$@"; fi'
 
         # .desktop files are symlinks into the store — replace with
         # mutable copies so we can patch the Exec path to use our wrapper.
@@ -34,7 +35,9 @@
             --replace-fail "${pkgs.gparted}" "$out"
         done
       '';
-    })
+    };
+  in [
+    gparted-wrapped
   ];
 
   home-manager.users.ethel.imports = [

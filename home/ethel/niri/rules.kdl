@@ -23,9 +23,7 @@ window-rule {
 
 window-rule {
     geometry-corner-radius 12
-    // Disabled: clip-to-geometry clips XWayland popup menus that extend
-    // beyond the parent window bounds, causing them to appear cut off.
-    // clip-to-geometry true
+    clip-to-geometry true
 }
 
 window-rule {
