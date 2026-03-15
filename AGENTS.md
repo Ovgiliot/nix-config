@@ -10,7 +10,7 @@ The architecture is split into **infrastructure layers** (composable foundations
 - `profiles/` — Thin composition layers. Each profile imports one infrastructure layer and zero or more workflows. Do not import individual modules from a host — import one profile.
   - `laptop.nix` — Laptop infrastructure + virtualization, development, browsing, communication, drones, music, notetaking workflows.
   - `workstation.nix` — Desktop infrastructure + gaming, virtualization, development, browsing, communication, music, notetaking workflows.
-  - `server.nix` — Server infrastructure + development workflow.
+  - `server.nix` — Server infrastructure + services layer + development, dns-filtering, vpn, media-server, media-management, nextcloud, smart-home, dashboard workflows.
   - `darwin.nix` — Special case: `core/nix.nix` + darwinModules + own HM setup with core + darwin home modules.
 - `hosts/<hostname>/` — One directory per machine.
   - `default.nix` — Exports `{ system, specialArgs, modules }` as a function of `{ inputs }`. Contains hostname, user account, stateVersion, and host-specific specialArgs (see below).
@@ -18,21 +18,23 @@ The architecture is split into **infrastructure layers** (composable foundations
 - `modules/system/` — NixOS system modules. Split into infrastructure layers and workflow modules.
   - `core/` — `default.nix`, `boot.nix`, `nix.nix`, `locale.nix`, `networking.nix`, `security.nix`
   - `server/` — `default.nix`
+  - `services/` — `default.nix` (Caddy, Prometheus, Grafana, node-exporter, fail2ban, sops-nix base)
   - `desktop/` — `default.nix`, `audio.nix`, `display.nix`, `input.nix`
   - `laptop/` — `default.nix`, `boot.nix`, `power.nix`, `services.nix`
-  - `workflows/` — 15 workflow entry points (see Workflow Modules below).
+  - `workflows/` — 18 workflow entry points (see Workflow Modules below).
 - `modules/home/` — Home Manager modules.
   - `lib.nix` — Shared helpers: `stripShebang` (removes shebangs for `writeShellApplication`), `mkDesktopFile` (Chromium app-mode `.desktop` files). Import with `homeLib = import ../lib.nix {inherit lib pkgs config;};`.
   - `core/` — Shell, Neovim (base), CLI packages, keyboard layout mapping, git/gh, ranger (no preview deps), scripts, opencode.
   - `desktop/` — Theme, Niri, QuickShell (status bar), Ghostty, notifications (mako stub), launcher (wofi), matugen (color theming), swww wallpaper daemon, apps, ranger preview deps, scripts.
   - `laptop/` — Power-monitor user service, kanata XDG link, toggle-touchpad script.
   - `darwin/` — macOS home directory override, Ghostty + kanata XDG links, macOS-specific packages.
+  - `services/` — Server management scripts (server-status, trust-server-ca).
   - `workflows/` — 12 home workflow modules (see Workflow Modules below).
 - `home/ethel/` — Raw dotfiles only. No `.nix` entry points here. Linked into XDG config by `modules/home/` via the `dotfilesDir` specialArg.
 
 ## Infrastructure Layers
 
-Each layer imports its own dependencies — the NixOS module system deduplicates overlapping imports. The dependency chain is: **Core ← Server**, **Core ← Desktop ← Laptop**.
+Each layer imports its own dependencies — the NixOS module system deduplicates overlapping imports. The dependency chain is: **Core ← Server**, **Core ← Services**, **Core ← Desktop ← Laptop**.
 
 ### Core (every NixOS machine)
 
@@ -43,6 +45,11 @@ Each layer imports its own dependencies — the NixOS module system deduplicates
 ### Server (headless, requires Core)
 
 - **System** (`modules/system/server/default.nix`): imports core. Sets hardened LTS kernel with `lib.mkDefault` (priority 1000) — workflows like gaming can override with higher priority.
+
+### Services (self-hosted services foundation, requires Core)
+
+- **System** (`modules/system/services/default.nix`): imports core + sops-nix nixosModule. Reverse proxy (Caddy with `tls internal`, security-headers snippet, ports 80/443), monitoring (Prometheus on 9090 + node-exporter on 9100 + Caddy metrics scrape), dashboards (Grafana on 3001 with sops-managed admin password and secret key via `$__file{}`), brute-force protection (fail2ban with bantime-increment), secrets management (sops-nix base with age keyfile at `/var/lib/sops-nix/key.txt`). Each service workflow independently adds its own Caddy virtualHosts, Prometheus scrapeConfigs, firewall ports, sops.secrets, and networking.hosts entries — NixOS merges them.
+- **Home** (`modules/home/services/default.nix`): wraps `server-status` (systemd service dashboard) and `trust-server-ca` (exports Caddy's internal CA for client trust) scripts via `writeShellApplication`.
 
 ### Desktop (Wayland compositor, requires Core)
 
@@ -69,17 +76,22 @@ Pure home-manager workflows (no system config needed) get a thin system wrapper 
 5. **Music Production** (`workflows/music.nix`) — Requires Desktop. System: JACK audio. Home: MuseScore, Apple Music web app.
 6. **Note-taking** (`workflows/notetaking.nix`) — Requires Core. Home only: nvim org plugins (orgmode, org-roam-nvim, sqlite-lua, headlines-nvim), pandoc.
 7. **Communication** (`workflows/communication.nix`) — Requires Desktop + Browsing. Home: WhatsApp (Chromium web app), Discord, Telegram.
+8. **DNS Filtering** (`workflows/dns-filtering.nix`) — Requires Services. AdGuard Home on port 3003 (web UI), DNS on 53, encrypted upstream (Quad9 + Cloudflare DoH/DoT), bootstrap DNS, Caddy vhost at `adguard.<hostname>.local`, firewall opens 53/tcp+udp.
+9. **VPN** (`workflows/vpn.nix`) — Requires Services. WireGuard wg0 on 10.100.0.1/24, listens 51820/UDP, private key from sops, IP forwarding. Empty peers list — add clients per host.
+10. **Media Server** (`workflows/media-server.nix`) — Requires Services. Jellyfin on 8096, Caddy vhost at `jellyfin.<hostname>.local`, ReadWritePaths for `mediaLibraryDirs`.
+11. **Media Management** (`workflows/media-management.nix`) — Requires Services. Sonarr (8989), Radarr (7878), Lidarr (8686), Prowlarr (9696), Bazarr (6767), Transmission (9091 in vpn namespace). Shared `media` group. VPN namespace with Mullvad WireGuard (birth-namespace trick), veth pair (10.200.1.1 ↔ 10.200.1.2), kill switch by architecture. Caddy vhosts for all services.
+12. **Nextcloud** (`workflows/nextcloud.nix`) — Requires Services. Nextcloud 30 with PostgreSQL (peer auth via `database.createLocally`), Redis (Unix socket), Caddy vhost with `php_fastcgi` directly to PHP-FPM socket (nginx disabled via `mkForce`), fail2ban jail, PHP opcache tuning.
+13. **Smart Home** (`workflows/smart-home.nix`) — Requires Services. Native Home Assistant (not containerized) on 8123, bound to localhost, Caddy vhost at `home.<hostname>.local` with WebSocket support. Essential extraComponents for discovery, ESPHome, HomeKit, Cast, mobile app. UI-managed automations/scenes/scripts via `!include`. tmpfiles rules ensure YAML files exist at first boot.
+14. **Dashboard** (`workflows/dashboard.nix`) — Requires Services. Homepage dashboard on 8082, Caddy vhost at `dash.<hostname>.local`. Shows health/status for all services. API widget keys via sops-encrypted dotenv file (`secrets/homepage-env`).
 
 ### Scaffold Workflows (placeholder for future implementation)
 
-8. **Drones** (`workflows/drones.nix`) — Requires Desktop. Betaflight web app, joystick scaffold.
-9. **2D Art** (`workflows/2d-art.nix`) — Requires Desktop. Krita, Wacom scaffold.
-10. **3D Art** (`workflows/3d-art.nix`) — Requires Desktop. Blender, Houdini scaffold.
-11. **Video Editing** (`workflows/video-editing.nix`) — Requires Desktop. DaVinci Resolve scaffold.
+15. **Drones** (`workflows/drones.nix`) — Requires Desktop. Betaflight web app, joystick scaffold.
+16. **2D Art** (`workflows/2d-art.nix`) — Requires Desktop. Krita, Wacom scaffold.
+17. **3D Art** (`workflows/3d-art.nix`) — Requires Desktop. Blender, Houdini scaffold.
+18. **Video Editing** (`workflows/video-editing.nix`) — Requires Desktop. DaVinci Resolve scaffold.
 12. **Game Dev** (`workflows/game-dev.nix`) — Requires Desktop + Development. Unreal/Unity scaffold.
 13. **VR** (`workflows/vr.nix`) — Requires Desktop + Gaming. OpenXR/Monado scaffold.
-14. **Smart Home** (`workflows/smart-home.nix`) — Requires Core. Home Assistant scaffold (system only, no home counterpart).
-15. **Home Lab** (`workflows/home-lab.nix`) — Requires Core. WireGuard scaffold (system only, no home counterpart).
 
 ## Host specialArgs
 
@@ -93,6 +105,8 @@ Every host's `default.nix` defines `specialArgs` that are passed through to all 
 - `kanataDevice` — Input device path for Kanata (e.g. `/dev/input/by-path/platform-i8042-serio-0-event-kbd`).
 - `videoAcceleration` — GPU vendor string (`"intel"`, `"amd"`, or `"none"`). Used by `display.nix` for VA-API packages.
 - `primaryUser` — Username for greetd autologin (used by `display.nix`).
+- `serviceDataDir` — Base path for service state data (databases, configs). Defaults to `/var/lib`; dedicated servers may use a separate partition. Used by Nextcloud, PostgreSQL.
+- `mediaLibraryDirs` — List of media library paths for Jellyfin and *arr stack. Empty on non-server hosts.
 
 ## Architecture Rules
 

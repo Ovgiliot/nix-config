@@ -1,0 +1,15 @@
+# sops-nix configuration — maps age public keys to encrypted secret files.
+# To add a new host: generate its age key, add the public key here,
+# then re-encrypt: sops updatekeys secrets/secrets.yaml
+keys:
+  - &nixpad age16g0gaefkuppcufymxgdpj4t9pg7rzlzetzhftceg3n8ur7vmmdrska2yrl
+  - &nixos PLACEHOLDER # generate key on nixos, replace this
+creation_rules:
+  - path_regex: secrets/secrets\.yaml$
+    key_groups:
+      - age:
+          - *nixpad
+  - path_regex: secrets/homepage-env$
+    key_groups:
+      - age:
+          - *nixpad

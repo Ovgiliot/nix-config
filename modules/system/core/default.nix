@@ -34,10 +34,10 @@
     # Wayland / X11 compat (GTK3 loads these at runtime)
     wayland
     libxkbcommon
-    xorg.libXcursor
-    xorg.libX11
-    xorg.libXi
-    xorg.libXrandr
+    libxcursor
+    libx11
+    libxi
+    libxrandr
 
     # Media
     gst_all_1.gstreamer

@@ -21,12 +21,19 @@
 
     # Niri Window Manager (Wayland; Linux only)
     niri.url = "github:sodiboo/niri-flake";
+
+    # Secrets management — age-encrypted secrets decrypted at activation time.
+    sops-nix = {
+      url = "github:Mic92/sops-nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs = {
     self,
     nixpkgs,
     nix-darwin,
+    sops-nix,
     ...
   } @ inputs: let
     # Instantiate nixpkgs for a given system with allowUnfree enabled globally.
@@ -102,6 +109,10 @@
         videoAcceleration = "none";
         # Placeholder primary user for greetd autologin (display.nix).
         primaryUser = "ethel";
+        # Service data directory — default /var/lib for test evaluation.
+        serviceDataDir = "/var/lib";
+        # No media libraries in test environments.
+        mediaLibraryDirs = [];
       };
 
       # Minimal NixOS host module shared by all profile tests.
@@ -210,6 +221,8 @@
           test -f ${./home/ethel/scripts/nixos-rebuild-with-git.sh} || exit 1
           test -f ${./home/ethel/scripts/update.sh}              || exit 1
           test -f ${./home/ethel/scripts/windows-vm.sh}           || exit 1
+          test -f ${./home/ethel/scripts/server-status.sh}        || exit 1
+          test -f ${./home/ethel/scripts/trust-server-ca.sh}      || exit 1
           touch $out
         '';
 

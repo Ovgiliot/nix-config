@@ -21,6 +21,11 @@ in {
     videoAcceleration = "intel";
     # Primary user for greetd autologin (display.nix).
     primaryUser = "ethel";
+    # Base directory for service state (databases, configs).
+    # Default /var/lib works for most setups; dedicated servers may use a separate partition.
+    serviceDataDir = "/var/lib";
+    # Media library paths for Jellyfin / *arr stack. Empty on laptops.
+    mediaLibraryDirs = [];
   };
 
   modules = [
