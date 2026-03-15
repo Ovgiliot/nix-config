@@ -28,6 +28,7 @@ input {
         tap
         dwt
         accel-speed 0.2
+        scroll-factor 0.5
     }
 
     trackpoint {
