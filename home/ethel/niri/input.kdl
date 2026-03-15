@@ -34,7 +34,7 @@ input {
     trackpoint {
         // off
         // natural-scroll
-        accel-speed 0.5
+        accel-speed 0.35
         accel-profile "adaptive"
         // scroll-method "on-button-down"
         // scroll-button 273
