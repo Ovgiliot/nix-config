@@ -8,6 +8,7 @@
     ../modules/system/workflows/virtualization.nix
     ../modules/system/workflows/development.nix
     ../modules/system/workflows/browsing.nix
+    ../modules/system/workflows/communication.nix
     ../modules/system/workflows/music.nix
     ../modules/system/workflows/notetaking.nix
   ];

@@ -8,8 +8,8 @@ The architecture is split into **infrastructure layers** (composable foundations
 
 - `flake.nix` — Entry point. Defines inputs and exposes `mkNixosHost` / `mkDarwinHost` helpers. Hosts are registered in `nixosConfigurations` / `darwinConfigurations`. Also defines `checks` (8 total: eval, build, integrity, format, VM test) and `formatter` (alejandra).
 - `profiles/` — Thin composition layers. Each profile imports one infrastructure layer and zero or more workflows. Do not import individual modules from a host — import one profile.
-  - `laptop.nix` — Laptop infrastructure + virtualization, development, browsing, music, notetaking workflows.
-  - `workstation.nix` — Desktop infrastructure + gaming, virtualization, development, browsing, music, notetaking workflows.
+  - `laptop.nix` — Laptop infrastructure + virtualization, development, browsing, communication, drones, music, notetaking workflows.
+  - `workstation.nix` — Desktop infrastructure + gaming, virtualization, development, browsing, communication, music, notetaking workflows.
   - `server.nix` — Server infrastructure + development workflow.
   - `darwin.nix` — Special case: `core/nix.nix` + darwinModules + own HM setup with core + darwin home modules.
 - `hosts/<hostname>/` — One directory per machine.
@@ -20,14 +20,14 @@ The architecture is split into **infrastructure layers** (composable foundations
   - `server/` — `default.nix`
   - `desktop/` — `default.nix`, `audio.nix`, `display.nix`, `input.nix`
   - `laptop/` — `default.nix`, `boot.nix`, `power.nix`, `services.nix`
-  - `workflows/` — 14 workflow entry points (see Workflow Modules below).
+  - `workflows/` — 15 workflow entry points (see Workflow Modules below).
 - `modules/home/` — Home Manager modules.
   - `lib.nix` — Shared helpers: `stripShebang` (removes shebangs for `writeShellApplication`), `mkDesktopFile` (Chromium app-mode `.desktop` files). Import with `homeLib = import ../lib.nix {inherit lib pkgs config;};`.
   - `core/` — Shell, Neovim (base), CLI packages, keyboard layout mapping, git/gh, ranger (no preview deps), scripts, opencode.
   - `desktop/` — Theme, Niri, QuickShell (status bar), Ghostty, notifications (mako stub), launcher (wofi), matugen (color theming), swww wallpaper daemon, apps, ranger preview deps, scripts.
   - `laptop/` — Power-monitor user service, kanata XDG link, toggle-touchpad script.
   - `darwin/` — macOS home directory override, Ghostty + kanata XDG links, macOS-specific packages.
-  - `workflows/` — 11 home workflow modules (see Workflow Modules below).
+  - `workflows/` — 12 home workflow modules (see Workflow Modules below).
 - `home/ethel/` — Raw dotfiles only. No `.nix` entry points here. Linked into XDG config by `modules/home/` via the `dotfilesDir` specialArg.
 
 ## Infrastructure Layers
@@ -68,17 +68,18 @@ Pure home-manager workflows (no system config needed) get a thin system wrapper 
 4. **Browsing** (`workflows/browsing.nix`) — Requires Desktop. System: `programs.chromium.enable`, WideVine. Home: qutebrowser (package, config, BROWSER env var, MIME), chromium, web apps (YouTube, Nix Packages Search, Neuro Karaoke), apple-music script, qutebrowser `keymap.py` generation (from `keymap-layouts.nix`).
 5. **Music Production** (`workflows/music.nix`) — Requires Desktop. System: JACK audio. Home: MuseScore, Apple Music web app.
 6. **Note-taking** (`workflows/notetaking.nix`) — Requires Core. Home only: nvim org plugins (orgmode, org-roam-nvim, sqlite-lua, headlines-nvim), pandoc.
+7. **Communication** (`workflows/communication.nix`) — Requires Desktop + Browsing. Home: WhatsApp (Chromium web app), Discord, Telegram.
 
 ### Scaffold Workflows (placeholder for future implementation)
 
-7. **Drones** (`workflows/drones.nix`) — Requires Desktop. Betaflight web app, joystick scaffold.
-8. **2D Art** (`workflows/2d-art.nix`) — Requires Desktop. Krita, Wacom scaffold.
-9. **3D Art** (`workflows/3d-art.nix`) — Requires Desktop. Blender, Houdini scaffold.
-10. **Video Editing** (`workflows/video-editing.nix`) — Requires Desktop. DaVinci Resolve scaffold.
-11. **Game Dev** (`workflows/game-dev.nix`) — Requires Desktop + Development. Unreal/Unity scaffold.
-12. **VR** (`workflows/vr.nix`) — Requires Desktop + Gaming. OpenXR/Monado scaffold.
-13. **Smart Home** (`workflows/smart-home.nix`) — Requires Core. Home Assistant scaffold (system only, no home counterpart).
-14. **Home Lab** (`workflows/home-lab.nix`) — Requires Core. WireGuard scaffold (system only, no home counterpart).
+8. **Drones** (`workflows/drones.nix`) — Requires Desktop. Betaflight web app, joystick scaffold.
+9. **2D Art** (`workflows/2d-art.nix`) — Requires Desktop. Krita, Wacom scaffold.
+10. **3D Art** (`workflows/3d-art.nix`) — Requires Desktop. Blender, Houdini scaffold.
+11. **Video Editing** (`workflows/video-editing.nix`) — Requires Desktop. DaVinci Resolve scaffold.
+12. **Game Dev** (`workflows/game-dev.nix`) — Requires Desktop + Development. Unreal/Unity scaffold.
+13. **VR** (`workflows/vr.nix`) — Requires Desktop + Gaming. OpenXR/Monado scaffold.
+14. **Smart Home** (`workflows/smart-home.nix`) — Requires Core. Home Assistant scaffold (system only, no home counterpart).
+15. **Home Lab** (`workflows/home-lab.nix`) — Requires Core. WireGuard scaffold (system only, no home counterpart).
 
 ## Host specialArgs
 
