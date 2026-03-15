@@ -109,6 +109,7 @@ do
 			org_default_notes_file = "~/Documents/org/refile.org",
 			org_todo_keywords = { "TODO(t)", "NEXT(n)", "STRT(s)", "WAIT(w)", "|", "DONE(d)", "KILL(k)" },
 			org_indent_mode = "noindent",
+			org_adapt_indentation = false,
 			org_hide_emphasis_markers = true,
 			org_startup_folded = "showeverything",
 			mappings = {
@@ -128,9 +129,11 @@ do
 		vim.api.nvim_create_autocmd("FileType", {
 			pattern = "org",
 			callback = function()
+				vim.bo.expandtab = true
 				vim.bo.shiftwidth = 4
 				vim.bo.tabstop = 4
 				vim.bo.softtabstop = 4
+				vim.bo.indentexpr = "" -- Disable orgmode's smart indent; use autoindent + shiftwidth=4
 
 				vim.keymap.set("n", "gd", function()
 					require("orgmode").action("org_mappings.open_at_point")
